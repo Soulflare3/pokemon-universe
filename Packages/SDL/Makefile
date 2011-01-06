@@ -9,7 +9,7 @@ CGOFILES=\
 	sdl.go\
 
 CGO_CFLAGS=`sdl-config --cflags`
-CGO_LDFLAGS=`sdl-config --libs`
+CGO_LDFLAGS=`sdl-config --libs` -lSDL_image
 
 CLEANFILES+=sdl
 
