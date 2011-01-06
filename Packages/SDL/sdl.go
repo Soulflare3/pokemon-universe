@@ -22,15 +22,21 @@ The goal is not to make a complete SDL wrapper, but to wrap only the SDL functio
 
 package sdl
 
+//#include "SDL_image.h"
 //#include "SDL.h"
 import "C"
 import "unsafe"
+import "fmt"
 
 type cast unsafe.Pointer
 
 func GetTicks() uint32 { 
     return uint32(C.SDL_GetTicks())
 }   
+
+func Quit() {
+	C.SDL_Quit()
+}
 
 func Init() (error string) {
     if C.SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0 {
@@ -41,12 +47,14 @@ func Init() (error string) {
 }
 
 func CreateWindow(_title string, _width int, _height int) (error string) {
-    var window *C.struct_SDL_Window = C.SDL_CreateWindow(C.CString(_title), 
+	ctitle := C.CString(_title)
+    var window *C.struct_SDL_Window = C.SDL_CreateWindow(ctitle, 
 							 							 SDL_WINDOWPOS_CENTERED, 
-															 SDL_WINDOWPOS_CENTERED,
+														 SDL_WINDOWPOS_CENTERED,
 														 C.int(_width), 
 														 C.int(_height), 
 														 SDL_WINDOW_SHOWN)
+	C.free(unsafe.Pointer(ctitle))
     if window == nil {
         error = C.GoString(C.SDL_GetError())
         return
@@ -74,7 +82,7 @@ type RendererInfo struct {
     blend_modes uint32
     scale_modes uint32
     num_texture_formats uint32
-    texture_formats[50] [50]uint32
+    texture_formats [50]uint32
     max_texture_width int32
     max_texture_height int32
 }
@@ -213,6 +221,128 @@ type UserEvent struct {
 
 type SysWMEvent struct {
     Evtype uint32
+}
+
+type Surface struct {
+	Flags uint32
+	Format *PixelFormat
+	W int32
+	H int32
+	Pitch uint16
+	Pad0 [2]byte
+	Pixels *byte
+	Offset int32
+	Hwdata *[0]byte
+	Clip_rect Rect
+	Unused1 uint32
+	Locked uint32
+	Map *[0]byte
+	Format_version uint32
+	Refcount int32
+}
+
+func (s *Surface) Get() *C.SDL_Surface {
+	return (*C.SDL_Surface)(cast(s))
+}
+
+func (s *Surface) Release() {
+	C.SDL_FreeSurface(s.Get())
+}
+
+func (s *Surface) CreateTexture() *Texture {
+	return &Texture{texture : C.SDL_CreateTextureFromSurface(C.Uint32(0), s.Get())}
+}
+
+func (s *Surface) DisplayFormatAlpha(_surface *Surface) {
+	surface := (*Surface)(cast(C.SDL_DisplayFormatAlpha(_surface.Get())))
+	s = surface
+}
+
+type Texture struct {
+	texture *C.SDL_Texture
+	Alpha uint8
+}
+
+func (t *Texture) Get() *C.SDL_Texture {
+	return t.texture 
+}
+
+func (t *Texture) Release() {
+	C.SDL_DestroyTexture(t.texture)
+} 
+
+func (t *Texture) SetAlpha(_alpha uint8) {
+	t.Alpha = _alpha
+	C.SDL_SetTextureAlphaMod(t.texture, C.Uint8(_alpha))
+}
+
+func (t *Texture) SetScaleMode(_mode int) {
+	C.SDL_SetTextureScaleMode(t.texture, C.SDL_ScaleMode(_mode))
+}
+
+func (t *Texture) RenderCopy(_srcrect Rect, _dstrect Rect) {
+	src := (*C.SDL_Rect)(cast(&_srcrect))
+	dst := (*C.SDL_Rect)(cast(&_dstrect))
+	C.SDL_RenderCopy(t.texture, src, dst)
+}
+
+func RenderClear() {
+	C.SDL_RenderClear()
+}
+
+func RenderPresent() {
+	C.SDL_RenderPresent()
+}
+
+func LoadImage(_file string) *Surface {
+	cfile := C.CString(_file)
+	img := C.IMG_Load(cfile)
+	if img == nil {
+		fmt.Printf("Image load error: %v", C.GoString(C.IMG_GetError()))
+	}
+	C.free(unsafe.Pointer(cfile))
+	return (*Surface)(cast(img))
+}
+
+type Rect struct {
+	X int16
+	Y int16
+	W uint16
+	H uint16
+}
+
+type PixelFormat struct {
+	Palette *Palette
+	BitsPerPixel uint8
+	BytesPerPixel uint8
+	Rloss uint8
+	Gloss uint8
+	Bloss uint8
+	Aloss uint8
+	Rshift uint8
+	Gshift uint8
+	Bshift uint8
+	Ashift uint8
+	Pad0 [2]byte
+	Rmask uint32
+	Gmask uint32
+	Bmask uint32
+	Amask uint32
+	Colorkey uint32
+	Alpha uint8
+	Pad1 [3]byte
+}
+
+type Palette struct {
+	Ncolors int32
+	Colors *Color
+}
+
+type Color struct {
+	R uint8
+	G uint8
+	B uint8
+	Unused uint8
 }
 
 const (
