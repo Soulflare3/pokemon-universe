@@ -65,6 +65,8 @@ func CreateWindow(_title string, _width int, _height int) (error string) {
         return
     }
 	
+	//try to find OpenGL
+	rendererIndex := 0
 	numRenderers := int(C.SDL_GetNumRenderDrivers())
 	for i := 0; i < numRenderers; i++ {
 		var rendererInfo *RendererInfo = &RendererInfo{}
@@ -80,9 +82,12 @@ func CreateWindow(_title string, _width int, _height int) (error string) {
 			strname += string(*ch)	
 		}
 		fmt.Printf("Renderer: %v\n", strname)
+		if strname == "opengl" {
+			rendererIndex = i
+		}
 	}
-	
-    if C.SDL_CreateRenderer(window, 1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED) != 0 {
+		
+    if C.SDL_CreateRenderer(window, C.int(rendererIndex), SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED) != 0 {
         error = C.GoString(C.SDL_GetError())
         return
     }
