@@ -22,11 +22,16 @@ The goal is not to make a complete SDL wrapper, but to wrap only the SDL functio
 
 package sdl
 
-//#include "SDL_image.h"
 //#include "SDL.h"
-import "C"
-import "unsafe"
-import "fmt"
+import "C" 
+import (
+	"unsafe"
+	"fmt"
+	"os"
+	"bufio"
+	"image"
+	"image/png"
+)
 
 type cast unsafe.Pointer
 
@@ -60,15 +65,24 @@ func CreateWindow(_title string, _width int, _height int) (error string) {
         return
     }
 	
-	//TODO: Make this piece actually work so that OpenGL is explicitly used (or possibly D3D on Windows)
 	numRenderers := int(C.SDL_GetNumRenderDrivers())
 	for i := 0; i < numRenderers; i++ {
 		var rendererInfo *RendererInfo = &RendererInfo{}
 		C.SDL_GetRenderDriverInfo(C.int(i), (*C.SDL_RendererInfo)(cast(rendererInfo)));
-		
+
+		strname := ""
+		for c := 0;; c++ { 
+			var name = uintptr(unsafe.Pointer(rendererInfo.name))+uintptr(c)
+			ch := (*uint8)(cast(name))
+			if *ch == uint8(0) {
+				break
+			}
+			strname += string(*ch)	
+		}
+		fmt.Printf("Renderer: %v\n", strname)
 	}
 	
-    if C.SDL_CreateRenderer(window, 0, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED) != 0 {
+    if C.SDL_CreateRenderer(window, 1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED) != 0 {
         error = C.GoString(C.SDL_GetError())
         return
     }
@@ -87,13 +101,12 @@ type RendererInfo struct {
     max_texture_height int32
 }
 
-func StartEventLoop(_events chan<- *SDLEvent) {
-    var ev *SDLEvent = &SDLEvent{}
-    for{
-        if C.SDL_WaitEvent((*C.SDL_Event)(cast(ev))) != 0 {
-	    _events <- ev
-        }
+func PollEvent() (*SDLEvent, bool) {
+	var ev *SDLEvent = &SDLEvent{}
+    if C.SDL_PollEvent((*C.SDL_Event)(cast(ev))) != 0 {
+		return ev, true
     }
+	return nil, false
 }
 
 type SDLEvent struct {
@@ -258,6 +271,12 @@ func (s *Surface) DisplayFormatAlpha(_surface *Surface) {
 	s = surface
 }
 
+func (s *Surface) SaveBMP(_file string) {
+	cfile := C.CString(_file); defer C.free(unsafe.Pointer(cfile))
+	cparams := C.CString("wb"); defer C.free(unsafe.Pointer(cparams))
+	C.SDL_SaveBMP_RW(s.Get(), C.SDL_RWFromFile(cfile, cparams), C.int(1))  
+}
+
 type Texture struct {
 	texture *C.SDL_Texture
 	Alpha uint8
@@ -295,13 +314,51 @@ func RenderPresent() {
 }
 
 func LoadImage(_file string) *Surface {
-	cfile := C.CString(_file)
-	img := C.IMG_Load(cfile)
-	if img == nil {
-		fmt.Printf("Image load error: %v", C.GoString(C.IMG_GetError()))
+	img := LoadPNG(_file)
+	if img != nil {
+		bpp := 0
+		if _, is_type := img.(*image.RGBA); is_type {
+			bpp = 3
+		} else if _, is_type := img.(*image.NRGBA); is_type {
+			bpp = 4
+		}
+		fmt.Printf("Bpp: %v", bpp)
+		
+		width := img.Bounds().Size().X
+		height := img.Bounds().Size().Y
+		depth := bpp*8
+
+		var sf = C.SDL_CreateRGBSurface(C.SDL_HWSURFACE, C.int(width), C.int(height), C.int(depth), C.Uint32(0), C.Uint32(0), C.Uint32(0), C.Uint32(0))
+		var surface *Surface = (*Surface)(cast(sf))
+
+		for y := 0; y < height; y++ {
+			for x := 0; x < width; x++ {
+				var pixels = uintptr(unsafe.Pointer(surface.Pixels))
+				r, g, b, a := img.At(x, y).RGBA()
+
+				color := uint32(C.SDL_MapRGBA(surface.Get().format, C.Uint8(r >> 8), C.Uint8(g >> 8), C.Uint8(b >> 8), C.Uint8(a >> 8)))
+				*(*uint32)(unsafe.Pointer(pixels + uintptr(y*int(surface.Pitch)+x<<2))) = color
+			}		
+		}
+		return surface
 	}
-	C.free(unsafe.Pointer(cfile))
-	return (*Surface)(cast(img))
+	return nil
+}
+
+func LoadPNG(_file string) image.Image {
+	file, err := os.Open(_file, 0, 0) 
+	if file == nil {
+		fmt.Printf("LoadPNG error: ", err.String())
+		return nil
+	}
+	defer file.Close()
+	data := bufio.NewReader(file)
+	img, err := png.Decode(data)
+	if err != nil {
+		fmt.Printf("LoadPNG error: ", err.String())
+		return nil
+	}
+	return img
 }
 
 type Rect struct {
