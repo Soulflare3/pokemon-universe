@@ -43,55 +43,66 @@ func Quit() {
 	C.SDL_Quit()
 }
 
+func GetError() string {
+	return C.GoString(C.SDL_GetError())
+}
+
 func Init() (error string) {
-    if C.SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0 {
+    if C.SDL_Init(C.SDL_INIT_VIDEO | C.SDL_INIT_TIMER) != 0 {
         error = C.GoString(C.SDL_GetError())
         return
     }
     return ""
 }
 
-func CreateWindow(_title string, _width int, _height int) (error string) {
+type Window struct {
+	window *C.SDL_Window
+}
+
+func GetNumRenderDrivers() int {
+	return int(C.SDL_GetNumRenderDrivers())
+}
+
+func GetRenderDriverInfo(_index int) *RendererInfo {
+	var rendererInfo *RendererInfo = &RendererInfo{}
+	C.SDL_GetRenderDriverInfo(C.int(_index), (*C.SDL_RendererInfo)(cast(rendererInfo)));
+	return rendererInfo
+}
+
+func GetRenderDriverName(_index int) string {
+	info := GetRenderDriverInfo(_index)
+	strname := ""
+	for c := 0;; c++ { 
+		var name = uintptr(unsafe.Pointer(info.name))+uintptr(c)
+		ch := (*uint8)(cast(name))
+		if *ch == uint8(0) {
+			break
+		}
+		strname += string(*ch)	
+	}
+	return strname
+}
+
+func CreateRenderer(_window *Window, _index int) string {
+    if C.SDL_CreateRenderer(_window.window, C.int(_index), C.SDL_RENDERER_PRESENTVSYNC | C.SDL_RENDERER_ACCELERATED) != 0 {
+        return GetError()
+    }
+	return ""
+}
+
+func CreateWindow(_title string, _width int, _height int) (*Window, string) {
 	ctitle := C.CString(_title)
     var window *C.struct_SDL_Window = C.SDL_CreateWindow(ctitle, 
-							 							 SDL_WINDOWPOS_CENTERED, 
-														 SDL_WINDOWPOS_CENTERED,
+							 							 C.SDL_WINDOWPOS_CENTERED, 
+														 C.SDL_WINDOWPOS_CENTERED,
 														 C.int(_width), 
 														 C.int(_height), 
-														 SDL_WINDOW_SHOWN)
+														 C.SDL_WINDOW_SHOWN)
 	C.free(unsafe.Pointer(ctitle))
     if window == nil {
-        error = C.GoString(C.SDL_GetError())
-        return
+        return nil, GetError()
     }
-	
-	//try to find OpenGL
-	rendererIndex := 0
-	numRenderers := int(C.SDL_GetNumRenderDrivers())
-	for i := 0; i < numRenderers; i++ {
-		var rendererInfo *RendererInfo = &RendererInfo{}
-		C.SDL_GetRenderDriverInfo(C.int(i), (*C.SDL_RendererInfo)(cast(rendererInfo)));
-
-		strname := ""
-		for c := 0;; c++ { 
-			var name = uintptr(unsafe.Pointer(rendererInfo.name))+uintptr(c)
-			ch := (*uint8)(cast(name))
-			if *ch == uint8(0) {
-				break
-			}
-			strname += string(*ch)	
-		}
-		fmt.Printf("Renderer: %v\n", strname)
-		if strname == "opengl" {
-			rendererIndex = i
-		}
-	}
-		
-    if C.SDL_CreateRenderer(window, C.int(rendererIndex), SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED) != 0 {
-        error = C.GoString(C.SDL_GetError())
-        return
-    }
-    return ""
+    return &Window{window}, ""
 }
 
 type RendererInfo struct {
@@ -271,9 +282,8 @@ func (s *Surface) CreateTexture() *Texture {
 	return &Texture{texture : C.SDL_CreateTextureFromSurface(C.Uint32(0), s.Get())}
 }
 
-func (s *Surface) DisplayFormatAlpha(_surface *Surface) {
-	surface := (*Surface)(cast(C.SDL_DisplayFormatAlpha(_surface.Get())))
-	s = surface
+func (s *Surface) DisplayFormatAlpha() *Surface {
+	return (*Surface)(cast(C.SDL_DisplayFormatAlpha(s.Get())))
 }
 
 func (s *Surface) SaveBMP(_file string) {
@@ -327,7 +337,6 @@ func LoadImage(_file string) *Surface {
 		} else if _, is_type := img.(*image.NRGBA); is_type {
 			bpp = 4
 		}
-		fmt.Printf("Bpp: %v", bpp)
 		
 		width := img.Bounds().Size().X
 		height := img.Bounds().Size().Y
@@ -367,10 +376,10 @@ func LoadPNG(_file string) image.Image {
 }
 
 type Rect struct {
-	X int16
-	Y int16
-	W uint16
-	H uint16
+	X int32
+	Y int32
+	W int32
+	H int32
 }
 
 type PixelFormat struct {
