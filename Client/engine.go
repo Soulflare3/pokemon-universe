@@ -3,6 +3,7 @@ package main
 import (
 	"sdl"
 	"fmt"
+	"os"
 )
 
 const (
@@ -28,4 +29,12 @@ func InitEngine() {
 		}
 	}
 	sdl.CreateRenderer(window, rendererIndex)
+}
+
+func LoadImage(_file string) *sdl.Surface {
+	//Set current path
+    path, _ := os.Getwd()
+    //Uncomment the next line when compiling for Mac OSX
+    //path += "/.PUDATA"
+	return sdl.LoadImage(path+"/"+_file)
 }

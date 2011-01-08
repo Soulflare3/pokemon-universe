@@ -19,7 +19,7 @@ func main() {
  	InitEngine()
 
 	//Some test code
-    s := sdl.LoadImage("test.png")
+    s := LoadImage("test.png")
     texture := s.CreateTexture() 
  
     //Handle events
