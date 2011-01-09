@@ -5,12 +5,13 @@ import (
 	"os"
 	"exec"
 	"path"
+	"fmt"
 )
 
 type PU_Image struct {
 	w, h uint16
 	surface *sdl.Surface
-	texture *sdl.Texture
+	texture *sdl.Texture 
 }
 
 func NewImage(_file string) *PU_Image {
@@ -25,6 +26,8 @@ func NewImage(_file string) *PU_Image {
 	image.texture = image.surface.CreateTexture()
 	image.w = uint16(image.texture.W)
 	image.h = uint16(image.texture.H)
+
+	fmt.Printf("x:%v h:%v\n", image.w, image.h)
 
 	return image
 }

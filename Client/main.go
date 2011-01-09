@@ -27,19 +27,26 @@ func main() {
     img := g_engine.LoadImage("test.png")
  
     //Handle events
-    for g_running {  
+    for g_running { 
         event, present := sdl.PollEvent()
 		if present {
 			EventHandler(event)		
-		}  
-        sdl.RenderClear()
+		}
+        sdl.RenderClear() 
        
 		//Some more test code
         img.Draw(0, 0)
+
+		//Even more test code
+		sdl.SetRenderDrawColor(255,0,0,100)
+		sdl.SetRenderDrawBlendMode(sdl.SDL_BLENDMODE_BLEND)
+		sdl.RenderFillRect(sdl.Rect{10,10,100,100})
+		sdl.SetRenderDrawBlendMode(sdl.SDL_BLENDMODE_NONE)
    
         sdl.RenderPresent() 
         time.Sleep(10)
     }
+	sdl.Quit() 
 }
  
 func EventHandler(_event *sdl.SDLEvent) {

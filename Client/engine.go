@@ -13,6 +13,7 @@ const (
 
 type PU_Engine struct {
 	imageList *list.List
+	window *sdl.Window
 }
 
 func NewEngine() *PU_Engine {
@@ -21,7 +22,8 @@ func NewEngine() *PU_Engine {
 
 func (e *PU_Engine) Init() {
 	//Create the window
-   	window, err := sdl.CreateWindow("Pokemon Universe", WINDOW_WIDTH, WINDOW_HEIGHT)
+	var err string
+   	e.window, err = sdl.CreateWindow("Pokemon Universe", WINDOW_WIDTH, WINDOW_HEIGHT)
     if err != "" {
         fmt.Printf("Error in CreateWindow: %v", err) 
         return
@@ -36,7 +38,8 @@ func (e *PU_Engine) Init() {
 			rendererIndex = i		
 		}
 	}
-	sdl.CreateRenderer(window, rendererIndex)
+	sdl.CreateRenderer(e.window, rendererIndex)
+	sdl.SelectRenderer(e.window)
 }
 
 func (e *PU_Engine) Exit() {
@@ -45,9 +48,11 @@ func (e *PU_Engine) Exit() {
 		image, valid := i.Value.(*PU_Image)
 		if valid {
 			image.Release()
-		} else {
 		}
 	}
+
+	//Destroy the window
+	sdl.DestroyWindow(e.window)
 } 
 
 func (e *PU_Engine) LoadImage(_file string) *PU_Image {
