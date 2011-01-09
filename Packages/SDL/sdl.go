@@ -279,7 +279,8 @@ func (s *Surface) Release() {
 }
 
 func (s *Surface) CreateTexture() *Texture {
-	return &Texture{texture : C.SDL_CreateTextureFromSurface(C.Uint32(0), s.Get())}
+	var tex = C.SDL_CreateTextureFromSurface(C.Uint32(0), s.Get())
+	return (*Texture)(cast(tex))
 }
 
 func (s *Surface) DisplayFormatAlpha() *Surface {
@@ -293,31 +294,44 @@ func (s *Surface) SaveBMP(_file string) {
 }
 
 type Texture struct {
-	texture *C.SDL_Texture
-	Alpha uint8
+	Magic *[0]byte
+    Format uint32
+    Access int32
+    W int32
+    H int32
+   	ModMode int32
+	BlendMode *C.SDL_BlendMode
+    ScaleMode *C.SDL_ScaleMode
+    R, G, B, A uint8
+
+    Renderer *C.struct_SDL_Renderer
+
+    Driverdata *[0]byte
+
+    Prev *Texture
+    Next *Texture
 }
 
 func (t *Texture) Get() *C.SDL_Texture {
-	return t.texture 
+	return (*C.SDL_Texture)(cast(t))
 }
 
 func (t *Texture) Release() {
-	C.SDL_DestroyTexture(t.texture)
+	C.SDL_DestroyTexture(t.Get())
 } 
 
 func (t *Texture) SetAlpha(_alpha uint8) {
-	t.Alpha = _alpha
-	C.SDL_SetTextureAlphaMod(t.texture, C.Uint8(_alpha))
+	C.SDL_SetTextureAlphaMod(t.Get(), C.Uint8(_alpha))
 }
 
 func (t *Texture) SetScaleMode(_mode int) {
-	C.SDL_SetTextureScaleMode(t.texture, C.SDL_ScaleMode(_mode))
+	C.SDL_SetTextureScaleMode(t.Get(), C.SDL_ScaleMode(_mode))
 }
 
 func (t *Texture) RenderCopy(_srcrect Rect, _dstrect Rect) {
 	src := (*C.SDL_Rect)(cast(&_srcrect))
 	dst := (*C.SDL_Rect)(cast(&_dstrect))
-	C.SDL_RenderCopy(t.texture, src, dst)
+	C.SDL_RenderCopy(t.Get(), src, dst)
 }
 
 func RenderClear() {
