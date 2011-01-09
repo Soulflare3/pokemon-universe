@@ -43,12 +43,15 @@ func Quit() {
 	C.SDL_Quit()
 }
 
-func GetError() string {
-	return C.GoString(C.SDL_GetError())
+func GetError() (ret string) {
+	ret = C.GoString(C.SDL_GetError())
+	C.SDL_ClearError()	
+	return
 }
 
 func Init() (error string) {
-    if C.SDL_Init(C.SDL_INIT_VIDEO | C.SDL_INIT_TIMER) != 0 {
+	flags := int64(C.SDL_INIT_VIDEO)
+    if C.SDL_Init(C.Uint32(flags)) != 0 {
         error = C.GoString(C.SDL_GetError())
         return
     }
@@ -90,19 +93,27 @@ func CreateRenderer(_window *Window, _index int) string {
 	return ""
 }
 
+func SelectRenderer(_window *Window) {
+	C.SDL_SelectRenderer(_window.window)
+}
+
 func CreateWindow(_title string, _width int, _height int) (*Window, string) {
 	ctitle := C.CString(_title)
-    var window *C.struct_SDL_Window = C.SDL_CreateWindow(ctitle, 
-							 							 C.SDL_WINDOWPOS_CENTERED, 
-														 C.SDL_WINDOWPOS_CENTERED,
-														 C.int(_width), 
-														 C.int(_height), 
-														 C.SDL_WINDOW_SHOWN)
+    var window *C.SDL_Window = C.SDL_CreateWindow(ctitle, 
+					 							  C.SDL_WINDOWPOS_CENTERED, 
+												  C.SDL_WINDOWPOS_CENTERED,
+												  C.int(_width), 
+												  C.int(_height), 
+												  C.SDL_WINDOW_SHOWN | C.SDL_WINDOW_OPENGL)
 	C.free(unsafe.Pointer(ctitle))
     if window == nil {
         return nil, GetError()
     }
     return &Window{window}, ""
+}
+
+func DestroyWindow(_window *Window) {
+	C.SDL_DestroyWindow(_window.window)
 }
 
 type RendererInfo struct {
@@ -342,6 +353,18 @@ func RenderPresent() {
 	C.SDL_RenderPresent()
 }
 
+func RenderFillRect(_rect Rect)  {
+	C.SDL_RenderFillRect((*C.SDL_Rect)(cast(&_rect)))
+}
+
+func SetRenderDrawColor(_r uint8, _g uint8, _b uint8, _a uint8) {
+	C.SDL_SetRenderDrawColor(C.Uint8(_r), C.Uint8(_g), C.Uint8(_b), C.Uint8(_a))
+}
+
+func SetRenderDrawBlendMode(_mode int) {
+	C.SDL_SetRenderDrawBlendMode(C.SDL_BlendMode(_mode))
+}
+
 func LoadImage(_file string) *Surface {
 	img := LoadPNG(_file)
 	if img != nil {
@@ -438,6 +461,12 @@ const (
     SDL_WINDOW_SHOWN = 4
     SDL_RENDERER_PRESENTVSYNC = 32
     SDL_RENDERER_ACCELERATED = 64
+
+    SDL_BLENDMODE_NONE = 0x00000000
+    SDL_BLENDMODE_MASK = 0x00000001
+    SDL_BLENDMODE_BLEND = 0x00000002
+    SDL_BLENDMODE_ADD = 0x00000004
+    SDL_BLENDMODE_MOD = 0x00000008
 
 	/* Window events */
     SDL_WINDOWEVENT_NONE = 0 
