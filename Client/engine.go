@@ -4,6 +4,8 @@ import (
 	"sdl"
 	"fmt"
 	"os"
+	"exec"
+	"path"
 )
 
 const (
@@ -32,9 +34,9 @@ func InitEngine() {
 }
 
 func LoadImage(_file string) *sdl.Surface {
-	//Set current path
+	file, _ := exec.LookPath(os.Args[0])
+    dir, _ := path.Split(file)
+    os.Chdir(dir)
     path, _ := os.Getwd()
-    //Uncomment the next line when compiling for Mac OSX
-    //path += "/.PUDATA"
 	return sdl.LoadImage(path+"/"+_file)
 }
