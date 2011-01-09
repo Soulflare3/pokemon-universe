@@ -2,12 +2,17 @@ package main
  
 import (
     "fmt"
-    "os"
     "sdl"
     "time"
 )
+
+var g_running bool = true;
+var g_engine *PU_Engine = NewEngine()
  
 func main() {
+	//Make sure that resources get released
+	 defer g_engine.Exit()
+
     //Initialize SDL
     err := sdl.Init()
     if err != "" { 
@@ -16,14 +21,13 @@ func main() {
     }
  
 	//Initialize the engine
- 	InitEngine()
+ 	g_engine.Init()
 
 	//Some test code
-    s := LoadImage("test.png")
-    texture := s.CreateTexture() 
+    img := g_engine.LoadImage("test.png")
  
     //Handle events
-    for {  
+    for g_running {  
         event, present := sdl.PollEvent()
 		if present {
 			EventHandler(event)		
@@ -31,7 +35,7 @@ func main() {
         sdl.RenderClear()
        
 		//Some more test code
-        texture.RenderCopy(sdl.Rect{0,0,int32(s.W),int32(s.H)}, sdl.Rect{0,0,int32(s.W),int32(s.H)})
+        img.Draw(0, 0)
    
         sdl.RenderPresent() 
         time.Sleep(10)
@@ -48,6 +52,6 @@ func EventHandler(_event *sdl.SDLEvent) {
 func HandleWindowEvent(_event *sdl.WindowEvent) {
     switch _event.Event {
         case sdl.SDL_WINDOWEVENT_CLOSE:
-            os.Exit(0)
+            g_running = false
     }
 }

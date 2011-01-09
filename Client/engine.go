@@ -3,9 +3,7 @@ package main
 import (
 	"sdl"
 	"fmt"
-	"os"
-	"exec"
-	"path"
+	list "container/list"
 )
 
 const (
@@ -13,7 +11,15 @@ const (
     WINDOW_HEIGHT = 720
 )
 
-func InitEngine() {
+type PU_Engine struct {
+	imageList *list.List
+}
+
+func NewEngine() *PU_Engine {
+	return &PU_Engine{imageList : list.New()}
+}
+
+func (e *PU_Engine) Init() {
 	//Create the window
    	window, err := sdl.CreateWindow("Pokemon Universe", WINDOW_WIDTH, WINDOW_HEIGHT)
     if err != "" {
@@ -33,10 +39,19 @@ func InitEngine() {
 	sdl.CreateRenderer(window, rendererIndex)
 }
 
-func LoadImage(_file string) *sdl.Surface {
-	file, _ := exec.LookPath(os.Args[0])
-    dir, _ := path.Split(file)
-    os.Chdir(dir)
-    path, _ := os.Getwd()
-	return sdl.LoadImage(path+"/"+_file)
+func (e *PU_Engine) Exit() {
+	//Release all image resources
+	for i := e.imageList.Front(); i != nil; i = i.Next() {
+		image, valid := i.Value.(*PU_Image)
+		if valid {
+			image.Release()
+		} else {
+		}
+	}
+} 
+
+func (e *PU_Engine) LoadImage(_file string) *PU_Image {
+	image := NewImage(_file)
+	e.imageList.PushBack(image)
+	return image
 }
