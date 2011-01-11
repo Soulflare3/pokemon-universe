@@ -7,8 +7,10 @@ include $(GOROOT)/src/Make.inc
 all: install
 
 DIRS=\
+	putools\
 	network\
 	logger\
+	position\
 	
 clean.dirs: $(addsuffix .clean, $(DIRS))
 install.dirs: $(addsuffix .install, $(DIRS))
