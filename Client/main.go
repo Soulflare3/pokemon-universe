@@ -26,6 +26,7 @@ func main() {
 	//Some test code
 	img := g_engine.LoadImage("test.png")
 	font := g_engine.LoadFont("MyriadPro-Regular.ttf",20)
+	font.SetStyle(true,false,false)
 
 	//Handle events 
 	for g_running {
@@ -37,6 +38,7 @@ func main() {
 
 		//Some more test code 
 		img.Draw(0, 0)
+		
 		font.SetColor(255,255,255)
 		font.DrawText("Hello world!", 50,180)
 

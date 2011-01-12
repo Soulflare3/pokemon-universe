@@ -5,19 +5,6 @@ import (
 	"sdl"
 )
 
-func CreateColorKey(_red uint8, _green uint8, _blue uint8) uint32 {
-	r, g, b := uint32(_red), uint32(_green), uint32(_blue)
-	return (r << 16) | (g << 8) | (b)
-}
-
-func ColorKeyToSDL(_color uint32) sdl.Color {
-	var sdlcolor sdl.Color
-	sdlcolor.R = (uint8)(_color >> 16);
-	sdlcolor.G = (uint8)(_color >> 8);
-	sdlcolor.B = (uint8)(_color);
-	return sdlcolor;
-}
-
 type PU_Font struct {
 	font *sdl.Font
 	fontmap map[uint32]map[uint16]*PU_Image
@@ -41,6 +28,11 @@ func (f *PU_Font) Release() {
 
 func (f *PU_Font) SetColor(_red uint8, _green uint8, _blue uint8) {
 	f.color = CreateColorKey(_red, _green, _blue)
+}
+
+func (f *PU_Font) SetStyle(_bold bool, _italic bool, _underline bool) {
+	f.font.SetStyle(_bold, _italic, _underline)
+	f.Build()
 }
 
 func (f *PU_Font) Build() {
@@ -76,5 +68,32 @@ func (f *PU_Font) DrawText(_text string, _x int, _y int) {
 			_x += advance
 		}
 	}
+}
+
+func (f *PU_Font) DrawTextCentered(_text string, _x int, _width int, _y int) {
+	 x := (_x+(_width/2))-(f.GetStringWidth(_text)/2);
+	 f.DrawText(_text, x, _y)
+}
+
+func (f *PU_Font) GetStringWidth(_text string) int {
+	w := 0
+	prev_char := -1
+	for c := 0; c < len(_text); c++ {
+		_, _, _, _, advance := f.font.GetMetrics(uint16(_text[c]))
+		
+		if prev_char != -1 {
+			kerning := f.font.GetKerning(prev_char, int(_text[c]))
+			w += kerning
+			
+			prev_char = int(_text[c])
+		}
+		
+		w += advance
+	}
+	return w
+}
+
+func (f *PU_Font) GetStringHeight() int {
+	return f.font.GetHeight()-4
 }
 
