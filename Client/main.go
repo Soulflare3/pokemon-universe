@@ -25,6 +25,7 @@ func main() {
 
 	//Some test code
 	img := g_engine.LoadImage("test.png")
+	font := NewFont("MyriadPro-Regular.ttf",20)
 
 	//Handle events 
 	for g_running {
@@ -36,6 +37,8 @@ func main() {
 
 		//Some more test code 
 		img.Draw(0, 0)
+		font.SetColor(255,255,255)
+		font.DrawText("Hello world!", 50,180)
 
 		//Even more test code
 		sdl.SetRenderDrawColor(255, 0, 0, 100)

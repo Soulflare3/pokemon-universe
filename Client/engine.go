@@ -40,6 +40,8 @@ func (e *PU_Engine) Init() {
 	}
 	sdl.CreateRenderer(e.window, rendererIndex)
 	sdl.SelectRenderer(e.window)
+	
+	sdl.InitTTF();
 }
 
 func (e *PU_Engine) Exit() {
@@ -53,6 +55,9 @@ func (e *PU_Engine) Exit() {
 
 	//Destroy the window
 	sdl.DestroyWindow(e.window)
+	
+	//Quit SDL ttf
+	sdl.QuitTTF()
 } 
 
 func (e *PU_Engine) LoadImage(_file string) *PU_Image {

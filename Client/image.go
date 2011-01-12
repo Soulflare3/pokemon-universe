@@ -5,7 +5,6 @@ import (
 	"os"
 	"exec"
 	"path"
-	"fmt"
 )
 
 type PU_Image struct {
@@ -23,13 +22,20 @@ func NewImage(_file string) *PU_Image {
     path, _ := os.Getwd()
 	image.surface = sdl.LoadImage(path+"/"+_file)
 
-	image.texture = image.surface.CreateTexture()
-	image.w = uint16(image.texture.W)
-	image.h = uint16(image.texture.H)
-
-	fmt.Printf("x:%v h:%v\n", image.w, image.h)
-
+	image.Reload()
 	return image
+}
+
+func NewImageFromSurface(_surface *sdl.Surface) *PU_Image {
+	image := &PU_Image{surface : _surface}
+	image.Reload()
+	return image
+}
+
+func (i *PU_Image) Reload() {
+	i.texture = i.surface.CreateTexture();
+	i.w = uint16(i.texture.W)
+	i.h = uint16(i.texture.H)
 }
 
 func (i *PU_Image) Release() {
