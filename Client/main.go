@@ -25,7 +25,7 @@ func main() {
 
 	//Some test code
 	img := g_engine.LoadImage("test.png")
-	font := NewFont("MyriadPro-Regular.ttf",20)
+	font := g_engine.LoadFont("MyriadPro-Regular.ttf",20)
 
 	//Handle events 
 	for g_running {

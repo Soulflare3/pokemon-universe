@@ -11,13 +11,17 @@ const (
     WINDOW_HEIGHT = 720
 )
 
+type IResource interface {
+	Release()
+}
+
 type PU_Engine struct {
-	imageList *list.List
+	resourceList *list.List
 	window *sdl.Window
 }
 
 func NewEngine() *PU_Engine {
-	return &PU_Engine{imageList : list.New()}
+	return &PU_Engine{resourceList : list.New()}
 }
 
 func (e *PU_Engine) Init() {
@@ -45,11 +49,11 @@ func (e *PU_Engine) Init() {
 }
 
 func (e *PU_Engine) Exit() {
-	//Release all image resources
-	for i := e.imageList.Front(); i != nil; i = i.Next() {
-		image, valid := i.Value.(*PU_Image)
+	//Release all resources
+	for i := e.resourceList.Front(); i != nil; i = i.Next() {
+		res, valid := i.Value.(IResource)
 		if valid {
-			image.Release()
+			res.Release()
 		}
 	}
 
@@ -62,6 +66,13 @@ func (e *PU_Engine) Exit() {
 
 func (e *PU_Engine) LoadImage(_file string) *PU_Image {
 	image := NewImage(_file)
-	e.imageList.PushBack(image)
+	e.resourceList.PushBack(image)
 	return image
 }
+
+func (e *PU_Engine) LoadFont(_file string, _size int) *PU_Font {
+	font := NewFont(_file, _size)
+	e.resourceList.PushBack(font)
+	return font
+}
+

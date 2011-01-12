@@ -35,6 +35,10 @@ func NewFont(_file string, _size int) *PU_Font {
 	return f	
 }
 
+func (f *PU_Font) Release() {
+	f.font.Release()
+}
+
 func (f *PU_Font) SetColor(_red uint8, _green uint8, _blue uint8) {
 	f.color = CreateColorKey(_red, _green, _blue)
 }
