@@ -33,8 +33,9 @@ type INetMessageReader interface {
 }
 
 type Packet struct {
-	msgSize, readPos int
-	
+	readPos int
+
+	MsgSize int	
 	Buffer [PACKET_MAXSIZE]uint8
 }
 
@@ -45,7 +46,7 @@ func NewPacket() *Packet {
 }
 
 func (p *Packet) Reset() {
-	p.msgSize = 0
+	p.MsgSize = 0
 	p.readPos = 2
 }
 
@@ -54,14 +55,14 @@ func (p *Packet) CanAdd(_size int) bool {
 }
 
 func (p *Packet) GetHeader() int {
-	p.msgSize = int(((p.Buffer[0]) | (p.Buffer[1] << 8)));
-	return p.msgSize
+	p.MsgSize = int(((p.Buffer[0]) | (p.Buffer[1] << 8)));
+	return p.MsgSize
 }
 
 func (p *Packet) SetHeader() {
-	p.Buffer[0] = uint8(p.msgSize)
-	p.Buffer[1] = uint8(p.msgSize << 8)
-	p.msgSize += 2
+	p.Buffer[0] = uint8(p.MsgSize)
+	p.Buffer[1] = uint8(p.MsgSize << 8)
+	p.MsgSize += 2
 }
 
 func (p *Packet) ReadUint8() uint8 {
@@ -101,7 +102,7 @@ func (p *Packet) AddUint8(_value uint8) bool {
 	
 	p.Buffer[p.readPos] = _value
 	p.readPos += 1
-	p.msgSize += 1
+	p.MsgSize += 1
 	
 	return true
 }
@@ -116,7 +117,7 @@ func (p *Packet) AddUint16(_value uint16) bool {
 	p.Buffer[p.readPos] = uint8(_value >> 8)
 	p.readPos += 1
 	
-	p.msgSize += 2
+	p.MsgSize += 2
 	
 	return true
 }
@@ -135,7 +136,7 @@ func (p *Packet) AddUint32(_value uint32) bool {
 	p.Buffer[p.readPos] = uint8(_value >> 24)
 	p.readPos += 1
 	
-	p.msgSize += 4
+	p.MsgSize += 4
 	
 	return true
 }
@@ -152,7 +153,7 @@ func (p *Packet) AddString(_value string) bool {
 	}
 	
 	p.readPos += stringlen
-	p.msgSize += stringlen
+	p.MsgSize += stringlen
 	
 	return true
 }
