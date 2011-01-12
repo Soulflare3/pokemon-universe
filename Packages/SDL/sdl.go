@@ -21,16 +21,14 @@ The goal is not to make a complete SDL wrapper, but to wrap only the SDL functio
 */
 
 package sdl
-
-//#include "SDL.h"
+/*
+#include "SDL.h"
+#include "SDL_image.h"
+*/
 import "C" 
 import (
 	"unsafe"
 	"fmt"
-	"os"
-	"bufio"
-	"image"
-	"image/png"
 )
 
 type cast unsafe.Pointer
@@ -263,26 +261,10 @@ type SysWMEvent struct {
     Evtype uint32
 }
 
-type Surface struct {
-	Flags uint32
-	Format *PixelFormat
-	W int32
-	H int32
-	Pitch uint16
-	Pad0 [2]byte
-	Pixels *byte
-	Offset int32
-	Hwdata *[0]byte
-	Clip_rect Rect
-	Unused1 uint32
-	Locked uint32
-	Map *[0]byte
-	Format_version uint32
-	Refcount int32
-}
+type Surface C.SDL_Surface
 
 func (s *Surface) Get() *C.SDL_Surface {
-	return (*C.SDL_Surface)(cast(s))
+	return (*C.SDL_Surface)(s)
 }
 
 func (s *Surface) Release() {
@@ -295,13 +277,19 @@ func (s *Surface) CreateTexture() *Texture {
 }
 
 func (s *Surface) DisplayFormatAlpha() *Surface {
-	return (*Surface)(cast(C.SDL_DisplayFormatAlpha(s.Get())))
+	return (*Surface)(C.SDL_DisplayFormatAlpha(s.Get()))
 }
 
 func (s *Surface) SaveBMP(_file string) {
 	cfile := C.CString(_file); defer C.free(unsafe.Pointer(cfile))
 	cparams := C.CString("wb"); defer C.free(unsafe.Pointer(cparams))
 	C.SDL_SaveBMP_RW(s.Get(), C.SDL_RWFromFile(cfile, cparams), C.int(1))  
+}
+
+func LoadBMP(_file string) *Surface {
+	cfile := C.CString(_file); defer C.free(unsafe.Pointer(cfile))
+	cparams := C.CString("rb"); defer C.free(unsafe.Pointer(cparams))
+	return (*Surface)(C.SDL_LoadBMP_RW(C.SDL_RWFromFile(cfile, cparams), C.int(1)))
 }
 
 type Texture struct {
@@ -366,6 +354,16 @@ func SetRenderDrawBlendMode(_mode int) {
 }
 
 func LoadImage(_file string) *Surface {
+	cfile := C.CString(_file); defer C.free(unsafe.Pointer(cfile))
+	img := C.IMG_Load(cfile)
+	if img == nil {
+		fmt.Printf("Image load error: %v", C.GoString(C.IMG_GetError()))
+	}
+	return (*Surface)(cast(img))
+}
+
+//Using Go's PNG decoder for large png files is causing undefined behaviour. Using SDL_image lib for now.
+/*func LoadImage(_file string) *Surface {
 	img := LoadPNG(_file)
 	if img != nil {
 		bpp := 0
@@ -379,14 +377,15 @@ func LoadImage(_file string) *Surface {
 		height := img.Bounds().Size().Y
 		depth := bpp*8
 
-		var sf = C.SDL_CreateRGBSurface(C.SDL_HWSURFACE, C.int(width), C.int(height), C.int(depth), C.Uint32(0), C.Uint32(0), C.Uint32(0), C.Uint32(0))
+		var sf = C.SDL_CreateRGBSurface(C.Uint32(0), C.int(width), C.int(height), C.int(depth), C.Uint32(0), C.Uint32(0), C.Uint32(0), C.Uint32(0))
 		var surface *Surface = (*Surface)(cast(sf))
 
 		for y := 0; y < height; y++ {
 			for x := 0; x < width; x++ {
-				var pixels = uintptr(unsafe.Pointer(surface.Pixels))
+				var pixels = uintptr(unsafe.Pointer(surface.pixels))
 				r, g, b, a := img.At(x, y).RGBA()
-
+				colorindex := y*int(surface.pitch)+x<<2
+				
 				color := uint32(C.SDL_MapRGBA(surface.Get().format, C.Uint8(r >> 8), C.Uint8(g >> 8), C.Uint8(b >> 8), C.Uint8(a >> 8)))
 				*(*uint32)(unsafe.Pointer(pixels + uintptr(y*int(surface.Pitch)+x<<2))) = color
 			}		
@@ -410,7 +409,7 @@ func LoadPNG(_file string) image.Image {
 		return nil
 	}
 	return img
-}
+}*/
 
 type Rect struct {
 	X int32
