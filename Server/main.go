@@ -118,16 +118,19 @@ func main() {
 	fmt.Println("***********************************************")
 
 	// Load config file
+	fmt.Println(" - Loading config file")
 	if initConfig() == false {
 		return
 	}
 
 	// Setup logger
+	fmt.Println(" - Setting up logging system")	
 	if initLogger() == false {
 		return
 	}
 	
 	// Connect to database
+	fmt.Println(" - Connecting to databeast")
 	if initDatabase() == false {
 		return
 	}
