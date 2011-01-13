@@ -11,6 +11,7 @@ type PU_Font struct {
 	color *sdl.Color
 	size int
 	style uint32
+	alpha uint8
 }
 
 func NewFont(_file string, _size int) *PU_Font {
@@ -21,6 +22,7 @@ func NewFont(_file string, _size int) *PU_Font {
 	f := &PU_Font{font : sdlfont,
 				  fontmap : make(map[uint32]map[uint16]*PU_Image),
 				  color : &sdl.Color{255,255,255,255},
+				  alpha : 255,
 				  size : _size}
 	f.Build()
 	return f	
@@ -34,6 +36,10 @@ func (f *PU_Font) SetColor(_red uint8, _green uint8, _blue uint8) {
 	f.color.R = _red
 	f.color.G = _green
 	f.color.B = _blue
+}
+
+func (f *PU_Font) SetAlpha(_alpha uint8) {
+	f.alpha = _alpha
 }
 
 func (f *PU_Font) SetStyle(_bold bool, _italic bool, _underline bool) {
@@ -82,6 +88,7 @@ func (f *PU_Font) DrawText(_text string, _x int, _y int) {
 		img := f.fontmap[f.style][uint16(_text[c])]
 		if img != nil {
 			img.SetColorMod(f.color.R, f.color.G, f.color.B)
+			img.SetAlphaMod(f.alpha)
 			img.Draw(_x, _y)
 			_x += advance
 		}

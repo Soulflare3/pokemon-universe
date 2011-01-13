@@ -40,6 +40,7 @@ func main() {
 		img.Draw(0, 0)
 		
 		font.SetColor(255,255,255)
+		font.SetAlpha(100)
 		font.DrawText("Hello world!", 50,180)
 
 		//Even more test code
