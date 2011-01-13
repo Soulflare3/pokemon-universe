@@ -7,5 +7,7 @@ GOFILES=\
 		image.go\
 		font.go\
 		color.go\
+		rect.go\
+		gui/gui.go\
 
 include $(GOROOT)/src/Make.cmd

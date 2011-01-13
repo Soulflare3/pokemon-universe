@@ -328,10 +328,18 @@ func (t *Texture) SetScaleMode(_mode int) {
 	C.SDL_SetTextureScaleMode(t.Get(), C.SDL_ScaleMode(_mode))
 }
 
-func (t *Texture) RenderCopy(_srcrect Rect, _dstrect Rect) {
-	src := (*C.SDL_Rect)(cast(&_srcrect))
-	dst := (*C.SDL_Rect)(cast(&_dstrect))
+func (t *Texture) RenderCopy(_srcrect *Rect, _dstrect *Rect) {
+	src := (*C.SDL_Rect)(cast(_srcrect))
+	dst := (*C.SDL_Rect)(cast(_dstrect))
 	C.SDL_RenderCopy(t.Get(), src, dst)
+}
+
+func (t *Texture) SetColorMod(_red uint8, _green uint8, _blue uint8) {
+	C.SDL_SetTextureColorMod(t.Get(), C.Uint8(_red), C.Uint8(_green), C.Uint8(_blue))
+}
+
+func (t *Texture) SetBlendMode(_blendmode int) {
+	C.SDL_SetTextureBlendMode(t.Get(), C.SDL_BlendMode(_blendmode))
 }
 
 func RenderClear() {
