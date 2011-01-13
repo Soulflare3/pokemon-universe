@@ -18,9 +18,9 @@ package position
 
 import t "putools"
 
-// AreInRange2p checks if Position _p is in range (_delta Position) with Position _q
+// IsInRange2p checks if Position _p is in range (_delta Position) with Position _q
 // Only X and Y are checked
-func (_p Position) AreInRange2p(_q Position, _delta Position) bool {
+func (_p Position) IsInRange2p(_q Position, _delta Position) bool {
 	if t.Iabs(_p.X - _q.X) > _delta.X || t.Iabs(_p.Y - _q.Y) > _delta.Y {
 		return false
 	}
@@ -28,9 +28,9 @@ func (_p Position) AreInRange2p(_q Position, _delta Position) bool {
 	return true
 }
 
-// AreInRange3p checks if Position _p is in range (_delta Position) with Position _q
+// IsInRange3p checks if Position _p is in range (_delta Position) with Position _q
 // All values (X, Y, Z) are checked
-func (_p Position) AreInRange3p(_q Position, _delta Position) bool {
+func (_p Position) IsInRange3p(_q Position, _delta Position) bool {
 	if t.Iabs(_p.X - _q.X) > _delta.X || t.Iabs(_p.Y - _q.Y) > _delta.Y || t.Iabs(_p.Z - _q.Z) > _delta.Z {
 		return false
 	}

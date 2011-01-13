@@ -22,17 +22,29 @@ import (
 	"os"
 )
 
+const (
+	L_FILE		int = 1 // Write to file
+	L_CONSOLE	int = 2 // Print to terminal/console
+)
+
 // A Logger represents an object which inherits from io.Writer
 // it's used in combination with log.Logger to write text to a file
 type Logger struct {
-	filename string
-	file *os.File
+	filename 	string
+	file 		*os.File
+	
+	flags 		int
 }
 
 // Create constructor for io.Writer
 // No need to close the log file because it will last untill the application exists
-func NewLogger(_filename string) (log *Logger, err os.Error) {
+func NewLogger(_filename string, _flag int) (log *Logger, err os.Error) {
 	log = &Logger { filename : _filename }
+	
+	if _flag&L_FILE == 0 {
+		return log, nil // Return if we're not writing to file
+	}
+	
 	log.file, err = os.Open(log.filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		return nil, err
@@ -43,13 +55,15 @@ func NewLogger(_filename string) (log *Logger, err os.Error) {
 
 // Use the io.Writer interface
 func (l *Logger) Write(p []byte) (n int, err os.Error) {
-	// Print string to terminal before writing to file	
-	fmt.Printf("%v", string(p))
+	if l.flags&L_CONSOLE != 0 { // Print string to terminal before writing to file	
+		fmt.Printf("%v", string(p))
+	}
 	
-	// Write to file
-	n, err2 := l.file.Write(p)
-	if err2 != nil {
-		return n, err
+	if l.flags&L_FILE != 0 { // Write to file
+		n, err := l.file.Write(p)
+		if err != nil {
+			return n, err
+		}
 	}
 	
 	return len(p), nil
