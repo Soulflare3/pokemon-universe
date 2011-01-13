@@ -17,7 +17,7 @@ type PU_Image struct {
 }
 
 func NewImage(_file string) *PU_Image {
-	image := &PU_Image{}
+	image := &PU_Image{blendmode : sdl.SDL_BLENDMODE_BLEND}
 
 	file, _ := exec.LookPath(os.Args[0])
 	dir, _ := path.Split(file)
@@ -30,7 +30,8 @@ func NewImage(_file string) *PU_Image {
 }
 
 func NewImageFromSurface(_surface *sdl.Surface) *PU_Image {
-	image := &PU_Image{surface: _surface}
+	image := &PU_Image{surface: _surface,
+					   blendmode : sdl.SDL_BLENDMODE_BLEND}
 	image.Reload()
 	return image
 }
@@ -65,7 +66,7 @@ func (i *PU_Image) SetAlphaMod(_alpha uint8) {
 
 func (i *PU_Image) Render(_src *sdl.Rect, _dst *sdl.Rect) {
 	i.texture.SetBlendMode(i.blendmode)
-	i.texture.RenderCopy(_src, _dst)
+	i.texture.RenderCopy(*_src, *_dst)
 }
 
 func (i *PU_Image) Draw(_x int, _y int) {
@@ -78,7 +79,7 @@ func (i *PU_Image) Draw(_x int, _y int) {
 func (i *PU_Image) DrawRect(_rect *PU_Rect) {
 	src := &sdl.Rect{0, 0, int32(i.w), int32(i.h)}
 
-	i.Render(src, _rect.ToSDL())	
+	i.Render(src, _rect.ToSDL())
 }
 
 func (i *PU_Image) DrawClip(_x int, _y int, _clip *PU_Rect) {
