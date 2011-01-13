@@ -82,7 +82,7 @@ func (i *PU_Image) SetAlphaMod(_alpha uint8) {
 
 func (i *PU_Image) Render(_src *sdl.Rect, _dst *sdl.Rect) {
 	i.texture.SetBlendMode(i.blendmode)
-	i.texture.RenderCopy(*_src, *_dst)
+	i.texture.RenderCopy(_src, _dst)
 }
 
 func (i *PU_Image) Draw(_x int, _y int) {
