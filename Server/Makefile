@@ -7,5 +7,9 @@ include $(GOROOT)/src/Make.inc
 TARG=puserver
 GOFILES=\
 	main.go\
+	server.go\
+	connection.go\
+	creature.go\
+	game.go\
 
 include $(GOROOT)/src/Make.cmd
