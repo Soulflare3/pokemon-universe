@@ -42,6 +42,7 @@ func (s *Server) Start() {
 	// Start timeout loop here
 	// go s.timeoutLoop()
 
+	// Open new socket listener
 	g_logger.Println("[Loading] Opening server socket on port "+s.Port)
 	socket, err := net.Listen("tcp", ":"+s.Port)
 	if err != nil {
@@ -51,7 +52,7 @@ func (s *Server) Start() {
 	defer socket.Close() // Defer the close function so that's get done automatically when this method breaks
 	defer g_logger.Println("[Notice] Server socket closed")
 	
-	g_logger.Println("- Server ready to accept new connections on port " + s.Port)
+	g_logger.Println("- Server ready to accept new connections")
 	for {
 		clientsock, err := socket.Accept()
 		if err != nil {

@@ -47,7 +47,7 @@ var (
 func initConfig() bool {
 	c, err := conf.ReadConfigFile("data/" + *configFile)
 	if err != nil {
-		fmt.Printf("Could not load config file: %v", err)
+		fmt.Printf("Could not load config file: %v\n\r", err)
 		return false
 	}
 	
@@ -73,11 +73,14 @@ func initLogger() bool {
 		logFile = "log.txt"
 	}
 	myLog, err := logger.NewLogger(logFile, flags)
-	if err != nil {
-		fmt.Printf("Could not initialize logger: %v", err)
+	if err != nil || myLog == nil {
+		fmt.Printf("[Error] Could not initialize logger: %v\n\r", err)
 		return false
 	}
 	g_logger = log.New(myLog, "", log.Ltime)
+	if toFile {
+		fmt.Printf(" - Start logging to file: %v\n\r", logFile)
+	}
 	
 	return true
 }
@@ -95,10 +98,13 @@ func initDatabase() bool {
 	dbPass, _ := g_config.GetString("database", "pass")
 	dbData, _ := g_config.GetString("database", "db")
 
+	// Enable/Disable intern mysql logging system
+	g_db.Logging, _ = g_config.GetBool("database", "show_log")
+
 	// Connect to database
 	err := g_db.Connect(dbHost, dbUser, dbPass, dbData)
 	if err != nil {
-		g_logger.Printf("[Error] Could not connect to database: %v", err)
+		g_logger.Printf("[Error] Could not connect to database: %v\n\r", err)
 		return false
 	}
 
@@ -130,7 +136,7 @@ func main() {
 	}
 	
 	// Connect to database
-	fmt.Println(" - Connecting to databeast")
+	g_logger.Println("Connecting to databeast")
 	if initDatabase() == false {
 		return
 	}
