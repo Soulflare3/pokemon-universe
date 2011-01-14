@@ -7,6 +7,13 @@ include $(GOROOT)/src/Make.inc
 TARG=sdl
 CGOFILES=\
 	sdl.go\
+	ttf.go\
+	image.go\
+	renderer.go\
+	
+GOFILES=\
+	event.go\
+	const.go\
 
 CGO_CFLAGS=`sdl-config --cflags`
 CGO_LDFLAGS=`sdl-config --libs` -lSDL_image -lSDL_ttf
