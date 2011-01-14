@@ -39,7 +39,7 @@ type Logger struct {
 // Create constructor for io.Writer
 // No need to close the log file because it will last untill the application exists
 func NewLogger(_filename string, _flag int) (log *Logger, err os.Error) {
-	log = &Logger { filename : _filename }
+	log = &Logger { filename : _filename, flags : _flag }
 	
 	if _flag&L_FILE == 0 {
 		return log, nil // Return if we're not writing to file
