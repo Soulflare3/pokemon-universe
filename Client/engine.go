@@ -38,7 +38,8 @@ type PU_Engine struct {
 }
 
 func NewEngine() *PU_Engine {
-	return &PU_Engine{resourceList : list.New()}
+	return &PU_Engine{resourceList : list.New(),
+					  fonts : make(map[int]*PU_Font)}
 }
 
 func (e *PU_Engine) Init() {

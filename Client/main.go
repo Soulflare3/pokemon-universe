@@ -42,7 +42,7 @@ func main() {
 
 	//Some test code
 	img := g_engine.LoadImage("test.png")
-	font := g_engine.LoadFont(FONT_PURITANBOLD, "Puritan2Bold.ttf", 14)
+	font := g_engine.LoadFont(FONT_PURITANBOLD, "Puritan2Bold.otf", 14)
 	font.SetStyle(true,false,false)
 
 	//Handle events 
