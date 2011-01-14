@@ -33,6 +33,7 @@ type IResource interface {
 
 type PU_Engine struct {
 	resourceList *list.List
+	fonts map[int]*PU_Font
 	window *sdl.Window
 }
 
@@ -86,9 +87,17 @@ func (e *PU_Engine) LoadImage(_file string) *PU_Image {
 	return image
 }
 
-func (e *PU_Engine) LoadFont(_file string, _size int) *PU_Font {
+func (e *PU_Engine) LoadFont(_id int, _file string, _size int) *PU_Font {
 	font := NewFont(_file, _size)
 	e.resourceList.PushBack(font)
+	e.fonts[_id] = font
 	return font
+}
+
+func (e *PU_Engine) GetFont(_id int) *PU_Font {
+	if font, present := e.fonts[_id]; present {
+		return font
+	}
+	return nil
 }
 

@@ -21,6 +21,10 @@ import (
 	"sdl"
 )
 
+const (
+	FONT_PURITANBOLD = iota
+)
+
 type PU_Font struct {
 	font *sdl.Font
 	fontmap map[uint32]map[uint16]*PU_Image
@@ -90,6 +94,28 @@ func (f *PU_Font) Build() {
 }
 
 func (f *PU_Font) DrawText(_text string, _x int, _y int) {
+	prev_char := -1
+	for c := 0; c < len(_text); c++ {
+		_, _, _, _, advance := f.font.GetMetrics(uint16(_text[c]))
+		
+		if prev_char != -1 {
+			kerning := f.font.GetKerning(prev_char, int(_text[c]))
+			_x += kerning
+			
+			prev_char = int(_text[c])
+		}
+		
+		img := f.fontmap[f.style][uint16(_text[c])]
+		if img != nil {
+			img.SetColorMod(f.color.R, f.color.G, f.color.B)
+			img.SetAlphaMod(f.alpha)
+			img.Draw(_x, _y)
+			_x += advance
+		}
+	}
+}
+
+func (f *PU_Font) DrawTextInRect(_text string, _x int, _y int, _rect *PU_Rect) {
 	prev_char := -1
 	for c := 0; c < len(_text); c++ {
 		_, _, _, _, advance := f.font.GetMetrics(uint16(_text[c]))

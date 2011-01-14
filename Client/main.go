@@ -24,6 +24,7 @@ import (
 
 var g_running bool = true
 var g_engine *PU_Engine = NewEngine()
+var g_gui *PU_Gui = NewGui()
 
 func main() {
 	//Make sure that resources get released
@@ -41,7 +42,7 @@ func main() {
 
 	//Some test code
 	img := g_engine.LoadImage("test.png")
-	font := g_engine.LoadFont("MyriadPro-Regular.ttf",20)
+	font := g_engine.LoadFont(FONT_PURITANBOLD, "Puritan2Bold.ttf", 14)
 	font.SetStyle(true,false,false)
 
 	//Handle events 
