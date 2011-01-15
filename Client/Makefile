@@ -8,6 +8,8 @@ GOFILES=\
 		font.go\
 		color.go\
 		rect.go\
+		game.go\
 		gui/gui.go\
+		gui/textfield.go\
 
 include $(GOROOT)/src/Make.cmd

@@ -82,6 +82,10 @@ func (e *PU_Engine) Exit() {
 	sdl.QuitTTF()
 } 
 
+func (e *PU_Engine) AddResource(_res IResource) {
+	e.resourceList.PushBack(_res)
+}
+
 func (e *PU_Engine) LoadImage(_file string) *PU_Image {
 	image := NewImage(_file)
 	e.resourceList.PushBack(image)

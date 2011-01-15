@@ -32,6 +32,10 @@ func NewRect(_x int, _y int, _width int, _height int) *PU_Rect {
 					height : _height}
 }
 
+func NewRectFrom(_rect *PU_Rect) *PU_Rect {
+	return NewRect(_rect.x, _rect.y, _rect.width, _rect.height)
+}
+
 func (r *PU_Rect) Equals(_rect *PU_Rect) bool {
 	return ((r.x == _rect.x) && (r.y == _rect.y) && 
 			(r.width == _rect.width) && (r.height == _rect.height))

@@ -24,6 +24,7 @@ import (
 
 var g_running bool = true
 var g_engine *PU_Engine = NewEngine()
+var g_game *PU_Game = NewGame()
 var g_gui *PU_Gui = NewGui()
 
 func main() {
@@ -39,11 +40,14 @@ func main() {
 
 	//Initialize the engine
 	g_engine.Init()
+	
+	//Load data
+	g_game.LoadTileImages()
 
 	//Some test code
 	img := g_engine.LoadImage("test.png")
 	font := g_engine.LoadFont(FONT_PURITANBOLD, "Puritan2Bold.otf", 14)
-	font.SetStyle(true,false,false)
+	font.SetStyle(true,false,false) 
 
 	//Handle events 
 	for g_running {
@@ -66,6 +70,12 @@ func main() {
 		sdl.RenderFillRect(sdl.Rect{10, 10, 100, 100})
 		sdl.SetRenderDrawBlendMode(sdl.SDL_BLENDMODE_NONE)
 		sdl.SetRenderDrawColor(0, 0, 0, 255)
+		
+		//There is no end to this test code
+		img := g_game.GetTileImage(1)
+		if img != nil {
+			img.Draw(100, 100)
+		}
 
 		sdl.RenderPresent()
 		time.Sleep(10)
