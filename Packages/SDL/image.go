@@ -71,6 +71,15 @@ func LoadImage(_file string) *Surface {
 	return (*Surface)(cast(img))
 }
 
+func LoadImageRW(_data *[]byte, _size int) *Surface {
+	rawImage := C.SDL_RWFromMem(unsafe.Pointer(&((*_data)[0])), C.int(_size));
+	img := C.IMG_Load_RW(rawImage, C.int(0))
+	if img == nil {
+		fmt.Printf("ImageRW load error: %v", C.GoString(C.IMG_GetError()))
+	}
+	return (*Surface)(cast(img))
+}
+
 type Rect struct {
 	X int32
 	Y int32
