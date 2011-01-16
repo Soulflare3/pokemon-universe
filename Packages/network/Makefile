@@ -8,7 +8,6 @@ TARG=network
 GOFILES=\
 	packet.go\
 	const.go\
-	messages/loginmessage.go\
 
 include $(GOROOT)/src/Make.pkg
 
