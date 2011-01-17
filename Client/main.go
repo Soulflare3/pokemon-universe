@@ -42,12 +42,11 @@ func main() {
 	g_engine.Init()
 	
 	//Load data
+	g_game.LoadFonts()
+	Draw() //Draw the "please wait" text after loading the fonts
+	g_game.LoadGuiImages()
 	g_game.LoadTileImages()
-
-	//Some test code
-	img := g_engine.LoadImage("test.png")
-	font := g_engine.LoadFont(FONT_PURITANBOLD, "Puritan2Bold.otf", 14)
-	font.SetStyle(true,false,false) 
+	g_game.SetState(GAMESTATE_LOGIN)
 
 	//Handle events 
 	for g_running {
@@ -55,32 +54,18 @@ func main() {
 		if present {
 			EventHandler(event)
 		}
-		sdl.RenderClear()
-
-		//Some more test code 
-		img.Draw(0, 0)
 		
-		font.SetColor(255,255,255)
-		font.SetAlpha(100)
-		font.DrawText("Hello world!", 50,180)
-
-		//Even more test code
-		sdl.SetRenderDrawColor(255, 0, 0, 100)
-		sdl.SetRenderDrawBlendMode(sdl.SDL_BLENDMODE_BLEND)
-		sdl.RenderFillRect(sdl.Rect{10, 10, 100, 100})
-		sdl.SetRenderDrawBlendMode(sdl.SDL_BLENDMODE_NONE)
-		sdl.SetRenderDrawColor(0, 0, 0, 255)
+		Draw()
 		
-		//There is no end to this test code
-		img := g_game.GetTileImage(1)
-		if img != nil {
-			img.Draw(100, 100)
-		}
-
-		sdl.RenderPresent()
 		time.Sleep(10)
 	}
 	sdl.Quit()
+}
+
+func Draw() {
+	sdl.RenderClear()
+	g_game.Draw()
+	sdl.RenderPresent()
 }
 
 func EventHandler(_event *sdl.SDLEvent) {

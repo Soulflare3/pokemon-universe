@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	FONT_PURITANBOLD = iota
+	FONT_PURITANBOLD_14 = iota
 )
 
 type PU_Font struct {

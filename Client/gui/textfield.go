@@ -70,11 +70,11 @@ func (t *PU_Textfield) Draw() {
 		}
 		
 		//find the correct coordinates to draw at (when the element is embedded in another)
-		top := NewRect(t.rect.x, t.rect.y, t.rect.width, t.rect.height)
+		top := NewRectFrom(t.rect)
 		g_gui.GetTopRect(t, top)
 		
 		//find out within what frame the text should be drawn 		
-		clip := NewRect(t.rect.x, t.rect.y, t.rect.width, t.rect.height)
+		clip := NewRectFrom(t.rect)
 		g_gui.GetClipRect(t, clip)
 		
 		t.font.SetColor(t.color.R, t.color.G, t.color.B)
