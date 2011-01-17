@@ -18,12 +18,10 @@ package main
 
 import (
 	"fmt"
-	zip "archive/zip"	
 	"sdl"
-	"io"
+	"io/ioutil"
 	"strings"
 	"strconv"
-	"time"
 )
 
 type PU_Game struct {
@@ -35,43 +33,34 @@ func NewGame() *PU_Game {
 }
 
 func (g *PU_Game) LoadTileImages() {	
-	zip, err := zip.OpenReader("data/tiles.pu_data")
-	if zip == nil {
-		fmt.Printf("LoadTileImages zip error: %v\n", err.String())
+	files, err := ioutil.ReadDir("data/tiles/")
+	if err != nil {
+		fmt.Printf("Couldn't open data/files/ directory. Error: %v\n", err.String())
 		return
 	}
 	
-	for i := 0; i < len(zip.File); i++ {
-		g.LoadTileImage(zip.File[i])
+	for i := 0; i < len(files); i++ {
+		g.LoadTileImage(files[i].Name)
 	}
 	
 }
 
-func (g *PU_Game) LoadTileImage(_file *zip.File) {
-	reader, err := _file.Open()
-	if reader == nil {
-		fmt.Printf("LoadTileImages file error: %v\n", err.String())
-	}
-	name := _file.FileHeader.Name
-	name = strings.Replace(name, ".png", "", -1)
+func (g *PU_Game) LoadTileImage(_file string) {
+	name := strings.Replace(_file, ".png", "", -1)
 	id, err := strconv.Atoi(name) 
 	if err != nil {
 		return
 	}
-		
-	size := _file.FileHeader.UncompressedSize
-	data := make([]byte, size)
-	numbytes, err := io.ReadFull(reader, data)
-	if uint32(numbytes) != size {
-		fmt.Printf("LoadTileImages read error: %v\n", err.String())
-	} else {
-		surface := sdl.LoadImageRW(&data, numbytes)
-		image := NewImageFromSurface(surface)
-		g_engine.AddResource(image)
-		
-		g.tileImageMap[uint16(id)] = image
-		time.Sleep(1) //Somehow it won't work without this. TODO: Find out why 
+	
+	surface := sdl.LoadImage("data/tiles/"+_file)
+	if surface == nil {
+		return
 	}
+	
+	image := NewImageFromSurface(surface)
+	g_engine.AddResource(image)
+	
+	g.tileImageMap[uint16(id)] = image
 }
 
 func (g *PU_Game) GetTileImage(_id uint16) *PU_Image {
