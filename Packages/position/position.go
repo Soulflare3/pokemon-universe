@@ -51,3 +51,28 @@ func (p Position) Eq(_q Position) bool {
 func (p Position) Equals(_q Position) bool {
 	return p.Eq(_q)
 }
+
+func (p Position) Hash() int64 {
+	_x := p.X
+	_y := p.Y
+	_z := p.Z
+	
+	var x64 int64
+	if _x < 0 {
+		x64 = (int64(1) << 34)  | ((^(int64(_x)-1)) << 18)
+	} else {
+		x64 = (int64(_x) << 24)
+	}
+	
+	var y64 int64
+	if _y < 0 {
+		y64 = (int64(1) << 17)  | ((^(int64(_y)-1)) << 1)
+	} else {
+		y64 = (int64(_y) << 1)
+	}
+
+	z64 := int64(_z)
+	var index int64 = int64(x64 | y64 | z64)
+	
+	return index;
+}
