@@ -23,7 +23,9 @@ import (
 )
 
 type Server struct {
-	Port string
+	Port 			string
+	
+	ClientVersion 	uint16
 }
 
 func NewServer() *Server {
@@ -35,6 +37,12 @@ func NewServer() *Server {
 	}
 	server.Port = port
 	
+	version, err := g_config.GetInt("default", "clientversion")
+	if err != nil {
+		version = 0
+	}
+	server.ClientVersion = uint16(version)
+	
 	return &server
 }
 
@@ -43,7 +51,7 @@ func (s *Server) Start() {
 	// go s.timeoutLoop()
 
 	// Open new socket listener
-	g_logger.Println("[Loading] Opening server socket on port "+s.Port)
+	g_logger.Println("Opening server socket on port "+s.Port)
 	socket, err := net.Listen("tcp", ":"+s.Port)
 	if err != nil {
 		g_logger.Printf("[Error] Could not open socket - %v\n", err)
@@ -52,7 +60,7 @@ func (s *Server) Start() {
 	defer socket.Close() // Defer the close function so that's get done automatically when this method breaks
 	defer g_logger.Println("[Notice] Server socket closed")
 	
-	g_logger.Println("- Server ready to accept new connections")
+	g_logger.Println("Server ready to accept new connections")
 	for {
 		clientsock, err := socket.Accept()
 		if err != nil {
@@ -80,32 +88,58 @@ func (s *Server) Start() {
 		copy(packet.Buffer[2:], databuffer[:]) // Write rest of the received data to packet
 		
 		// Read and execute the first received packet
-		s.parseFirstMessage(packet)
-		
-		// Do stuff with clientsock
-		//connection := NewConnection(clientsock)
-		//go connection.HandleConnection();
+		s.parseFirstMessage(clientsock, packet)
 	}
 }
 
 // Loop which will check if players are idle for X amount of minutes
 func (s *Server) timeoutLoop() {
 	g_logger.Println(" - Idle player checker goroutine started")
-	for ; ; time.Sleep(10e9) {
+	for ; ; time.Sleep(10e9) { // 10 Sec
 		// Check if there are players who are idle for X min
 	}
 }
 
-func (s *Server) parseFirstMessage(packet *pnet.Packet) {
+func (s *Server) parseFirstMessage(conn net.Conn, packet *pnet.Packet) {
 	// Read packet header
 	header := packet.ReadUint8()
 	if header != pnet.HEADER_LOGIN {
 		return
 	}
 	
+	// Make new Connection object to hold net.Conn
+	connection := NewConnection(conn)
+	
 	// Parse packet
-	firstMessage := &pnet.LoginMessage{}
+	// We can use the same packet for sending the return status
+	firstMessage := &LoginMessage{}
 	firstMessage.ReadPacket(packet)
+		
+	if g_game.State == GAME_STATE_CLOSING || g_game.State == GAME_STATE_CLOSED {
+		firstMessage.Status = LOGINSTATUS_SERVERCLOSED
+	} else if firstMessage.ClientVersion < s.ClientVersion {
+		firstMessage.Status = LOGINSTATUS_WRONGVERSION
+	} else {
+		// Load account info
+		ret := CheckAccountInfo(firstMessage.Username, firstMessage.Password)
+		if !ret {
+			firstMessage.Status = LOGINSTATUS_WRONGACCOUNT
+		} else { 
+			// Account exists and password is correct
+			ret, player := LoadPlayerProfile(firstMessage.Username)
+			
+			if !ret || player == nil {
+				firstMessage.Status = LOGINSTATUS_FAILPROFILELOAD			
+			} else if player.Conn != nil {
+				firstMessage.Status = LOGINSTATUS_ALREADYLOGGEDIN
+			} else {
+				firstMessage.Status = LOGINSTATUS_READY
+				
+				// Assign Connection to Player object
+				player.SetConnection(connection)
+			}
+		}
+	}
 	
-	
+	connection.SendMessage(firstMessage)
 }

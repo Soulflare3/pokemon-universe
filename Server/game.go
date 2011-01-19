@@ -22,12 +22,15 @@ const (
 	GAME_STATE_INIT
 	GAME_STATE_NORMAL
 	GAME_STATE_CLOSED
-	GAME_STATE_SHUTDOWN
 	GAME_STATE_CLOSING
 )
 
+type PlayerList map[uint64]*Player
+
 type Game struct {
-	State	GameState
+	State		GameState
+	Creatures	CreatureList
+	Players		PlayerList
 }
 
 func NewGame() *Game {
@@ -35,4 +38,26 @@ func NewGame() *Game {
 	game.State = GAME_STATE_STARTUP
 	
 	return &game
+}
+
+func (g *Game) AddPlayer(_player *Player) {
+	uid := _player.GetUID()
+	
+	if g.Players[uid] == nil {
+		g.Players[uid] = _player
+	}
+	
+	if g.Creatures[uid] == nil {
+		g.Creatures[uid] = _player
+	}
+}
+
+func (g *Game) GetPlayerByName(_name string) *Player {
+	for _, value := range g.Players {
+		if value.GetName() == _name {
+			return value
+		}
+	}
+	
+	return nil
 }

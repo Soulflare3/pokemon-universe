@@ -20,10 +20,14 @@ import (
 	pos "position"
 )
 
+// CreatureList is map which holds a list of ICreature interfaces
+type CreatureList map[uint64]ICreature
+
 // Main interface for all creature objects in the game
 type ICreature interface {
-	GetName() string
-	GetPosition() pos.Position
+	GetUID()		uint64
+	GetName()		string
+	GetPosition()	pos.Position
 }
 
 // Interface for all moving creatures
@@ -32,9 +36,6 @@ type ICreatureMove interface {
 	OnCreatureAppear(_creature ICreature, _isLogin bool)
 	OnCreatureDisappear(_creature ICreature, _isLogout bool)
 }
-
-// CreatureList is map which holds a list of ICreature interfaces
-type CreatureList map[int]ICreature
 
 // Interface for all creatures who need to see other creatures
 type ICreatureSee interface {

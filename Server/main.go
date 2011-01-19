@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"log"
 	"flag"
+	"runtime"
 	
 	"mysql"
 	"conf"
@@ -112,6 +113,9 @@ func initDatabase() bool {
 }
 
 func main() {
+	// Use all cpu cores
+	runtime.GOMAXPROCS(4)
+
 	// Flags
 	configFile = flag.String("config", "server.conf", "Name of the config file to load")
 	flag.Parse()
@@ -146,6 +150,7 @@ func main() {
 	g_game = NewGame()
 
 	// Start server
+	g_game.State = GAME_STATE_NORMAL
 	g_logger.Println("--- SERVER STARTING ---")
 	g_server = NewServer()
 	g_server.Start()

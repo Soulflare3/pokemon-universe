@@ -22,7 +22,8 @@ import (
 )
 
 type Connection struct {
-	Socket net.Conn
+	Socket 	net.Conn
+	IsOpen	bool
 }
 
 func NewConnection(_socket net.Conn) *Connection {
@@ -30,13 +31,17 @@ func NewConnection(_socket net.Conn) *Connection {
 }
 
 func (c *Connection) HandleConnection() {
+	c.IsOpen = true
+	
 	for {
-		packet := pnet.NewPacket()
 		var headerbuffer [2]uint8 
 		recv, err := c.Socket.Read(headerbuffer[0:])
 		if err != nil || recv == 0 {
+			g_logger.Printf("Error while reading socket: %v", err)
 			break
 		}
+
+		packet := pnet.NewPacket()
 		copy(packet.Buffer[0:2], headerbuffer[0:2])
 		packet.GetHeader()
 		
@@ -46,18 +51,27 @@ func (c *Connection) HandleConnection() {
 			continue 
 		} else if err != nil {
 			g_logger.Printf("Connection read error: %v", err)
+			continue
 		}
 		
 		copy(packet.Buffer[2:], databuffer[:])
 		c.ProcessPacket(packet)
 	}
 	
-	g_logger.Println("Connection closed")
+	c.IsOpen = false
+	g_logger.Println("Connection closed")	
 }
 
-func (c *Connection) ProcessPacket(packet *pnet.Packet) {
-	header := packet.ReadUint8()
+func (c *Connection) ProcessPacket(_packet *pnet.Packet) {
+	header := _packet.ReadUint8()
 	switch header {
 		case pnet.HEADER_LOGIN:
 	}
+}
+
+func (c *Connection) SendMessage(_message pnet.INetMessageWriter) {
+	packet, _ := _message.WritePacket()
+	packet.SetHeader()
+	
+	c.Socket.Write(packet.Buffer[0:packet.MsgSize])
 }
