@@ -17,6 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package position
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -26,6 +27,35 @@ type Position struct {
 
 // ZP is the zero position
 var ZP Position
+
+// NewPosition returns a new empty Position
+func NewPosition() Position {
+	return Position{}
+}
+
+// NewPositionFromHash generates a new Position struct with 
+// coordinates extracted from the hash
+func NewPositionFromHash(_hash int64) Position {
+	z := int(_hash & 0x01)
+
+	y64 := (_hash >> 1) & 0xFFFF
+	yabs := (_hash >> 17) & 0x01
+	
+	x64 := (_hash >> 18) & 0xFFFF
+	xabs := (_hash >> 34) & 0x01
+	
+	var y int = int(y64)
+	if yabs == 1 {
+		y = 0 - y
+	}
+	
+	var x int = int(x64)
+	if xabs == 1 {
+		x = 0 - x
+	}
+	
+	return Position { X : x, Y : y, Z : z }
+}
 
 // String returns a string represntation of p like "3,9,1"
 func (p Position) String() string {
@@ -52,6 +82,8 @@ func (p Position) Equals(_q Position) bool {
 	return p.Eq(_q)
 }
 
+// Create a hash from x, y and z
+// hash = [1 bit for positive/negative x][16 bits for x][1 bit for positive/negative y][16 bits for y][1 bit for z]
 func (p Position) Hash() int64 {
 	_x := p.X
 	_y := p.Y
@@ -61,7 +93,7 @@ func (p Position) Hash() int64 {
 	if _x < 0 {
 		x64 = (int64(1) << 34)  | ((^(int64(_x)-1)) << 18)
 	} else {
-		x64 = (int64(_x) << 24)
+		x64 = (int64(_x) << 18)
 	}
 	
 	var y64 int64
