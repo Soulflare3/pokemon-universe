@@ -131,7 +131,7 @@ func (f *PU_Font) DrawTextInRect(_text string, _x int, _y int, _rect *PU_Rect) {
 		if img != nil {
 			img.SetColorMod(f.color.R, f.color.G, f.color.B)
 			img.SetAlphaMod(f.alpha)
-			img.Draw(_x, _y)
+			img.DrawInRect(_x, _y, _rect)
 			_x += advance
 		}
 	}

@@ -56,19 +56,20 @@ func (g *PU_Game) Draw() {
 			
 		case GAMESTATE_LOGIN:
 			g.GetGuiImage(IMG_GUI_INTROBG).Draw(0, 0)
+			g_gui.Draw()
 	}
 }
 
 func (g *PU_Game) LoadFonts () {
-	g_engine.LoadFont(FONT_PURITANBOLD_14, "data/font/Puritan2Bold.otf", 14)
+	g_engine.LoadFont(FONT_PURITANBOLD_14, GetPath()+"data/font/Puritan2Bold.otf", 14)
 }
 
 func (g* PU_Game) LoadTileImages() {
-	g.LoadGameImages("data/tiles/", g.tileImageMap)
+	g.LoadGameImages(GetPath()+"data/tiles/", g.tileImageMap)
 }
 
 func (g* PU_Game) LoadGuiImages() {
-	g.LoadGameImages("data/gui/", g.guiImageMap)
+	g.LoadGameImages(GetPath()+"data/gui/", g.guiImageMap)
 }
 
 func (g *PU_Game) GetTileImage(_id uint16) *PU_Image {

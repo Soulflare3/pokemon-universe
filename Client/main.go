@@ -20,6 +20,9 @@ import (
 	"fmt"
 	"sdl"
 	"time"
+	"os"
+	"exec"
+	"path"
 )
 
 var g_running bool = true
@@ -47,6 +50,12 @@ func main() {
 	g_game.LoadGuiImages()
 	g_game.LoadTileImages()
 	g_game.SetState(GAMESTATE_LOGIN)
+	
+	//Gui test code
+	testTextfield := NewTextfield(NewRect(453, 396, 160, 20), FONT_PURITANBOLD_14)
+	testTextfield.SetColor(57, 92, 196)
+	testTextfield.SetStyle(true, false, false)
+	testTextfield.focus = true
 
 	//Handle events 
 	for g_running {
@@ -68,11 +77,23 @@ func Draw() {
 	sdl.RenderPresent()
 }
 
+func GetPath() string {
+	file, _ := exec.LookPath(os.Args[0])
+	dir, _ := path.Split(file)
+	os.Chdir(dir)
+	path, _ := os.Getwd()
+	return path+"/"
+}
+
 func EventHandler(_event *sdl.SDLEvent) {
 	switch _event.Evtype {
 	case sdl.SDL_WINDOWEVENT:
 		HandleWindowEvent(_event.Window())
+		
+	case sdl.SDL_KEYDOWN, sdl.SDL_TEXTINPUT:
+		HandleKeyboardEvent(_event.Keyboard())
 	}
+	
 }
 
 func HandleWindowEvent(_event *sdl.WindowEvent) {
@@ -81,3 +102,14 @@ func HandleWindowEvent(_event *sdl.WindowEvent) {
 		g_running = false
 	}
 }
+
+func HandleKeyboardEvent(_event *sdl.KeyboardEvent) {
+	switch _event.Evtype {
+		case sdl.SDL_KEYDOWN:
+			g_gui.KeyDown(0, int(_event.Keysym().Sym))
+			
+		case sdl.SDL_TEXTINPUT:
+			g_gui.KeyDown(int(_event.State), int(_event.Keysym().Scancode));
+	}
+}
+

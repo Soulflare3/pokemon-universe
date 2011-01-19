@@ -11,6 +11,7 @@ GOFILES=\
 		game.go\
 		gui/gui.go\
 		gui/gui_const.go\
+		gui/element.go\
 		gui/textfield.go\
 
 include $(GOROOT)/src/Make.cmd

@@ -21,6 +21,9 @@ The goal is not to make a complete SDL wrapper, but to wrap only the SDL functio
 */
 package sdl
 
+//#include "SDL.h"
+import "C"
+
 type SDLEvent struct {
     Evtype uint32
     rest [48]byte
@@ -84,7 +87,18 @@ type KeyboardEvent struct {
     Repeat uint8
     Padding2 uint8
     Padding3 uint8
-    Keysym uint32
+    keysym C.SDL_keysym
+}
+
+func (e *KeyboardEvent) Keysym() *KeySym {
+	return (*KeySym)(cast(&e.keysym))
+}
+
+type KeySym struct {
+	Scancode int32//C.enum_SDL_scancode
+	Sym int32
+	Mod uint16
+	Unicode uint32
 }
 
 type TextEditingEvent struct {

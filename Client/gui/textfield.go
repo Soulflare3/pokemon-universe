@@ -16,24 +16,35 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
-import "sdl"
+import ( 
+	"sdl"
+	"fmt"
+)
 
 type PU_Textfield struct {
-	rect *PU_Rect
-	visible bool
+	PU_GuiElement
 	transparent bool //when true, only the inserted text and the caret is visible
 	font *PU_Font
 	color sdl.Color
 	text string
 	password bool
+	caret bool
+	caretLast uint32
+	
+	bold bool
+	italic bool
+	underlined bool
 }
 
 func NewTextfield(_rect *PU_Rect, _font int) *PU_Textfield {
-	textfield := &PU_Textfield{rect : _rect,
-							   visible : true,
-							   transparent : true,
+	textfield := &PU_Textfield{transparent : true,
 							   font : g_engine.GetFont(_font),
-							   password : false}
+							   password : false,
+							   caret : false,
+							   caretLast : sdl.GetTicks()}
+	textfield.rect = _rect
+	textfield.visible = true
+	textfield.focus = false
 	textfield.SetColor(0, 0, 0)
 	g_gui.AddElement(textfield)
 	return textfield
@@ -49,6 +60,10 @@ func (t *PU_Textfield) SetColor(_red uint8, _green uint8, _blue uint8)  {
 	t.color.B = _blue
 }
 
+func (t *PU_Textfield) SetStyle(_bold bool, _italic bool, _underlined bool) {
+	t.bold, t.italic, t.underlined = _bold, _italic, _underlined
+}
+
 func (t *PU_Textfield) Draw() {
 	if !t.visible {
 		return
@@ -57,6 +72,12 @@ func (t *PU_Textfield) Draw() {
 	if !t.transparent {
 		//draw element ui here
 	}
+	
+	var caretX int
+	
+	//find the correct coordinates to draw at (when the element is embedded in another)
+	top := NewRectFrom(t.rect)
+	g_gui.GetTopRect(t, top)
 	
 	//draw text
 	if len(t.text) > 0 {
@@ -69,16 +90,33 @@ func (t *PU_Textfield) Draw() {
 			drawText = t.text
 		}
 		
-		//find the correct coordinates to draw at (when the element is embedded in another)
-		top := NewRectFrom(t.rect)
-		g_gui.GetTopRect(t, top)
-		
 		//find out within what frame the text should be drawn 		
 		clip := NewRectFrom(t.rect)
 		g_gui.GetClipRect(t, clip)
 		
+		t.font.SetStyle(t.bold, t.italic, t.underlined)
 		t.font.SetColor(t.color.R, t.color.G, t.color.B)
 		t.font.DrawTextInRect(drawText, top.x, top.y, clip)
+		
+		caretX = top.x+t.font.GetStringWidth(drawText)
+	}
+	
+	//draw caret
+	if t.focus && t.caret {
+		image := g_game.GetGuiImage(IMG_GUI_CARET)
+		if image != nil {
+			if caretX == 0 {
+				caretX = top.x
+			}
+			
+			lineheight := t.font.GetStringHeight()
+			drawRect := NewRect(caretX, top.y+1, int(image.w), lineheight)
+			g_gui.DrawImage(t, image, drawRect, t.rect)
+		}
+	}
+	if sdl.GetTicks()-t.caretLast >= 500 {
+		t.caret = !t.caret
+		t.caretLast = sdl.GetTicks()
 	}
 }
 
@@ -94,27 +132,24 @@ func (t *PU_Textfield)MouseMove(_x int, _y int) {
 
 }
 
-func (t *PU_Textfield)MouseScroll() {
+func (t *PU_Textfield)MouseScroll(_dir int) {
 
 }
 
 func (t *PU_Textfield)KeyDown(_keysym int, _scancode int) {
-
-}
+	if !t.focus {
+		return
+	}
 	
-func (t *PU_Textfield) GetRect() *PU_Rect {
-	return nil
-}
-
-func (t *PU_Textfield)IsVisible() bool {
-	return t.visible
-}
-
-func (t *PU_Textfield)SetParent(_element IGuiElement) {
-
-}
-
-func (t *PU_Textfield)GetParent() IGuiElement {
-	return nil
+	if _scancode == 8 { //backspace
+		if len(t.text) > 0 {
+			textlength := len(t.text)
+			t.text = t.text[0:textlength-1]
+		}
+	} else if _scancode == 9 { //tab
+	
+	} else if _keysym != 0 && _keysym > 31 { //normal text input
+		t.text += fmt.Sprintf("%c", _keysym)
+	}
 }
 

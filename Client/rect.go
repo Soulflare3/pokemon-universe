@@ -87,7 +87,7 @@ func (r *PU_Rect) Intersection(_rect *PU_Rect) *PU_Rect {
 						width : tempW,
 						height : tempH}
 	}
-	return nil
+	return NewRect(0, 0, 0, 0)
 }
 
 func (r *PU_Rect) ToSDL() *sdl.Rect {

@@ -18,9 +18,6 @@ package main
 
 import (
 	"sdl"
-	"os"
-	"exec"
-	"path"
 )
 
 type PU_Image struct {
@@ -34,12 +31,8 @@ type PU_Image struct {
 
 func NewImage(_file string) *PU_Image {
 	image := &PU_Image{blendmode : sdl.SDL_BLENDMODE_BLEND}
-
-	file, _ := exec.LookPath(os.Args[0])
-	dir, _ := path.Split(file)
-	os.Chdir(dir)
-	path, _ := os.Getwd()
-	image.surface = sdl.LoadImage(path + "/" + _file)
+	
+	image.surface = sdl.LoadImage(GetPath() + _file)
 
 	image.Reload()
 	return image

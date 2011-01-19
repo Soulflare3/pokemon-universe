@@ -20,21 +20,6 @@ import (
 	list "container/list"
 )
 
-type IGuiElement interface {
-	Draw()
-	
-	MouseDown(_x int, _y int)
-	MouseUp(_x int, _y int)
-	MouseMove(_x int, _y int)
-	MouseScroll()
-	KeyDown(_keysym int, _scancode int)
-	
-	GetRect() *PU_Rect
-	IsVisible() bool
-	SetParent(_element IGuiElement)
-	GetParent() IGuiElement
-}
-
 type PU_Gui struct {
 	elementList *list.List
 }
@@ -53,6 +38,27 @@ func (g *PU_Gui) RemoveElement(_element IGuiElement) {
 			g.elementList.Remove(e)
 			break
 		}
+	}
+}
+
+//Helper method to draw GUI images (at the right location and possibly clipped)
+func (g *PU_Gui) DrawImage(_element IGuiElement, _image *PU_Image, _src *PU_Rect, _dst *PU_Rect) {
+	if parent := _element.GetParent(); parent != nil {
+		parentRect := NewRect(0, 0, parent.GetRect().width, parent.GetRect().height)
+		if parentRect.ContainsRect(_dst) || parentRect.Intersects(_dst) {
+			clipRect := parentRect.Intersection(_dst)
+			clipRect.x += parent.GetRect().x
+			clipRect.y += parent.GetRect().y
+			
+			g.DrawImage(parent, _image, _src, clipRect)
+		}
+	} else {
+		if _dst.width == 0 && _dst.height == 0 {
+			_dst.width = WINDOW_WIDTH
+			_dst.height = WINDOW_HEIGHT
+		}
+		
+		_image.DrawRectInRect(_src, _dst)
 	}
 }
 
@@ -85,3 +91,40 @@ func (g *PU_Gui) GetTopRect(_element IGuiElement, _rect *PU_Rect) *PU_Rect {
 	}
 	return nil
 }
+
+func (g *PU_Gui) Draw() {
+	for e := g.elementList.Front(); e != nil;  e = e.Next() {
+		e.Value.(IGuiElement).Draw()
+	}
+}
+
+func (g *PU_Gui) MouseDown(_x int, _y int) {
+	for e := g.elementList.Front(); e != nil;  e = e.Next() {
+		e.Value.(IGuiElement).MouseDown(_x, _y)
+	}
+}
+
+func (g *PU_Gui) MouseUp(_x int, _y int) {
+	for e := g.elementList.Front(); e != nil;  e = e.Next() {
+		e.Value.(IGuiElement).MouseUp(_x, _y)
+	}
+}
+
+func (g *PU_Gui) MouseMove(_x int, _y int) {
+	for e := g.elementList.Front(); e != nil;  e = e.Next() {
+		e.Value.(IGuiElement).MouseMove(_x, _y)
+	}
+}
+
+func (g *PU_Gui) MouseScroll(_dir int) {
+	for e := g.elementList.Front(); e != nil;  e = e.Next() {
+		e.Value.(IGuiElement).MouseScroll(_dir)
+	}
+}
+
+func (g *PU_Gui) KeyDown(_keysym int, _scancode int) {
+	for e := g.elementList.Front(); e != nil;  e = e.Next() {
+		e.Value.(IGuiElement).KeyDown(_keysym, _scancode)
+	}
+}
+

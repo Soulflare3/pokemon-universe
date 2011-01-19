@@ -10,9 +10,9 @@ CGOFILES=\
 	ttf.go\
 	image.go\
 	renderer.go\
+	event.go\
 	
 GOFILES=\
-	event.go\
 	const.go\
 
 CGO_CFLAGS=`sdl-config --cflags`
