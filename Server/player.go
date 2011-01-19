@@ -16,17 +16,40 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
-import "sync"
-
-var (
-	uniqueIdMutex sync.Mutex
-	uniqueId uint64
+import (
+	pos "position"
 )
 
-func GenerateUniqueID() uint64 {
-	uniqueIdMutex.Lock()
-	defer uniqueIdMutex.Unlock()
-	uniqueId++
+type Player struct {
+	name		string
+	uid			uint64 // Unique ID
+	Id			int // Database ID			
 	
-	return uniqueId
+	Position	pos.Position
+	Conn		*Connection	
+}
+
+func NewPlayer(_name string) *Player {
+	p := Player{ name : _name }
+	p.uid 	= GenerateUniqueID()
+	p.Conn 	= nil
+	
+	return &p
+}
+
+func  (p *Player) GetUID() uint64 {
+	return p.uid
+}
+
+func (p *Player) GetName() string {
+	return p.name
+}
+
+func (p *Player) GetPosition() pos.Position {
+	return p.Position
+}
+
+func (p *Player) SetConnection(_conn *Connection) {
+	p.Conn = _conn
+	go _conn.HandleConnection()
 }
