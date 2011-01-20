@@ -16,4 +16,45 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
+import (
+	pos "position"
+)
 
+type PU_Map struct {
+	tileMap map[int64]*PU_Tile
+}
+
+func NewMap() *PU_Map {
+	return &PU_Map{tileMap : make(map[int64]*PU_Tile)}
+}
+
+func (m *PU_Map) GetNumTiles() int {
+	return len(m.tileMap)
+}
+
+func (m *PU_Map) AddTile(_x int, _y int, _z int) *PU_Tile {
+	var index int64 = pos.Hash(_x, _y, _z)
+	tile, present :=  m.tileMap[index]
+	if !present {
+		tile = NewTile(_x, _y, _z)
+		m.tileMap[index] = tile
+	}
+	return tile
+}
+
+func (m *PU_Map) RemoveTile(_tile *PU_Tile) {
+	m.tileMap[_tile.GetHash()] = _tile, false
+}
+
+func (m *PU_Map) RemoveTileFromPos(_pos *pos.Position) {
+	tile, present := m.tileMap[_pos.Hash()]
+	if present {
+		m.tileMap[_pos.Hash()] = tile, false
+	}
+}
+
+func (m *PU_Map) GetTile(_x int, _y int, _z int) *PU_Tile {
+	var index int64 = pos.Hash(_x, _y, _z)
+	tile := m.tileMap[index]
+	return tile;
+}

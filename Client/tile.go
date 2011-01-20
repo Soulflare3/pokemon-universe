@@ -28,10 +28,7 @@ type PU_Tile struct {
 }
 
 func NewTile(_x int, _y int, _z int) *PU_Tile {
-	tile := &PU_Tile{position: pos.NewPosition()}
-	tile.position.X = _x
-	tile.position.Y = _y
-	tile.position.Z = _z
+	tile := &PU_Tile{position: pos.NewPositionFrom(_x, _y, _z)}
 	return tile
 }
 
@@ -61,3 +58,6 @@ func (t *PU_Tile) GetSignature() uint64 {
 	return signature
 }
 
+func (t *PU_Tile) GetHash() int64 {
+	return t.position.Hash()
+}
