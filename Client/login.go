@@ -18,7 +18,7 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"sdl"
 )
 
 type PU_LoginControls struct {
@@ -125,7 +125,7 @@ func DoLogin(_username string, _password string) bool {
 	
 	timeout := uint16(0)
 	for g_conn.loginStatus == LOGINSTATUS_IDLE {
-		time.Sleep(500)
+		sdl.Delay(500)
 		timeout += 500
 		
 		if timeout >= 10000 { //10 sec

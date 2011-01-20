@@ -19,7 +19,6 @@ package main
 import (
 	"fmt"
 	"sdl"
-	"time"
 	"os"
 	"exec"
 	"path"
@@ -74,7 +73,7 @@ func main() {
 		Draw()
 		
 		//Give the CPU some time to do other stuff
-		time.Sleep(10)
+		sdl.Delay(10)
 		
 		//Handle a network packet
 		g_conn.HandlePacket()
