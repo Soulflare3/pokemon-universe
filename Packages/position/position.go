@@ -32,6 +32,11 @@ func NewPosition() Position {
 	return Position{ }
 }
 
+// NewPositionFrom returns a new position with the given coordinates
+func NewPositionFrom(_x int, _y int, _z int) Position {
+	return Position{X : _x, Y : _y, Z : _z}
+}
+
 // NewPositionFromHash generates a new Position struct with 
 // coordinates extracted from the hash
 func NewPositionFromHash(_hash int64) Position {
