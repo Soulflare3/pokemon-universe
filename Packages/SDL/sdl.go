@@ -28,6 +28,10 @@ import "unsafe"
 
 type cast unsafe.Pointer
 
+func Delay(_ticks uint32) {
+	C.SDL_Delay(C.Uint32(_ticks))
+}
+
 func GetTicks() uint32 { 
     return uint32(C.SDL_GetTicks())
 }   
