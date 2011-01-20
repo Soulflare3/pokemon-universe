@@ -29,7 +29,7 @@ var ZP Position
 
 // NewPosition returns a new empty Position
 func NewPosition() Position {
-	return Position{}
+	return Position{ }
 }
 
 // NewPositionFromHash generates a new Position struct with 

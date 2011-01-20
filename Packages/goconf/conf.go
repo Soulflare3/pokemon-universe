@@ -27,7 +27,7 @@
 //
 // Goconfig's string substitution syntax has not been removed. However, it may be
 // taken out or modified in the future.
-package conf
+package conf 
 
 import (
 	"regexp"

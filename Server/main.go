@@ -50,7 +50,7 @@ var (
 
 
 func initConfig() bool {
-	c, err := conf.ReadConfigFile("data/" + *configFile)
+	c, err := conf.ReadConfigFile("data/" + *configFile) 
 	if err != nil {
 		fmt.Printf("Could not load config file: %v\n\r", err)
 		return false

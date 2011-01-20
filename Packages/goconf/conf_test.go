@@ -37,7 +37,7 @@ type booltest struct {
 }
 
 var testSet = []interface{}{
-	stringtest{"", "host", "example.com"},
+	stringtest{"default", "host", "example.com"},
 	inttest{"default", "port", 43},
 	booltest{"default", "compression", true},
 	booltest{"default", "active", false},

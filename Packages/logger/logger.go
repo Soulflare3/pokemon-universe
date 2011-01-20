@@ -32,7 +32,6 @@ const (
 type Logger struct {
 	filename 	string
 	file 		*os.File
-	
 	flags 		int
 }
 

@@ -77,6 +77,7 @@ func New() (mysql *MySQL) {
 	mysql = new(MySQL)
 	// Setup mutex
 	mysql.mutex = new(sync.Mutex)
+	
 	return
 }
 
