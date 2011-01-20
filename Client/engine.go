@@ -82,6 +82,14 @@ func (e *PU_Engine) Exit() {
 	sdl.QuitTTF()
 } 
 
+func (e *PU_Engine) DrawFillRect(_rect *PU_Rect, _color *sdl.Color, _alpha uint8) {
+	sdl.SetRenderDrawColor(_color.R, _color.G, _color.B, _alpha)
+	sdl.SetRenderDrawBlendMode(sdl.SDL_BLENDMODE_BLEND)
+	sdl.RenderFillRect(*_rect.ToSDL())
+	sdl.SetRenderDrawBlendMode(sdl.SDL_BLENDMODE_NONE)
+	sdl.SetRenderDrawColor(0, 0, 0, 255)
+}
+
 func (e *PU_Engine) AddResource(_res IResource) {
 	e.resourceList.PushBack(_res)
 }

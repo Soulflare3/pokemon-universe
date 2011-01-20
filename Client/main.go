@@ -103,8 +103,11 @@ func EventHandler(_event *sdl.SDLEvent) {
 	case sdl.SDL_KEYDOWN, sdl.SDL_TEXTINPUT:
 		HandleKeyboardEvent(_event.Keyboard())
 		
-	case sdl.SDL_MOUSEBUTTONUP:
+	case sdl.SDL_MOUSEBUTTONUP, sdl.SDL_MOUSEBUTTONDOWN:
 		HandleMouseButtonEvent(_event.MouseButton())
+		
+	case sdl.SDL_MOUSEMOTION:
+		HandleMouseMotionEvent(_event.MouseMotion())
 	}
 }
 
@@ -135,3 +138,6 @@ func HandleMouseButtonEvent(_event *sdl.MouseButtonEvent) {
 	}
 }
 
+func HandleMouseMotionEvent(_event *sdl.MouseMotionEvent) {
+	g_gui.MouseMove(int(_event.X), int(_event.Y))
+}

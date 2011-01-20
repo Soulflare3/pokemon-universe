@@ -44,3 +44,17 @@ func (m *PU_Message_Login) WritePacket() (*punet.Packet, os.Error) {
 	packet.AddUint16(m.version)
 	return packet, nil
 }
+
+//This message requests tiles and the player's identify from the server after logging in
+type PU_Message_LoginRequest struct {
+}
+
+func NewLoginRequestMessage() *PU_Message_LoginRequest {
+	return &PU_Message_LoginRequest{}
+}
+
+func (m *PU_Message_LoginRequest) WritePacket() (*punet.Packet, os.Error) {
+	packet := punet.NewPacket()
+	packet.AddUint8(punet.HEADER_LOGIN)
+	return packet, nil
+}

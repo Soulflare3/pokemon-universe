@@ -17,7 +17,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
-	"fmt"
 	"sdl"
 )
 
@@ -90,7 +89,6 @@ func LoginKeydown(_keysym int, _scancode int) {
 			password = g_loginControls.txtPassword.text
 		}
 		
-		fmt.Printf("%v\n%v\n", username, password)
 		go StartLogin(username, password)
 	}
 }

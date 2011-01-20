@@ -17,7 +17,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
-	"fmt"
 	punet "network"
 )
 
@@ -38,7 +37,6 @@ func (p *PU_GameProtocol) ProcessPacket(_packet *punet.Packet) {
 
 func (p *PU_GameProtocol) ReceiveLoginStatus(_packet *punet.Packet) {
 	g_conn.loginStatus = int(_packet.ReadUint8())
-	fmt.Printf("Loginstatus: %v\n", g_conn.loginStatus)
 }
 
 func (p *PU_GameProtocol) SendLogin(_username string, _password string) {

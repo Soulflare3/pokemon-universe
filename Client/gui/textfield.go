@@ -26,6 +26,7 @@ type PU_Textfield struct {
 	transparent bool //when true, only the inserted text and the caret is visible
 	font *PU_Font
 	color sdl.Color
+	bgcolor sdl.Color
 	text string
 	password bool
 	caret bool
@@ -60,6 +61,12 @@ func (t *PU_Textfield) SetColor(_red uint8, _green uint8, _blue uint8)  {
 	t.color.B = _blue
 }
 
+func (t *PU_Textfield) SetBgColor(_red uint8, _green uint8, _blue uint8)  {
+	t.bgcolor.R = _red
+	t.bgcolor.G = _green
+	t.bgcolor.B = _blue
+}
+
 func (t *PU_Textfield) SetStyle(_bold bool, _italic bool, _underlined bool) {
 	t.bold, t.italic, t.underlined = _bold, _italic, _underlined
 }
@@ -70,7 +77,7 @@ func (t *PU_Textfield) Draw() {
 	}
 	
 	if !t.transparent {
-		//draw element ui here
+		g_engine.DrawFillRect(t.rect, &t.bgcolor, 200)
 	}
 	
 	var caretX int

@@ -17,6 +17,8 @@ GOFILES=\
 		gui/gui_const.go\
 		gui/element.go\
 		gui/textfield.go\
+		gui/listbox.go\
+		gui/scrollbar.go\
 		messages/login.go\
 
 include $(GOROOT)/src/Make.cmd
