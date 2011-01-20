@@ -13,6 +13,7 @@ DIRS=\
 	position\
 	mysql\
 	goconf\
+	SDL\
 	
 clean.dirs: $(addsuffix .clean, $(DIRS))
 install.dirs: $(addsuffix .install, $(DIRS))
