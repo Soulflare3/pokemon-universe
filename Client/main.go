@@ -60,7 +60,7 @@ func main() {
 	g_game.SetState(GAMESTATE_LOGIN)
 	
 	//Gui test code
-	g_loginControls.Show()
+	g_loginControls.Show() 
 
 	//Handle events 
 	for g_running {
