@@ -89,10 +89,10 @@ func (p Position) Equals(_q Position) bool {
 // Create a hash from x, y and z
 // hash = [1 bit for positive/negative x][16 bits for x][1 bit for positive/negative y][16 bits for y][1 bit for z]
 func (p Position) Hash() int64 {
-	_x := p.X
-	_y := p.Y
-	_z := p.Z
-	
+	return Hash(p.X, p.Y, p.Z)
+}
+
+func Hash(_x int, _y int, _z int) int64 {
 	var x64 int64
 	if _x < 0 {
 		x64 = (int64(1) << 34)  | ((^(int64(_x)-1)) << 18)
