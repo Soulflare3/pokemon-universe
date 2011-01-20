@@ -92,6 +92,58 @@ func (g *PU_Gui) GetTopRect(_element IGuiElement, _rect *PU_Rect) *PU_Rect {
 	return nil
 }
 
+func (g *PU_Gui) SetFocus(_element IGuiElement) {
+	//remove all focuses and set it for the arg element
+	for e := g.elementList.Front(); e != nil; e = e.Next() {
+		if e.Value == _element {
+			e.Value.(IGuiElement).SetFocus(true)
+		} else {
+			e.Value.(IGuiElement).SetFocus(false)
+		}
+	}
+}
+
+func (g *PU_Gui) NextFocus() {
+	//find the current focus holder and remove all focuses
+	var currentFocus *list.Element = nil
+	for e := g.elementList.Front(); e != nil;  e = e.Next() {
+		if e.Value.(IGuiElement).HasFocus() {
+			e.Value.(IGuiElement).SetFocus(false)
+			currentFocus = e
+		}
+	}
+	
+	//if there's no current focus holder we can just start at the front
+	if currentFocus == nil {
+		currentFocus = g.elementList.Front()
+	} else {
+		currentFocus = currentFocus.Next()
+	}
+	
+	//find a new focusable element (starting at the current element's list position)
+	for e := currentFocus; e != nil; e = e.Next() {
+		if e.Value.(IGuiElement).Focusable() {
+			e.Value.(IGuiElement).SetFocus(true)
+			return
+		}
+	}
+	
+	//reaching this means we haven't found any elements to the left of the current element
+	
+	//if we already searched the whole list, we just give up here
+	if currentFocus == g.elementList.Front() {
+		return
+	}
+	
+	//search the list again, starting at the front
+	for e := g.elementList.Front(); e != nil; e = e.Next() {
+		if e.Value.(IGuiElement).Focusable() {
+			e.Value.(IGuiElement).SetFocus(true)
+			return
+		}
+	}
+}
+
 func (g *PU_Gui) Draw() {
 	for e := g.elementList.Front(); e != nil;  e = e.Next() {
 		e.Value.(IGuiElement).Draw()
@@ -124,6 +176,10 @@ func (g *PU_Gui) MouseScroll(_dir int) {
 
 func (g *PU_Gui) KeyDown(_keysym int, _scancode int) {
 	for e := g.elementList.Front(); e != nil;  e = e.Next() {
+		if _scancode == 9 && e.Value.(IGuiElement).HasFocus() { //1 tab per event to avoid tab loop
+			e.Value.(IGuiElement).KeyDown(_keysym, _scancode)
+			return
+		}
 		e.Value.(IGuiElement).KeyDown(_keysym, _scancode)
 	}
 }

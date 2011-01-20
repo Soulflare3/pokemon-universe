@@ -30,21 +30,21 @@ type PU_Textfield struct {
 	password bool
 	caret bool
 	caretLast uint32
+	readonly bool
 	
 	bold bool
 	italic bool
 	underlined bool
+	
+	KeyDownCallback func(_keysym int, _scancode int)
 }
 
 func NewTextfield(_rect *PU_Rect, _font int) *PU_Textfield {
 	textfield := &PU_Textfield{transparent : true,
 							   font : g_engine.GetFont(_font),
-							   password : false,
-							   caret : false,
 							   caretLast : sdl.GetTicks()}
 	textfield.rect = _rect
 	textfield.visible = true
-	textfield.focus = false
 	textfield.SetColor(0, 0, 0)
 	g_gui.AddElement(textfield)
 	return textfield
@@ -102,7 +102,7 @@ func (t *PU_Textfield) Draw() {
 	}
 	
 	//draw caret
-	if t.focus && t.caret {
+	if t.focus && t.caret && !t.readonly {
 		image := g_game.GetGuiImage(IMG_GUI_CARET)
 		if image != nil {
 			if caretX == 0 {
@@ -125,7 +125,9 @@ func (t *PU_Textfield)MouseDown(_x int, _y int) {
 }
 
 func (t *PU_Textfield) MouseUp(_x int, _y int) {
-
+	if t.rect.Contains(_x, _y) && !t.readonly {
+		g_gui.SetFocus(t)
+	}
 }
 
 func (t *PU_Textfield)MouseMove(_x int, _y int) {
@@ -136,8 +138,15 @@ func (t *PU_Textfield)MouseScroll(_dir int) {
 
 }
 
+func (t *PU_Textfield) Focusable() bool {
+	if !t.readonly {
+		return true
+	}
+	return false
+}
+
 func (t *PU_Textfield)KeyDown(_keysym int, _scancode int) {
-	if !t.focus {
+	if !t.focus || t.readonly {
 		return
 	}
 	
@@ -147,9 +156,14 @@ func (t *PU_Textfield)KeyDown(_keysym int, _scancode int) {
 			t.text = t.text[0:textlength-1]
 		}
 	} else if _scancode == 9 { //tab
-	
+		println("BLAAT")
+		g_gui.NextFocus()
 	} else if _keysym != 0 && _keysym > 31 { //normal text input
 		t.text += fmt.Sprintf("%c", _keysym)
+	}
+	
+	if t.KeyDownCallback != nil {
+		t.KeyDownCallback(_keysym, _scancode)
 	}
 }
 
