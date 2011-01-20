@@ -17,11 +17,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
+	"fmt"
 	"os"
 	"hash"
 	"crypto/sha1"
 	"strings"
 	"mysql"
+	
+	pos "position"
 )
 
 func CheckAccountInfo(_username string, _password string) bool {
@@ -53,7 +56,7 @@ func PasswordTest(_plain string, _hash string) bool {
 	var h hash.Hash = sha1.New()
 	h.Write([]byte(_plain))
 	
-	var sha1Hash string = strings.ToUpper(string(h.Sum()))
+	var sha1Hash string = strings.ToUpper(fmt.Sprintf("%x", h.Sum()))
 	var original string = strings.ToUpper(_hash)
 	
 	return (sha1Hash == original)
@@ -68,6 +71,9 @@ func LoadPlayerProfile(_username string) (bool, *Player) {
 	
 	var queryString string = "SELECT idplayer, name FROM player WHERE name='" + _username +"'"
 	if res, err = g_db.Query(queryString); err != nil {
+		if IS_DEBUG {
+			g_logger.Printf("[DEBUG] LoadPlayerProfile: %v\n\r", err)
+		}
 		return false, nil
 	}
 	if rows = res.FetchMap(); rows == nil {
@@ -81,6 +87,32 @@ func LoadPlayerProfile(_username string) (bool, *Player) {
 	if p == nil {
 		p = NewPlayer(name)
 		p.Id = idPlayer
+		
+		queryString = "SELECT p.`position`, p.`movement`, p.`money`, p.`idlocation`, "
+		queryString += "po.`head`, po.`nek`, po.`upper`, po.`lower`, po.`feet`, pc.`position` AS `pc_position` "
+		queryString += "FROM `player` as p "
+		queryString += "JOIN `player_outfit` AS po ON po.`idplayer`=p.`idplayer` "
+		queryString += "JOIN `pokecenter` AS pc ON pc.`idpokecenter`=p.`idpokecenter` "
+		queryString += "WHERE p.`idplayer` = '" + string(idPlayer) + "'"
+		
+		if res, err = g_db.Query(queryString); err != nil {
+			if IS_DEBUG {
+				g_logger.Printf("[DEBUG] LoadPlayerProfile: %v\n\r", err)
+			}
+			return false, nil
+		}
+		if rows = res.FetchMap(); rows == nil {
+			return false, nil
+		}
+		
+		positionHash, _ := rows["position"].(int64)
+		movement, _		:= rows["movement"].(int)
+		//idlocation, _	:= rows["idlocation"].(uint32)
+		
+		p.Position	= pos.NewPositionFromHash(positionHash)
+		p.Movement	= movement
+		
+		//ToDo: Add other database values to player object
 		
 		g_game.AddPlayer(p)
 	}

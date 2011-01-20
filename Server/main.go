@@ -29,6 +29,10 @@ import (
 	pos "position" // PU.Position package	
 )
 
+const (
+	IS_DEBUG = true
+)
+
 var (
 	configFile *string
 	

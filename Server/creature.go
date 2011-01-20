@@ -20,6 +20,11 @@ import (
 	pos "position"
 )
 
+const (
+	MOVEMENT_WALK = TILEBLOCK_WALK
+	MOVEMENT_SURF = TILEBLOCK_SURF
+)
+
 // CreatureList is map which holds a list of ICreature interfaces
 type CreatureList map[uint64]ICreature
 
@@ -28,6 +33,7 @@ type ICreature interface {
 	GetUID()		uint64
 	GetName()		string
 	GetPosition()	pos.Position
+	GetMovement()	int
 }
 
 // Interface for all moving creatures

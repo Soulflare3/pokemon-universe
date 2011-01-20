@@ -36,6 +36,9 @@ type Game struct {
 func NewGame() *Game {
 	game := Game{}
 	game.State = GAME_STATE_STARTUP
+	// Initialize maps
+	game.Creatures = make(CreatureList)
+	game.Players = make(PlayerList)
 	
 	return &game
 }

@@ -14,6 +14,7 @@ GOFILES=\
 	protocollogin.go\
 	creature.go\
 	player.go\
+	tile.go\
 	messages/loginmessage.go\
 
 include $(GOROOT)/src/Make.cmd

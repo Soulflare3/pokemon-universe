@@ -27,6 +27,8 @@ type Player struct {
 	
 	Position	pos.Position
 	Conn		*Connection	
+	
+	Movement	int
 }
 
 func NewPlayer(_name string) *Player {
@@ -47,6 +49,10 @@ func (p *Player) GetName() string {
 
 func (p *Player) GetPosition() pos.Position {
 	return p.Position
+}
+
+func (p *Player) GetMovement() int {
+	return p.Movement
 }
 
 func (p *Player) SetConnection(_conn *Connection) {
