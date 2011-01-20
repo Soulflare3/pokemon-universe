@@ -156,7 +156,6 @@ func (t *PU_Textfield)KeyDown(_keysym int, _scancode int) {
 			t.text = t.text[0:textlength-1]
 		}
 	} else if _scancode == 9 { //tab
-		println("BLAAT")
 		g_gui.NextFocus()
 	} else if _keysym != 0 && _keysym > 31 { //normal text input
 		t.text += fmt.Sprintf("%c", _keysym)
