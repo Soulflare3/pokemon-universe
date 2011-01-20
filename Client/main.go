@@ -23,16 +23,25 @@ import (
 	"os"
 	"exec"
 	"path"
+	"runtime"
+)
+
+const (
+	CLIENT_VERSION = 4
 )
 
 var g_running bool = true
 var g_engine *PU_Engine = NewEngine()
 var g_game *PU_Game = NewGame()
 var g_gui *PU_Gui = NewGui()
+var g_conn *PU_Connection = NewConnection()
 
 func main() {
 	//Make sure that resources get released
 	defer g_engine.Exit()
+	
+	//Permission to run on 2 CPU cores
+	runtime.GOMAXPROCS(2)
 
 	//Initialize SDL
 	err := sdl.Init()
@@ -52,10 +61,7 @@ func main() {
 	g_game.SetState(GAMESTATE_LOGIN)
 	
 	//Gui test code
-	testTextfield := NewTextfield(NewRect(453, 396, 160, 20), FONT_PURITANBOLD_14)
-	testTextfield.SetColor(57, 92, 196)
-	testTextfield.SetStyle(true, false, false)
-	testTextfield.focus = true
+	g_loginControls.Show()
 
 	//Handle events 
 	for g_running {
@@ -64,9 +70,14 @@ func main() {
 			EventHandler(event)
 		}
 		
+		//Render everything on screen
 		Draw()
 		
+		//Give the CPU some time to do other stuff
 		time.Sleep(10)
+		
+		//Handle a network packet
+		g_conn.HandlePacket()
 	}
 	sdl.Quit()
 }
@@ -92,8 +103,10 @@ func EventHandler(_event *sdl.SDLEvent) {
 		
 	case sdl.SDL_KEYDOWN, sdl.SDL_TEXTINPUT:
 		HandleKeyboardEvent(_event.Keyboard())
+		
+	case sdl.SDL_MOUSEBUTTONUP:
+		HandleMouseButtonEvent(_event.MouseButton())
 	}
-	
 }
 
 func HandleWindowEvent(_event *sdl.WindowEvent) {
@@ -110,6 +123,16 @@ func HandleKeyboardEvent(_event *sdl.KeyboardEvent) {
 			
 		case sdl.SDL_TEXTINPUT:
 			g_gui.KeyDown(int(_event.State), int(_event.Keysym().Scancode));
+	}
+}
+
+func HandleMouseButtonEvent(_event *sdl.MouseButtonEvent) {
+	switch _event.Evtype {
+		case sdl.SDL_MOUSEBUTTONUP:
+			g_gui.MouseUp(int(_event.X), int(_event.Y))
+			
+		case sdl.SDL_MOUSEBUTTONDOWN:
+			g_gui.MouseDown(int(_event.X), int(_event.Y))
 	}
 }
 

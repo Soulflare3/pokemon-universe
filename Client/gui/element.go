@@ -24,6 +24,7 @@ type IGuiElement interface {
 	MouseMove(_x int, _y int)
 	MouseScroll(_dir int)
 	KeyDown(_keysym int, _scancode int)
+	Focusable() bool
 	
 	GetRect() *PU_Rect
 	IsVisible() bool
