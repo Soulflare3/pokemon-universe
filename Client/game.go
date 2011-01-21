@@ -37,6 +37,9 @@ type PU_Game struct {
 	state int
 	tileImageMap map[uint16]*PU_Image
 	guiImageMap map[uint16]*PU_Image
+	
+	screenOffsetX int
+	screenOffsetY int
 }
 
 func NewGame() *PU_Game {

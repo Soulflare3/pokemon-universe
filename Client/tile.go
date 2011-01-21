@@ -20,6 +20,11 @@ import (
 	pos "position"
 )
 
+const (
+	TILE_WIDTH = 48
+	TILE_HEIGHT = 48
+)
+
 type PU_Tile struct {
 	position pos.Position
 	movement int
@@ -30,6 +35,17 @@ type PU_Tile struct {
 func NewTile(_x int, _y int, _z int) *PU_Tile {
 	tile := &PU_Tile{position: pos.NewPositionFrom(_x, _y, _z)}
 	return tile
+}
+
+func (t *PU_Tile) DrawLayer(_layer int, _x int, _y int) {
+	if t.layers[_layer] == nil {
+		return
+	}
+
+	drawX := (_x*TILE_WIDTH)-TILE_WIDTH-22+g_game.screenOffsetX
+	drawY := (_y*TILE_HEIGHT)-TILE_HEIGHT+g_game.screenOffsetY
+
+	t.layers[_layer].Draw(drawX, drawY)
 }
 
 func (t *PU_Tile) AddLayer(_layer int, _id int) {

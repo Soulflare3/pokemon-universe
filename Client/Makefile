@@ -13,6 +13,11 @@ GOFILES=\
 		connection.go\
 		gameprotocol.go\
 		networkconst.go\
+		map.go\
+		tile.go\
+		layer.go\
+		creature.go\
+		player.go\
 		gui/gui.go\
 		gui/gui_const.go\
 		gui/element.go\
