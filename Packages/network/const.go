@@ -20,4 +20,9 @@ package network
 const (
 	HEADER_LOGIN  			= 0x01
 	HEADER_LOGOUT 			= 0x02
+	
+	HEADER_IDENTITY			= 0xAA
+	
+	HEADER_TILES			= 0xC1
+	HEADER_ADDPLAYER		= 0xC2
 )
