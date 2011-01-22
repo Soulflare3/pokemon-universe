@@ -25,5 +25,7 @@ GOFILES=\
 		gui/listbox.go\
 		gui/scrollbar.go\
 		messages/login.go\
+		messages/identity.go\
+		messages/tiles.go\
 
 include $(GOROOT)/src/Make.cmd

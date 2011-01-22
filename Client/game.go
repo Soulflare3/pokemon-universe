@@ -25,6 +25,14 @@ import (
 )
 
 const (
+	NUMTILES_X = 23
+	NUMTILES_Y = 17
+	
+	MID_X = 11
+	MID_Y = 8
+)
+
+const (
 	GAMESTATE_UNLOADING = iota
 	GAMESTATE_LOADING
 	GAMESTATE_LOGIN
@@ -40,6 +48,8 @@ type PU_Game struct {
 	
 	screenOffsetX int
 	screenOffsetY int
+	
+	self *PU_Player
 }
 
 func NewGame() *PU_Game {
@@ -60,7 +70,78 @@ func (g *PU_Game) Draw() {
 		case GAMESTATE_LOGIN:
 			g.GetGuiImage(IMG_GUI_INTROBG).Draw(0, 0)
 			g_gui.Draw()
+			
+		case GAMESTATE_WORLD:
+			g.DrawWorld()
 	}
+}
+
+func (g *PU_Game) DrawWorld() {
+	g.screenOffsetX, g.screenOffsetY = g.GetScreenOffset()
+			
+	layer2tiles := make([]*PU_Tile, (NUMTILES_X*NUMTILES_Y))
+	layer2tilesCount := 0
+	
+	//draw tile layer 0 and 1 
+	for x := 0; x < NUMTILES_X; x++ {
+		for y := 0; y < NUMTILES_Y; y++ {
+			mapx := int(g.self.x-MID_X)+x
+			mapy := int(g.self.y-MID_Y)+y
+			
+			tile := g_map.GetTile(mapx, mapy)
+			if tile != nil {
+				for i := 0; i < 2; i++ {
+					tile.DrawLayer(i, x, y)
+				}
+				if tile.layers[2] != nil {
+					layer2tiles[layer2tilesCount] = tile
+					layer2tilesCount++
+				}
+			}
+		}
+	}
+	
+	//draw creatures
+	
+	//draw tile layer 2
+	for i := 0; i < layer2tilesCount; i++ {
+		tile := layer2tiles[i]
+		
+		screenx := MID_X-(int(g.self.x)-tile.position.X)
+		screeny := MID_Y-(int(g.self.y)-tile.position.Y)
+		
+		tile.DrawLayer(2, screenx, screeny)
+	}
+	
+	//draw player names
+	
+	//draw extra info
+	info := fmt.Sprintf("x: %v y: %v", g.self.x, g.self.y)
+	if font := g_engine.GetFont(FONT_PURITANBOLD_14); font != nil {
+		font.SetColor(255, 242, 0)
+		font.DrawText(info, 5, 5)
+	}
+}
+
+func (g *PU_Game) GetScreenOffset() (x int, y int) {
+	x = 0
+	y = 0
+	if g.self != nil && g.self.walking {
+		switch g.self.direction {
+			case DIR_NORTH:
+				y = 0-(TILE_HEIGHT-g.self.offset)
+
+			case DIR_EAST:
+				x = (TILE_WIDTH-g.self.offset)
+
+			case DIR_SOUTH:
+				y = (TILE_HEIGHT-g.self.offset)
+
+			case DIR_WEST:
+				x = 0-(TILE_WIDTH-g.self.offset)
+		}
+	}
+	return
 }
 
 func (g *PU_Game) LoadFonts () {

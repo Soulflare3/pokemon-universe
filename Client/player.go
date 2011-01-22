@@ -30,8 +30,10 @@ const (
 type PU_Player struct {
 	PU_Creature
 	
+	name string
+	
 	walkConfirmed bool
-	money uint16
+	money uint32
 	
 	bodyParts [NUM_BODYPARTS]*PU_BodyPart
 }
@@ -45,6 +47,16 @@ func NewPlayer(_id uint32) *PU_Player {
 	}
 	
 	return player
+}
+
+func (p *PU_Player) Turn(_dir int, _send bool) {
+	if _dir != p.direction {
+		p.direction = _dir
+		
+		if _send {
+			//g_conn.protocol.SendTurn(_dir)
+		}
+	}
 }
 
 type PU_BodyPart struct {

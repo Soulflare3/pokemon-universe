@@ -25,6 +25,20 @@ const (
 	TILE_HEIGHT = 48
 )
 
+const (
+	TILE_BLOCKING = 1
+	TILE_WALK = 2
+	TILE_SURF = 3
+	TILE_BLOCKTOP = 4
+	TILE_BLOCKBOTTOM = 5
+	TILE_BLOCKRIGHT = 6
+	TILE_BLOCKLEFT = 7
+	TILE_BLOCKCORNER_TR = 8
+	TILE_BLOCKCORNER_BR = 9
+	TILE_BLOCKCORNER_BL = 10
+	TILE_BLOCKCORNER_TL = 11
+)
+
 type PU_Tile struct {
 	position pos.Position
 	movement int
@@ -32,8 +46,8 @@ type PU_Tile struct {
 	layers [3]*PU_Layer
 }
 
-func NewTile(_x int, _y int, _z int) *PU_Tile {
-	tile := &PU_Tile{position: pos.NewPositionFrom(_x, _y, _z)}
+func NewTile(_x int, _y int) *PU_Tile {
+	tile := &PU_Tile{position: pos.NewPositionFrom(_x, _y, 0)}
 	return tile
 }
 

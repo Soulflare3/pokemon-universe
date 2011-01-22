@@ -30,6 +30,9 @@ const (
 type PU_Creature struct {
 	id uint32
 	
+	x int16
+	y int16
+	
 	walking bool
 	walkEnded bool
 	preWalkX int16
@@ -54,4 +57,9 @@ func (c *PU_Creature) SetDefault(_id uint32) {
 	c.frames = 3
 	c.animationInterval = 150
 	c.animationLastTicks = sdl.GetTicks()
+}
+
+func (c *PU_Creature) SetPosition(_x int, _y int) {
+	c.x = int16(_x)
+	c.y = int16(_y)
 }

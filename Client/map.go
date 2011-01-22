@@ -32,11 +32,11 @@ func (m *PU_Map) GetNumTiles() int {
 	return len(m.tileMap)
 }
 
-func (m *PU_Map) AddTile(_x int, _y int, _z int) *PU_Tile {
-	var index int64 = pos.Hash(_x, _y, _z)
+func (m *PU_Map) AddTile(_x int, _y int) *PU_Tile {
+	var index int64 = pos.Hash(_x, _y, 0)
 	tile, present :=  m.tileMap[index]
 	if !present {
-		tile = NewTile(_x, _y, _z)
+		tile = NewTile(_x, _y)
 		m.tileMap[index] = tile
 	}
 	return tile
@@ -53,8 +53,8 @@ func (m *PU_Map) RemoveTileFromPos(_pos *pos.Position) {
 	}
 }
 
-func (m *PU_Map) GetTile(_x int, _y int, _z int) *PU_Tile {
-	var index int64 = pos.Hash(_x, _y, _z)
+func (m *PU_Map) GetTile(_x int, _y int) *PU_Tile {
+	var index int64 = pos.Hash(_x, _y, 0)
 	tile := m.tileMap[index]
 	return tile;
 }

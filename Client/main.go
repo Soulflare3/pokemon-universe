@@ -34,6 +34,7 @@ var g_engine *PU_Engine = NewEngine()
 var g_game *PU_Game = NewGame()
 var g_gui *PU_Gui = NewGui()
 var g_conn *PU_Connection = NewConnection()
+var g_map *PU_Map = NewMap()
 
 func main() {
 	//Make sure that resources get released

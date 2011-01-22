@@ -32,11 +32,33 @@ func (p *PU_GameProtocol) ProcessPacket(_packet *punet.Packet) {
 	switch header {
 		case punet.HEADER_LOGIN:
 			p.ReceiveLoginStatus(_packet)
+			
+		case punet.HEADER_IDENTITY:
+			p.ReceiveIdentity(_packet)
+			
+		case punet.HEADER_TILES:
+			p.ReceiveTiles(_packet)
+			
+		//case punet.HEADER_TILESREFRESHED:
+		//	p.ReceiveTilesRefreshed()
 	}
 }
 
 func (p *PU_GameProtocol) ReceiveLoginStatus(_packet *punet.Packet) {
 	g_conn.loginStatus = int(_packet.ReadUint8())
+}
+
+func (p *PU_GameProtocol) ReceiveIdentity(_packet *punet.Packet) {
+	message := NewIdentityMessage(_packet)
+	g_game.self = message.player
+}
+
+func (p *PU_GameProtocol) ReceiveTiles(_packet *punet.Packet) {
+	NewTilesMessage(_packet)
+}
+
+func (p *PU_GameProtocol) ReceiveTilesRefreshed() {
+	g_game.state = GAMESTATE_WORLD
 }
 
 func (p *PU_GameProtocol) SendLogin(_username string, _password string) {
@@ -46,3 +68,8 @@ func (p *PU_GameProtocol) SendLogin(_username string, _password string) {
 	message.version = CLIENT_VERSION
 	g_conn.SendMessage(message)
 } 
+
+func (p *PU_GameProtocol) SendRequestLoginPackets() {
+	message := NewLoginRequestMessage()
+	g_conn.SendMessage(message)
+}

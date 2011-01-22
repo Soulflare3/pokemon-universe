@@ -167,6 +167,22 @@ func DoLogin(_username string, _password string) bool {
 	}
 	g_conn.loginStatus = LOGINSTATUS_IDLE
 	
+	//the following part is only temporary until the loginserver is ready to be used
 	g_loginControls.txtStatus.text = "Loading gameworld..."
+	g_conn.Game().SendRequestLoginPackets()
+	
+	timeout = 0
+	for g_conn.loginStatus != LOGINSTATUS_READY {
+		sdl.Delay(500)
+		timeout += 500
+		
+		if timeout >= 30000 { //30 sec
+			g_loginControls.txtStatus.text = "Timeout while loading gameworld. Please retry."
+			return false
+		}
+	}
+	
+	g_game.state = GAMESTATE_WORLD
+	
 	return true
 }

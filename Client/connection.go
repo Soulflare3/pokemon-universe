@@ -21,11 +21,12 @@ import (
 	"fmt"
 	"net"
 	punet "network"
+	"io"
 )
 
 const (
 	//this should be more than enough
-	PACKET_BUFFERSIZE = 100
+	PACKET_BUFFERSIZE = 1000
 )
 
 type IProtocol interface {
@@ -75,10 +76,9 @@ func (c *PU_Connection) Close() {
 func (c *PU_Connection) ReceivePackets() {
 	for c.connected {
 		var headerbuffer [2]uint8 
-		recv, err := c.socket.Read(headerbuffer[0:])
+		recv, err := io.ReadFull(c.socket, headerbuffer[0:])
 		if err != nil || recv == 0 {
 			fmt.Printf("Error while reading socket: %v\n", err)
-			break
 		}
 
 		packet := punet.NewPacket()
@@ -86,8 +86,10 @@ func (c *PU_Connection) ReceivePackets() {
 		packet.GetHeader()
 		
 		databuffer := make([]uint8, packet.MsgSize)
-		recv, err = c.socket.Read(databuffer[0:])
-		if recv == 0 {	
+		recv, err = io.ReadFull(c.socket, databuffer[0:])
+		if recv < packet.MsgSize {
+			println("This is not enough bytes.")
+		} else if recv == 0 {	
 			continue 
 		} else if err != nil {
 			fmt.Printf("Connection read error: %v\n", err)
@@ -110,9 +112,15 @@ func (c *PU_Connection) HandlePacket() {
 	}
 	
 	//check if there's a packet in the buffer and process it
-	packet, present := <- c.packetChan
-	if present {
-		c.protocol.ProcessPacket(packet)
+	//repeat until buffer is empty
+	for {
+		packet, present := <- c.packetChan
+		if present {
+			c.protocol.ProcessPacket(packet)
+			counter++
+		} else {
+			break
+		}
 	}
 }
 
@@ -123,3 +131,7 @@ func (c *PU_Connection) SendMessage(_message punet.INetMessageWriter) {
 	c.socket.Write(packet.Buffer[0:packet.MsgSize])
 }
 
+func (c *PU_Connection) Game() *PU_GameProtocol {
+	protocol, _ := c.protocol.(*PU_GameProtocol)
+	return protocol
+}
