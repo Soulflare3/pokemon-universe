@@ -59,6 +59,19 @@ func (p *PU_Player) Turn(_dir int, _send bool) {
 	}
 }
 
+func (p *PU_Player) Draw(_x int, _y int) {
+	for part := BODY_BASE; part < BODY_LOWER; part++ {
+		image := g_game.GetCreatureImage(part, p.bodyParts[part].id, p.direction, p.frame)
+		if image != nil {
+			if part != BODY_BASE {
+				image.SetColorMod(p.bodyParts[part].red, p.bodyParts[part].green, p.bodyParts[part].blue)
+			}
+			
+			image.Draw(_x, _y)
+		}
+	}
+}
+
 type PU_BodyPart struct {
 	id int
 	

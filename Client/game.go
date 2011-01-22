@@ -18,10 +18,6 @@ package main
 
 import (
 	"fmt"
-	"sdl"
-	"io/ioutil"
-	"strings"
-	"strconv"
 )
 
 const (
@@ -45,6 +41,7 @@ type PU_Game struct {
 	state int
 	tileImageMap map[uint16]*PU_Image
 	guiImageMap map[uint16]*PU_Image
+	creatureImageMap map[uint32]*PU_Image
 	
 	screenOffsetX int
 	screenOffsetY int
@@ -55,7 +52,8 @@ type PU_Game struct {
 func NewGame() *PU_Game {
 	return &PU_Game{state : GAMESTATE_LOADING,
 					tileImageMap : make(map[uint16]*PU_Image),
-					guiImageMap : make(map[uint16]*PU_Image)}
+					guiImageMap : make(map[uint16]*PU_Image),
+					creatureImageMap : make(map[uint32]*PU_Image)}
 }
 
 func (g *PU_Game) SetState(_state int) {
@@ -102,6 +100,13 @@ func (g *PU_Game) DrawWorld() {
 	}
 	
 	//draw creatures
+	for e := g_map.creatureList.Front(); e != nil; e = e.Next() {
+		if creature, is_type := e.Value.(ICreature); is_type {
+			screenx := MID_X-(int(g.self.x)-int(creature.GetX()))
+			screeny := MID_Y-(int(g.self.y)-int(creature.GetY()))
+			g.DrawCreature(creature, screenx, screeny)
+		}
+	}
 	
 	//draw tile layer 2
 	for i := 0; i < layer2tilesCount; i++ {
@@ -121,6 +126,36 @@ func (g *PU_Game) DrawWorld() {
 		font.SetColor(255, 242, 0)
 		font.DrawText(info, 5, 5)
 	}
+}
+
+func (g *PU_Game) DrawCreature(_creature ICreature, _x int, _y int) {
+	var drawX, drawY int
+	offsetX, offsetY := g.GetScreenOffset()
+	
+	if _creature.IsWalking() {
+		switch _creature.GetDirection() {
+			case DIR_NORTH:
+				drawX = (_x*TILE_WIDTH)-TILE_WIDTH-22+offsetX
+				drawY = ((_y*TILE_HEIGHT)+(TILE_HEIGHT-_creature.GetOffset()))-TILE_HEIGHT+offsetY
+				
+			case DIR_EAST:
+				drawX = ((_x*TILE_WIDTH)-(TILE_WIDTH-_creature.GetOffset()))-TILE_WIDTH-22+offsetX
+				drawY = (_y*TILE_HEIGHT)-TILE_HEIGHT+offsetY
+				
+			case DIR_SOUTH:
+				drawX = (_x*TILE_WIDTH)-TILE_WIDTH-22+offsetX
+				drawY = ((_y*TILE_HEIGHT)-(TILE_HEIGHT-_creature.GetOffset()))-TILE_HEIGHT+offsetY
+				
+			case DIR_WEST:			
+				drawX = ((_x*TILE_WIDTH)+(TILE_WIDTH-_creature.GetOffset()))-TILE_WIDTH-22+offsetX
+				drawY = (_y*TILE_HEIGHT)-TILE_HEIGHT+offsetY
+		}
+	} else {
+		drawX = (_x*TILE_WIDTH)-TILE_WIDTH-22+offsetX
+		drawY = (_y*TILE_HEIGHT)-TILE_HEIGHT+offsetY
+	}
+	
+	_creature.Draw(drawX, drawY)
 }
 
 func (g *PU_Game) GetScreenOffset() (x int, y int) {
@@ -144,61 +179,3 @@ func (g *PU_Game) GetScreenOffset() (x int, y int) {
 	return
 }
 
-func (g *PU_Game) LoadFonts () {
-	g_engine.LoadFont(FONT_PURITANBOLD_14, GetPath()+"data/font/Puritan2Bold.otf", 14)
-}
-
-func (g* PU_Game) LoadTileImages() {
-	g.LoadGameImages(GetPath()+"data/tiles/", g.tileImageMap)
-}
-
-func (g* PU_Game) LoadGuiImages() {
-	g.LoadGameImages(GetPath()+"data/gui/", g.guiImageMap)
-}
-
-func (g *PU_Game) GetTileImage(_id uint16) *PU_Image {
-	if image, present := g.tileImageMap[_id]; present {
-		return image
-	}
-	return nil
-}
-
-func (g *PU_Game) GetGuiImage(_id uint16) *PU_Image {
-	if image, present := g.guiImageMap[_id]; present {
-		return image
-	}
-	return nil
-}
-
-func (g *PU_Game) LoadGameImages(_dir string, _map map[uint16]*PU_Image) {	
-	files, err := ioutil.ReadDir(_dir)
-	if err != nil {
-		fmt.Printf("Couldn't open directory: %v. Error: %v\n", _dir, err.String())
-		return
-	}
-	
-	for i := 0; i < len(files); i++ {
-		img, id := g.LoadGameImage(files[i].Name, _dir)
-		if img != nil {
-			_map[uint16(id)] = img
-		}
-	}
-}
-
-func (g *PU_Game) LoadGameImage(_file string, _dir string) (*PU_Image, int) {
-	name := strings.Replace(_file, ".png", "", -1)
-	id, err := strconv.Atoi(name) 
-	if err != nil {
-		return nil, 0
-	}
-	
-	surface := sdl.LoadImage(_dir+_file)
-	if surface == nil {
-		return nil, 0
-	}
-	
-	image := NewImageFromSurface(surface)
-	g_engine.AddResource(image)
-	
-	return image, id	
-}

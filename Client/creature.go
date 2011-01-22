@@ -27,6 +27,15 @@ const (
 	DIR_EAST = 4
 )
 
+type ICreature interface {
+	Draw(_x int, _y int)
+	IsWalking() bool
+	GetOffset() int
+	GetDirection() int
+	GetX() int16
+	GetY() int16
+}
+
 type PU_Creature struct {
 	id uint32
 	
@@ -49,6 +58,26 @@ type PU_Creature struct {
 	animationRunning bool
 	animationInterval int 
 	animationLastTicks uint32
+}
+
+func (c *PU_Creature) IsWalking() bool {
+	return c.walking
+}
+
+func (c *PU_Creature) GetOffset() int {
+	return c.offset
+}
+
+func (c *PU_Creature) GetDirection() int {
+	return c.direction
+}
+
+func (c *PU_Creature) GetX() int16 {
+	return c.x
+}
+
+func (c *PU_Creature) GetY() int16 {
+	return c.y
 }
 
 func (c *PU_Creature) SetDefault(_id uint32) {

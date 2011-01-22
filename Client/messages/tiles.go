@@ -80,7 +80,7 @@ func (m *PU_Message_Tiles) ProcessTile(_packet *punet.Packet) {
 		shift := uint16(16)
 		for i := 0; i < 3; i++ {
 			if layers[i] != -1 {
-				signature |= uint64((uint16(layers[i]) & 0xFFFF) << shift);
+				signature |= (uint64(layers[i]) << shift)
 			}
 			shift += 16
 		}

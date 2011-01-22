@@ -50,6 +50,7 @@ func (p *PU_GameProtocol) ReceiveLoginStatus(_packet *punet.Packet) {
 
 func (p *PU_GameProtocol) ReceiveIdentity(_packet *punet.Packet) {
 	message := NewIdentityMessage(_packet)
+	g_map.AddPlayer(message.player)
 	g_game.self = message.player
 }
 

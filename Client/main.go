@@ -58,9 +58,9 @@ func main() {
 	Draw() //Draw the "please wait" text after loading the fonts
 	g_game.LoadGuiImages()
 	g_game.LoadTileImages()
-	g_game.SetState(GAMESTATE_LOGIN)
-	
-	//Gui test code
+	g_game.LoadCreatureImages()
+	g_game.SetState(GAMESTATE_LOGIN)	
+
 	g_loginControls.Show() 
 
 	//Handle events 

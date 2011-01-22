@@ -81,7 +81,7 @@ func (t *PU_Tile) GetSignature() uint64 {
 	shift := uint16(16)
 	for i := 0; i < 3; i++ {
 		if t.layers[i] != nil {
-			signature |= uint64((uint16(t.layers[i].id) & 0xFFFF) << shift);
+			signature |= (uint64(t.layers[i].id) << shift)
 		}
 		shift += 16
 	}

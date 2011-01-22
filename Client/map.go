@@ -18,14 +18,17 @@ package main
 
 import (
 	pos "position"
+	list "container/list"
 )
 
 type PU_Map struct {
 	tileMap map[int64]*PU_Tile
+	creatureList *list.List
 }
 
 func NewMap() *PU_Map {
-	return &PU_Map{tileMap : make(map[int64]*PU_Tile)}
+	return &PU_Map{tileMap : make(map[int64]*PU_Tile),
+				   creatureList : list.New()}
 }
 
 func (m *PU_Map) GetNumTiles() int {
@@ -58,3 +61,9 @@ func (m *PU_Map) GetTile(_x int, _y int) *PU_Tile {
 	tile := m.tileMap[index]
 	return tile;
 }
+
+func (m* PU_Map) AddPlayer(_player *PU_Player) {
+	m.creatureList.PushBack(_player)
+}
+
+
