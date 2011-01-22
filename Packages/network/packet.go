@@ -18,6 +18,7 @@ package network
 
 import "os"
 
+
 const (
 	PACKET_MAXSIZE = 16384
 )
@@ -32,9 +33,9 @@ type INetMessageReader interface {
 }
 
 type Packet struct {
-	readPos int
-
-	MsgSize int	
+	readPos uint16
+	MsgSize uint16	
+	
 	Buffer [PACKET_MAXSIZE]uint8
 }
 
@@ -59,12 +60,12 @@ func (p *Packet) Reset() {
 	p.readPos = 2
 }
 
-func (p *Packet) CanAdd(_size int) bool {
+func (p *Packet) CanAdd(_size uint16) bool {
 	return (_size+p.readPos < PACKET_MAXSIZE - 16)
 }
 
-func (p *Packet) GetHeader() int {
-	p.MsgSize = int(((p.Buffer[0]) | (p.Buffer[1] << 8)));
+func (p *Packet) GetHeader() uint16 {
+	p.MsgSize = uint16(uint16(p.Buffer[0]) | (uint16(p.Buffer[1]) << 8))
 	return p.MsgSize
 }
 
@@ -95,12 +96,12 @@ func (p *Packet) ReadUint32() uint32 {
 
 func (p *Packet) ReadString() string {
 	stringlen := p.ReadUint16()
-	if int(stringlen) >= (PACKET_MAXSIZE+p.readPos) {
+	if uint16(stringlen) >= (PACKET_MAXSIZE+p.readPos) {
 		return ""
 	}
 	
-	v := string(p.Buffer[p.readPos:p.readPos+int(stringlen)])
-	p.readPos += int(stringlen)
+	v := string(p.Buffer[p.readPos:p.readPos+uint16(stringlen)])
+	p.readPos += uint16(stringlen)
 	return v
 }
 
@@ -151,18 +152,18 @@ func (p *Packet) AddUint32(_value uint32) bool {
 }
 
 func (p *Packet) AddString(_value string) bool {
-	stringlen := len(_value)
+	stringlen := uint16(len(_value))
 	if !p.CanAdd(stringlen) {
 		return false
 	}
 	
 	p.AddUint16(uint16(stringlen))
 	for i, _ := range _value { 
-		p.Buffer[p.readPos+i] = _value[i]
+		p.Buffer[p.readPos+uint16(i)] = _value[i]
 	}
 	
 	p.readPos += stringlen
-	p.MsgSize += stringlen
+	p.MsgSize += uint16(stringlen)
 	
 	return true
 }
