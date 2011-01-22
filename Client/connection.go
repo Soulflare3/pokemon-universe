@@ -89,7 +89,7 @@ func (c *PU_Connection) ReceivePackets() {
 		databuffer := make([]uint8, packet.MsgSize)
 		
 		reloop := false
-		bytesReceived := 0
+		bytesReceived := uint16(0)
 		for bytesReceived < packet.MsgSize {
 			recv, err = io.ReadFull(c.socket, databuffer[bytesReceived:])
 			if recv == 0 {	
@@ -100,7 +100,7 @@ func (c *PU_Connection) ReceivePackets() {
 				reloop = true
 				break
 			}
-			bytesReceived += recv
+			bytesReceived += uint16(recv)
 		}
 		if reloop {
 			continue

@@ -121,8 +121,6 @@ func (g *PU_Game) DrawWorld() {
 		font.SetColor(255, 242, 0)
 		font.DrawText(info, 5, 5)
 	}
-	
-	fmt.Printf("Numtiles: %v\n", len(g_map.tileMap))
 }
 
 func (g *PU_Game) GetScreenOffset() (x int, y int) {

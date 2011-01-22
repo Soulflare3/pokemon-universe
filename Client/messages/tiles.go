@@ -50,7 +50,7 @@ func (m *PU_Message_Tiles) ProcessTile(_packet *punet.Packet) {
 	
 	tile := g_map.GetTile(int(x), int(y))
 	if tile == nil {
-		tileExists =  false
+		tileExists = false
 	}	
 	
 	numLayers := int(_packet.ReadUint16())
