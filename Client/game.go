@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"sdl"
 )
 
 const (
@@ -47,6 +48,8 @@ type PU_Game struct {
 	screenOffsetY int
 	
 	self *PU_Player
+	
+	lastDirKey int
 }
 
 func NewGame() *PU_Game {
@@ -80,11 +83,14 @@ func (g *PU_Game) DrawWorld() {
 	layer2tiles := make([]*PU_Tile, (NUMTILES_X*NUMTILES_Y))
 	layer2tilesCount := 0
 	
+	walkers := make([]ICreature, g_map.creatureList.Len())
+	walkerCount := 0
+	
 	//draw tile layer 0 and 1 
 	for x := 0; x < NUMTILES_X; x++ {
 		for y := 0; y < NUMTILES_Y; y++ {
-			mapx := int(g.self.x-MID_X)+x
-			mapy := int(g.self.y-MID_Y)+y
+			mapx := int(g.self.GetX()-MID_X)+x
+			mapy := int(g.self.GetY()-MID_Y)+y
 			
 			tile := g_map.GetTile(mapx, mapy)
 			if tile != nil {
@@ -102,9 +108,14 @@ func (g *PU_Game) DrawWorld() {
 	//draw creatures
 	for e := g_map.creatureList.Front(); e != nil; e = e.Next() {
 		if creature, is_type := e.Value.(ICreature); is_type {
-			screenx := MID_X-(int(g.self.x)-int(creature.GetX()))
-			screeny := MID_Y-(int(g.self.y)-int(creature.GetY()))
+			screenx := MID_X-(int(g.self.GetX())-int(creature.GetX()))
+			screeny := MID_Y-(int(g.self.GetY())-int(creature.GetY()))
 			g.DrawCreature(creature, screenx, screeny)
+			
+			if creature.IsWalking() {
+				walkers[walkerCount] = creature
+				walkerCount++
+			}
 		}
 	}
 	
@@ -112,8 +123,8 @@ func (g *PU_Game) DrawWorld() {
 	for i := 0; i < layer2tilesCount; i++ {
 		tile := layer2tiles[i]
 		
-		screenx := MID_X-(int(g.self.x)-tile.position.X)
-		screeny := MID_Y-(int(g.self.y)-tile.position.Y)
+		screenx := MID_X-(int(g.self.GetX())-tile.position.X)
+		screeny := MID_Y-(int(g.self.GetY())-tile.position.Y)
 		
 		tile.DrawLayer(2, screenx, screeny)
 	}
@@ -125,6 +136,13 @@ func (g *PU_Game) DrawWorld() {
 	if font := g_engine.GetFont(FONT_PURITANBOLD_14); font != nil {
 		font.SetColor(255, 242, 0)
 		font.DrawText(info, 5, 5)
+	}
+	
+	//after all the drawing, update all walking creatures
+	if walkerCount > 0 {
+		for i := 0; i < walkerCount; i++ {
+			walkers[i].UpdateWalk()
+		}
 	}
 }
 
@@ -177,5 +195,57 @@ func (g *PU_Game) GetScreenOffset() (x int, y int) {
 		}
 	}
 	return
+}
+
+func (g *PU_Game) KeyDown(_keysym int, _scancode int) {
+	if g.state == GAMESTATE_WORLD {
+		if g.self == nil {
+			return
+		}
+		
+		ctrlDown := sdl.KeyDown(sdl.SDL_SCANCODE_LCTRL) || sdl.KeyDown(sdl.SDL_SCANCODE_RCTRL)
+		
+		switch _scancode {
+			case sdl.SDL_SCANCODE_LEFT:
+				if ctrlDown {
+					if !g.self.walking {
+						g.self.Turn(DIR_WEST, true)
+					}
+				} else {
+					g.self.Walk(DIR_WEST)
+					g.lastDirKey = sdl.SDL_SCANCODE_LEFT
+				}
+				
+			case sdl.SDL_SCANCODE_UP:
+				if ctrlDown {
+					if !g.self.walking {
+						g.self.Turn(DIR_NORTH, true)
+					}
+				} else {
+					g.self.Walk(DIR_NORTH)
+					g.lastDirKey = sdl.SDL_SCANCODE_UP
+				}
+				
+			case sdl.SDL_SCANCODE_RIGHT:
+				if ctrlDown {
+					if !g.self.walking {
+						g.self.Turn(DIR_EAST, true)
+					}
+				} else {
+					g.self.Walk(DIR_EAST)
+					g.lastDirKey = sdl.SDL_SCANCODE_RIGHT
+				}
+				
+			case sdl.SDL_SCANCODE_DOWN:
+				if ctrlDown {
+					if !g.self.walking {
+						g.self.Turn(DIR_SOUTH, true)
+					}
+				} else {
+					g.self.Walk(DIR_SOUTH)
+					g.lastDirKey = sdl.SDL_SCANCODE_DOWN
+				}
+		}
+	}
 }
 

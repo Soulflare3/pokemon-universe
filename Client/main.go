@@ -36,6 +36,8 @@ var g_gui *PU_Gui = NewGui()
 var g_conn *PU_Connection = NewConnection()
 var g_map *PU_Map = NewMap()
 
+var g_frameTime uint32 = 0
+
 func main() {
 	//Make sure that resources get released
 	defer g_engine.Exit()
@@ -62,6 +64,8 @@ func main() {
 	g_game.SetState(GAMESTATE_LOGIN)	
 
 	g_loginControls.Show() 
+	
+	lastTime := sdl.GetTicks()
 
 	//Handle events 
 	for g_running {
@@ -78,6 +82,10 @@ func main() {
 		
 		//Handle a network packet
 		g_conn.HandlePacket()
+		
+		//Update frame time 
+		g_frameTime = sdl.GetTicks()-lastTime
+		lastTime = sdl.GetTicks()
 	}
 	sdl.Quit()
 }
@@ -123,9 +131,11 @@ func HandleKeyboardEvent(_event *sdl.KeyboardEvent) {
 	switch _event.Evtype {
 		case sdl.SDL_KEYDOWN:
 			g_gui.KeyDown(0, int(_event.Keysym().Sym))
+			g_game.KeyDown(0, int(_event.Keysym().Scancode))
 			
 		case sdl.SDL_TEXTINPUT:
 			g_gui.KeyDown(int(_event.State), int(_event.Keysym().Scancode));
+			g_game.KeyDown(int(_event.State), int(_event.Keysym().Scancode));
 	}
 }
 

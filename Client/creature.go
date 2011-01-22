@@ -30,6 +30,7 @@ const (
 type ICreature interface {
 	Draw(_x int, _y int)
 	IsWalking() bool
+	UpdateWalk()
 	GetOffset() int
 	GetDirection() int
 	GetX() int16
@@ -73,10 +74,16 @@ func (c *PU_Creature) GetDirection() int {
 }
 
 func (c *PU_Creature) GetX() int16 {
+	if c.walking {
+		return c.preWalkX
+	}
 	return c.x
 }
 
 func (c *PU_Creature) GetY() int16 {
+	if c.walking {
+		return c.preWalkY
+	}
 	return c.y
 }
 
@@ -92,3 +99,27 @@ func (c *PU_Creature) SetPosition(_x int, _y int) {
 	c.x = int16(_x)
 	c.y = int16(_y)
 }
+
+func (c *PU_Creature) StartAnimation() {
+	c.animationRunning = true
+}
+
+func (c *PU_Creature) StopAnimation() {
+	c.animationRunning = false
+	c.frame = 0
+}
+
+func (c *PU_Creature) UpdateAnimation() {
+	if c.animationRunning {
+		passedTicks := sdl.GetTicks()-c.animationLastTicks
+		if passedTicks >= uint32(c.animationInterval) {
+			c.frame++
+			if c.frame > c.frames {
+				c.frame = 0
+			}
+			
+			c.animationLastTicks = sdl.GetTicks()
+		}
+	}
+}
+
