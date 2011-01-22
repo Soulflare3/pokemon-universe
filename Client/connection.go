@@ -105,10 +105,6 @@ func (c *PU_Connection) ReceivePackets() {
 			continue
 		}
 		
-		if recv < packet.MsgSize {
-			println("This is not enough bytes.")
-		} else 
-		
 		copy(packet.Buffer[2:], databuffer[:])
 		
 		//put the packet in the buffer
