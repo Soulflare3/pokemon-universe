@@ -79,6 +79,7 @@ func (c *PU_Connection) ReceivePackets() {
 		recv, err := io.ReadFull(c.socket, headerbuffer[0:])
 		if err != nil || recv == 0 {
 			fmt.Printf("Error while reading socket: %v\n", err)
+			break
 		}
 
 		packet := punet.NewPacket()
