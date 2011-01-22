@@ -46,6 +46,16 @@ func GetError() (ret string) {
 	return
 }
 
+func KeyDown(_key int) bool {
+	zero := C.int(0)
+	var state = uintptr(unsafe.Pointer(C.SDL_GetKeyboardState(&zero)))+uintptr(_key)
+	down := (*uint8)(cast(state))
+	if *down == 1 {
+		return true
+	}
+	return false
+}
+
 func Init() (error string) {
 	flags := int64(C.SDL_INIT_VIDEO)
     if C.SDL_Init(C.Uint32(flags)) != 0 {
@@ -55,7 +65,7 @@ func Init() (error string) {
     return ""
 }
 
-type Window struct {
+type Window struct { 
 	window *C.SDL_Window
 }
 
