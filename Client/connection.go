@@ -117,7 +117,6 @@ func (c *PU_Connection) HandlePacket() {
 		packet, present := <- c.packetChan
 		if present {
 			c.protocol.ProcessPacket(packet)
-			counter++
 		} else {
 			break
 		}
