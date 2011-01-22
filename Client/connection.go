@@ -93,11 +93,11 @@ func (c *PU_Connection) ReceivePackets() {
 			recv, err = io.ReadFull(c.socket, databuffer[0:])
 			if recv == 0 {	
 				reloop = true
-				continue 
+				break 
 			} else if err != nil {
 				fmt.Printf("Connection read error: %v\n", err)
 				reloop = true
-				continue
+				break
 			}
 			bytesToReceive -= recv
 		}
