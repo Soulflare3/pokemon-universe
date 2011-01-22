@@ -86,15 +86,28 @@ func (c *PU_Connection) ReceivePackets() {
 		packet.GetHeader()
 		
 		databuffer := make([]uint8, packet.MsgSize)
-		recv, err = io.ReadFull(c.socket, databuffer[0:])
-		if recv < packet.MsgSize {
-			println("This is not enough bytes.")
-		} else if recv == 0 {	
-			continue 
-		} else if err != nil {
-			fmt.Printf("Connection read error: %v\n", err)
+		
+		reloop := false
+		bytesToReceive := packet.MsgSize
+		for bytesToReceive > 0 {
+			recv, err = io.ReadFull(c.socket, databuffer[0:])
+			if recv == 0 {	
+				reloop = true
+				continue 
+			} else if err != nil {
+				fmt.Printf("Connection read error: %v\n", err)
+				reloop = true
+				continue
+			}
+			bytesToReceive -= recv
+		}
+		if reloop {
 			continue
 		}
+		
+		if recv < packet.MsgSize {
+			println("This is not enough bytes.")
+		} else 
 		
 		copy(packet.Buffer[2:], databuffer[:])
 		
