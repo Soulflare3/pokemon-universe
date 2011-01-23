@@ -92,7 +92,7 @@ func (g *PU_Game) LoadGameImage(_file string, _dir string) (*PU_Image, int) {
 }
 
 func (g *PU_Game) LoadCreatureImages() {
-	dir := "data/creatures/"
+	dir := GetPath()+"data/creatures/"
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		fmt.Printf("Couldn't open directory: %v. Error: %v\n", dir, err.String())
