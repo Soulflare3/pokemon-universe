@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package network
 
 const (
+	HEADER_PING				= 0x00
 	HEADER_LOGIN  			= 0x01
 	HEADER_LOGOUT 			= 0x02
 	
