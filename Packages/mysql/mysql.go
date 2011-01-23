@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	Version       = "0.2.9"
+	Version       = "0.2.10"
 	DefaultPort   = 3306
 	DefaultSock   = "/var/run/mysqld/mysqld.sock"
 	MaxPacketSize = 1 << 24
@@ -77,7 +77,6 @@ func New() (mysql *MySQL) {
 	mysql = new(MySQL)
 	// Setup mutex
 	mysql.mutex = new(sync.Mutex)
-	
 	return
 }
 
@@ -422,7 +421,7 @@ func (mysql *MySQL) parseParams(p []interface{}) {
  */
 func (mysql *MySQL) connect() (err os.Error) {
 	// Connect via unix socket
-	if mysql.auth.host == "localhost" || mysql.auth.host == "127.0.0.1" {
+	if mysql.auth.host == "localhost" {
 		mysql.conn, err = net.Dial("unix", "", mysql.auth.socket)
 		// On error set the connect error details
 		if err != nil {
