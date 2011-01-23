@@ -28,13 +28,17 @@ const (
 )
 
 type ICreature interface {
+	GetID() uint32
 	Draw(_x int, _y int)
 	IsWalking() bool
 	UpdateWalk()
+	ReceiveWalk(_fromTile *PU_Tile, _toTile *PU_Tile)
 	GetOffset() int
+	SetDirection(_direction int)
 	GetDirection() int
 	GetX() int16
 	GetY() int16
+	SetPosition(_x int16, _y int16)
 }
 
 type PU_Creature struct {
@@ -61,12 +65,20 @@ type PU_Creature struct {
 	animationLastTicks uint32
 }
 
+func (c *PU_Creature) GetID() uint32 {
+	return c.id
+}
+
 func (c *PU_Creature) IsWalking() bool {
 	return c.walking
 }
 
 func (c *PU_Creature) GetOffset() int {
 	return c.offset
+}
+
+func (c *PU_Creature) SetDirection(_direction int) {
+	c.direction = _direction
 }
 
 func (c *PU_Creature) GetDirection() int {
@@ -87,17 +99,16 @@ func (c *PU_Creature) GetY() int16 {
 	return c.y
 }
 
+func (c *PU_Creature) SetPosition(_x int16, _y int16) {
+	c.x, c.y = _x, _y
+}
+
 func (c *PU_Creature) SetDefault(_id uint32) {
 	c.speed = 300
 	c.direction = DIR_SOUTH
 	c.frames = 3
 	c.animationInterval = 150
 	c.animationLastTicks = sdl.GetTicks()
-}
-
-func (c *PU_Creature) SetPosition(_x int, _y int) {
-	c.x = int16(_x)
-	c.y = int16(_y)
 }
 
 func (c *PU_Creature) StartAnimation() {

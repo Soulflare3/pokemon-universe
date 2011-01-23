@@ -29,5 +29,8 @@ GOFILES=\
 		messages/identity.go\
 		messages/tiles.go\
 		messages/walk.go\
+		messages/ping.go\
+		messages/warp.go\
+		messages/turn.go\
 
 include $(GOROOT)/src/Make.cmd

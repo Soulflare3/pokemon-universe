@@ -80,7 +80,7 @@ func (p *PU_Player) Draw(_x int, _y int) {
 func (p *PU_Player) Walk(_direction int) {
 	if !p.walking {
 		if p.PreWalk(_direction) {
-			//g_conn.Game().SendWalk(_direction, true)
+			g_conn.Game().SendMove(_direction, true)
 		} else {
 			p.CancelWalk()
 		}

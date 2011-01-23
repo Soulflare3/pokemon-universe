@@ -62,8 +62,25 @@ func (m *PU_Map) GetTile(_x int, _y int) *PU_Tile {
 	return tile;
 }
 
-func (m* PU_Map) AddPlayer(_player *PU_Player) {
-	m.creatureList.PushBack(_player)
+func (m* PU_Map) AddCreature(_creature ICreature) {
+	m.creatureList.PushBack(_creature)
 }
 
+func (m *PU_Map) RemoveCreature(_creature ICreature) {
+	for e := m.creatureList.Front(); e != nil;  e = e.Next() {
+		if e.Value == _creature {
+			m.creatureList.Remove(e)
+			break
+		}
+	}
+}
+
+func (m *PU_Map) GetCreatureByID(_id uint32) ICreature {
+	for e := m.creatureList.Front(); e != nil;  e = e.Next() {
+		if e.Value.(ICreature).GetID() == _id {
+			return e.Value.(ICreature)
+		}
+	}
+	return nil
+}
 

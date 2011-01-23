@@ -30,6 +30,9 @@ func NewGameProtocol() *PU_GameProtocol {
 func (p *PU_GameProtocol) ProcessPacket(_packet *punet.Packet) {
 	header := _packet.ReadUint8()
 	switch header {
+		case punet.HEADER_PING:
+			p.ReceivePing()
+			
 		case punet.HEADER_LOGIN:
 			p.ReceiveLoginStatus(_packet)
 			
@@ -39,9 +42,31 @@ func (p *PU_GameProtocol) ProcessPacket(_packet *punet.Packet) {
 		case punet.HEADER_TILES:
 			p.ReceiveTiles(_packet)
 			
-		//case punet.HEADER_TILESREFRESHED:
-		//	p.ReceiveTilesRefreshed()
+		//Headers that are not punet constants are headers that might change.
+		//Currently they are used to make the client compatible with the 
+		//old puserver.
+		case 0xB1:
+			NewCreatureMoveMessage(_packet)
+	
+		case 0xB2:
+			if g_game.self != nil {
+				g_game.self.CancelWalk()
+			}
+			
+		case 0xB3:
+			NewWarpMessage(_packet)
+			
+		case 0xB4:
+			NewCreatureTurnMessage(_packet)
+			
+		case 0x03:
+			p.ReceiveTilesRefreshed()
 	}
+}
+
+func (p *PU_GameProtocol) ReceivePing() {
+	message := NewPingMessage()
+	g_conn.SendMessage(message)
 }
 
 func (p *PU_GameProtocol) ReceiveLoginStatus(_packet *punet.Packet) {
@@ -50,7 +75,7 @@ func (p *PU_GameProtocol) ReceiveLoginStatus(_packet *punet.Packet) {
 
 func (p *PU_GameProtocol) ReceiveIdentity(_packet *punet.Packet) {
 	message := NewIdentityMessage(_packet)
-	g_map.AddPlayer(message.player)
+	g_map.AddCreature(message.player)
 	g_game.self = message.player
 }
 
@@ -72,5 +97,18 @@ func (p *PU_GameProtocol) SendLogin(_username string, _password string) {
 
 func (p *PU_GameProtocol) SendRequestLoginPackets() {
 	message := NewLoginRequestMessage()
+	g_conn.SendMessage(message)
+}
+
+func (p *PU_GameProtocol) SendMove(_direction int, _requestTiles bool) {
+	message := NewMoveMessage()
+	message.direction = _direction
+	message.requestTiles = _requestTiles
+	g_conn.SendMessage(message)
+}
+
+func (p *PU_GameProtocol) SendTurn(_direction int) {
+	message := NewTurnMessage()
+	message.direction = _direction
 	g_conn.SendMessage(message)
 }
