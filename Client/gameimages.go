@@ -100,7 +100,13 @@ func (g *PU_Game) LoadCreatureImages() {
 	}
 	
 	for i := 0; i < len(files); i++ {
-		image := g_engine.LoadImage(dir+files[i].Name)
+		surface := sdl.LoadImage(dir+files[i].Name)
+		if surface == nil {
+			return
+		}
+	
+		image := NewImageFromSurface(surface)
+		g_engine.AddResource(image)
 		if image != nil {
 			file := strings.Replace(files[i].Name, ".png", "", -1)
 			parts := strings.Split(file, "_", -1)
