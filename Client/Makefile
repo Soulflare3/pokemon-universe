@@ -9,6 +9,7 @@ GOFILES=\
 		color.go\
 		rect.go\
 		game.go\
+		gameimages.go\
 		login.go\
 		connection.go\
 		gameprotocol.go\
@@ -27,5 +28,6 @@ GOFILES=\
 		messages/login.go\
 		messages/identity.go\
 		messages/tiles.go\
+		messages/walk.go\
 
 include $(GOROOT)/src/Make.cmd
