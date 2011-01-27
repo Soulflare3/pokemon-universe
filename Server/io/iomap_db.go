@@ -52,16 +52,28 @@ func (io *IOMapDB) LoadMap(_map *Map) (err os.Error) {
 		layer		:=	row["layer"].(int32)
 		sprite		:=	row["sprite"].(int32)
 		blocking	:=	row["movement"].(int32)
-		//tp_id		:=	row["idteleport"].(int32)
-		//location	:=	row["idlocation"].(int32)
+		tp_id		:=	row["idteleport"].(int32)
+		idlocation	:=	row["idlocation"].(int32)
 		
 		tile, found := _map.GetTile(position.Hash())
 		if found == false {
 			tile = NewTile(position)
 			tile.Blocking = blocking
+
+			// Get location
+			location, found := g_game.Locations.GetLocation(idlocation)
+			if found {
+				tile.Location = location
+			}
 			
-			// ToDo: Add teleport stuff
-			// ---
+			// Teleport event
+			if tp_id > 0 {
+				tp_x	:= row["tp_x"].(int)
+				tp_y	:= row["tp_y"].(int)
+				tp_z	:= row["tp_z"].(int)
+				tp_pos	:= pos.NewPositionFrom(tp_x, tp_y, tp_z)
+				tile.Events = NewTeleport(tp_pos)
+			}
 			
 			_map.addTile(tile)
 		}

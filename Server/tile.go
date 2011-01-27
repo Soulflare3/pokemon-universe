@@ -43,9 +43,11 @@ type LayerMap map[int32]*TileLayer
 type Tile struct {
 	Position	pos.Position
 	Blocking	int32
+	Location	*Location
 	
 	Layers		LayerMap
 	Creatures	CreatureList // List of creatures who are active on this tile
+	Events		ITileEvent
 }
 
 // NewTile creates a Tile object with Position as parameter
@@ -54,6 +56,7 @@ func NewTile(_pos pos.Position) *Tile {
 	t.Blocking = TILEBLOCK_WALK
 	t.Layers = make(LayerMap)
 	t.Creatures = make(CreatureList)
+	t.Location = nil
 	
 	return t
 }
@@ -116,6 +119,8 @@ func (t *Tile) AddCreature(_creature ICreature) (ret ReturnValue) {
 		t.Creatures[_creature.GetUID()] = _creature
 	}
 	
+	t.Events.OnCreatureEnter(_creature)
+	
 	return
 }
 
@@ -127,6 +132,8 @@ func (t *Tile) RemoveCreature(_creature ICreature) (ret ReturnValue) {
 	if found {
 		t.Creatures[_creature.GetUID()] = nil, false
 	}
+	
+	t.Events.OnCreatureLeave(_creature)
 	
 	return
 }

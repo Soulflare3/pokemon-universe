@@ -33,6 +33,7 @@ type Game struct {
 	Players		PlayerList
 	
 	WorldMap	*Map
+	Locations	*LocationStore
 }
 
 func NewGame() *Game {
@@ -48,6 +49,15 @@ func NewGame() *Game {
 func (the *Game) Load() (LostIt bool) {
 	LostIt = true // fuck >:(
 	the.WorldMap = NewMap()
+	the.Locations = NewLocationStore()
+	
+	// Load locations
+	if err := the.Locations.Load(); err != nil {
+		g_logger.Println(err)
+		LostIt = false
+	}
+	
+	// Load worldmap
 	if err := the.WorldMap.Load(); err != nil {
 		g_logger.Println(err)
 		LostIt = false

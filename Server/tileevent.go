@@ -16,49 +16,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
-import (
-	"os"
-)
-
-// Interface for map loading
-type IMapLoader interface {
-	LoadMap(_map *Map) os.Error
+type ITileEvent interface {
+	OnCreatureEnter(_creature ICreature) ReturnValue
+	OnCreatureLeave(_creature ICreature) ReturnValue
 }
-
-type TilesMap map[int64]*Tile
-type Map struct {
-	tiles    TilesMap
-}
-
-func NewMap() *Map {
-	return &Map{ tiles: make(TilesMap) }
-}
-
-func (m *Map) Load() os.Error {
-	maptype, _ := g_config.GetString("map", "type")
-	var loader IMapLoader
-	switch maptype {
-	case "xml":
-		loader = &IOMapXML{}
-	case "db":
-		loader = &IOMapDB{}
-	default:
-		return os.NewError("Undefined map format!")
-	}
-
-	err := loader.LoadMap(m)
-	return err
-}
-
-func (m *Map) addTile(_tile *Tile) {
-	index := _tile.Position.Hash()
-	if _, found := m.GetTile(index); !found {
-		m.tiles[index] = _tile
-	}
-}
-
-func (m *Map) GetTile(_index int64) (tile *Tile, ok bool) {
-	tile, ok = m.tiles[_index]
-	return
-}
-
