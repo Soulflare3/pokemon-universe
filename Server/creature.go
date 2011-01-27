@@ -25,6 +25,14 @@ const (
 	MOVEMENT_SURF = TILEBLOCK_SURF
 )
 
+const (
+	DIR_NULL = 0
+	DIR_SOUTH = 1
+	DIR_WEST = 2
+	DIR_NORTH = 3
+	DIR_EAST = 4
+)
+
 // CreatureList is map which holds a list of ICreature interfaces
 type CreatureList map[uint64]ICreature
 

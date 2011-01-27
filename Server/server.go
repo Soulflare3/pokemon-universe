@@ -71,7 +71,7 @@ func (s *Server) Start() {
 		var headerbuffer [2]uint8
 		recv, err := clientsock.Read(headerbuffer[0:])
 		if (err != nil) || (recv == 0) {
-			g_logger.Printf("[Warning] Could not read packet header: %v", err)
+			g_logger.Printf("[Warning] Could not read packet header: %v\n\r", err)
 			continue
 		}
 		// Create new packet
@@ -82,7 +82,7 @@ func (s *Server) Start() {
 		databuffer := make([]uint8, packet.MsgSize)
 		recv, err = clientsock.Read(databuffer[0:])
 		if recv == 0 || err != nil {	
-			g_logger.Printf("[Warning] Serer connection read error: %v", err)
+			g_logger.Printf("[Warning] Server connection read error: %v\n\r", err)
 			continue
 		}
 		copy(packet.Buffer[2:], databuffer[:]) // Write rest of the received data to packet
@@ -94,7 +94,7 @@ func (s *Server) Start() {
 
 // Loop which will check if players are idle for X amount of minutes
 func (s *Server) timeoutLoop() {
-	g_logger.Println(" - Idle player checker goroutine started")
+	g_logger.Println("[Message] Idle player checker goroutine started")
 	for ; ; time.Sleep(10e9) { // 10 Sec
 		// Check if there are players who are idle for X min
 	}

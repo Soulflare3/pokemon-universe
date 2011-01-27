@@ -31,6 +31,8 @@ type Game struct {
 	State		GameState
 	Creatures	CreatureList
 	Players		PlayerList
+	
+	WorldMap	*Map
 }
 
 func NewGame() *Game {
@@ -41,6 +43,17 @@ func NewGame() *Game {
 	game.Players = make(PlayerList)
 	
 	return &game
+}
+
+func (the *Game) Load() (LostIt bool) {
+	LostIt = true // fuck >:(
+	the.WorldMap = NewMap()
+	if err := the.WorldMap.Load(); err != nil {
+		g_logger.Println(err)
+		LostIt = false
+	}
+	
+	return
 }
 
 func (g *Game) AddPlayer(_player *Player) {
