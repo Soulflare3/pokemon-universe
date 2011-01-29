@@ -152,6 +152,10 @@ func main() {
 	// Load data
 	g_logger.Println("Loading game data...")
 	g_game = NewGame()
+	if !g_game.Load() {
+		g_logger.Println("Failed to load game data...")
+		return
+	}
 
 	// Start server
 	g_game.State = GAME_STATE_NORMAL

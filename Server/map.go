@@ -18,6 +18,7 @@ package main
 
 import (
 	"os"
+	"position"
 )
 
 // Interface for map loading
@@ -59,6 +60,12 @@ func (m *Map) addTile(_tile *Tile) {
 
 func (m *Map) GetTile(_index int64) (tile *Tile, ok bool) {
 	tile, ok = m.tiles[_index]
+	return
+}
+
+func (m *Map) GetTileFrom(_x, _y, _z int) (tile *Tile, ok bool) {
+	index := position.Hash(_x, _y, _z)
+	tile, ok = m.GetTile(index)
 	return
 }
 
