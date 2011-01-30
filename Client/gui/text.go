@@ -41,6 +41,13 @@ func NewText(_font int) *PU_Text{
 	return text
 } 
 
+func NewTextWithFont(_font *PU_Font) *PU_Text{
+	text := &PU_Text{}
+	text.font = _font
+	text.parts = make(map[int]*PU_Textpart)
+	return text
+} 
+
 func (t *PU_Text) Add(_text string, _color uint32) {
 	t.parts[t.count] = NewTextpart(_text, _color)
 	t.count++
@@ -72,3 +79,6 @@ func (t *PU_Text) GetAll() string {
 	return str
 }
 
+func (t *PU_Text) GetWidth() int {
+	return t.font.GetStringWidth(t.GetAll())
+}
