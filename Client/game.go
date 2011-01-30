@@ -19,6 +19,7 @@ package main
 import (
 	"fmt"
 	"sdl"
+	list "container/list"
 )
 
 const (
@@ -51,6 +52,8 @@ type PU_Game struct {
 	
 	lastDirKey int
 	
+	playerNames *list.List
+	
 	panel *PU_GamePanel
 	chat *PU_Chat
 }
@@ -59,7 +62,8 @@ func NewGame() *PU_Game {
 	return &PU_Game{state : GAMESTATE_LOADING,
 					tileImageMap : make(map[uint16]*PU_Image),
 					guiImageMap : make(map[uint16]*PU_Image),
-					creatureImageMap : make(map[uint32]*PU_Image)}
+					creatureImageMap : make(map[uint32]*PU_Image),
+					playerNames : list.New()}
 }
 
 func (g *PU_Game) SetState(_state int) {
@@ -89,6 +93,8 @@ func (g *PU_Game) DrawWorld() {
 	
 	walkers := make([]ICreature, g_map.creatureList.Len())
 	walkerCount := 0
+	
+	g.playerNames = list.New()
 	
 	//draw tile layer 0 and 1 
 	for x := 0; x < NUMTILES_X; x++ {
@@ -134,6 +140,13 @@ func (g *PU_Game) DrawWorld() {
 	}
 	
 	//draw player names
+	nameFont := g_engine.GetFont(FONT_PURITANBOLD_14)
+	nameFont.SetColor(255, 242, 0)
+	for e := g.playerNames.Front(); e != nil; e = e.Next() {
+		if name, valid := e.Value.(PU_PlayerName); valid {
+			nameFont.DrawBorderedText(name.name, name.x, name.y)
+		}
+	}
 	
 	//draw extra info
 	info := fmt.Sprintf("x: %v y: %v", g.self.x, g.self.y)
@@ -178,6 +191,13 @@ func (g *PU_Game) DrawCreature(_creature ICreature, _x int, _y int) {
 	}
 	
 	_creature.Draw(drawX, drawY)
+	
+	if player, is_player := _creature.(*PU_Player); is_player {
+		posHalf := (drawX-48)+(((drawX+96)-(drawX-48))/2)
+		nameHalf := g_engine.GetFont(FONT_PURITANBOLD_14).GetStringWidth(player.name)/2
+		centerPos := posHalf-nameHalf
+		g.playerNames.PushBack(PU_PlayerName{player.name, centerPos, drawY-14})
+	}
 }
 
 func (g *PU_Game) GetScreenOffset() (x int, y int) {

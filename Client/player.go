@@ -272,3 +272,11 @@ func (b *PU_BodyPart) SetColor(_red int, _green int, _blue int) {
 	b.green = uint8(_green)
 	b.blue = uint8(_blue)
 }
+
+//Used by Game's drawing procedure
+type PU_PlayerName struct {
+	name string
+	x int 
+	y int 
+}
+

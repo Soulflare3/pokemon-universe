@@ -108,7 +108,7 @@ func Draw() {
 	
 	if font := g_engine.GetFont(FONT_PURITANBOLD_14); font != nil {
 		font.SetColor(255, 242, 0)
-		font.DrawText(fmt.Sprintf("FPS: %v", g_FPS), 760, 5)
+		font.DrawBorderedText(fmt.Sprintf("FPS: %v", g_FPS), 760, 5)
 	}
 	
 	sdl.RenderPresent()
@@ -175,7 +175,6 @@ func HandleMouseMotionEvent(_event *sdl.MouseMotionEvent) {
 }
 
 func HandleMouseWheelEvent(_event *sdl.MouseWheelEvent) {
-	println("derp")
 	if 0-_event.Y < 0 {
 		g_gui.MouseScroll(sdl.SCROLL_UP)
 	} else if ((0-_event.Y) > 0) {

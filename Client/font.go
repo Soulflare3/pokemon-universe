@@ -117,6 +117,17 @@ func (f *PU_Font) DrawText(_text string, _x int, _y int) {
 	}
 }
 
+func (f *PU_Font) DrawBorderedText(_text string, _x int, _y int) {
+	r, g, b := f.color.R, f.color.R, f.color.B
+	f.SetColor(0, 0 , 0)
+	f.DrawText(_text, _x-1, _y-1)
+	f.DrawText(_text, _x+1, _y-1)
+	f.DrawText(_text, _x-1, _y+1)
+	f.DrawText(_text, _x+1, _y+1)
+	f.SetColor(r, g, b)
+	f.DrawText(_text, _x, _y)
+}
+
 func (f *PU_Font) DrawTextInRect(_text string, _x int, _y int, _rect *PU_Rect) {
 	prev_char := -1
 	for c := 0; c < len(_text); c++ {
