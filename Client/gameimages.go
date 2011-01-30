@@ -104,7 +104,7 @@ func (g *PU_Game) LoadCreatureImages() {
 	for i := 0; i < len(files); i++ {
 		surface := sdl.LoadImage(dir+files[i].Name)
 		if surface == nil {
-			return
+			continue
 		}
 	
 		image := NewImageFromSurface(surface)
