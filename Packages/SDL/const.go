@@ -66,6 +66,8 @@ const (
     SDL_MOUSEBUTTONDOWN = 0x401
     SDL_MOUSEBUTTONUP = 0x402 
     SDL_MOUSEWHEEL = 0x403
+    SCROLL_UP = 0
+    SCROLL_DOWN = 1
 )
 
 const (
