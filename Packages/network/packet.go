@@ -161,7 +161,7 @@ func (p *Packet) AddUint32(_value uint32) bool {
 }
 
 func (p *Packet) AddUint64(_value uint64) bool {
-	if !p.CanAdd(4) {
+	if !p.CanAdd(8) {
 		return false
 	}
 	
