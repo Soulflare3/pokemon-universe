@@ -128,6 +128,14 @@ func (c *PU_Chat) DrawChatList() {
 		}
 	}
 	
+	if c.listBlink && !hasUpdate {
+		for _, channel := range c.channels {
+			if channel.updated {
+				hasUpdate = true
+			}
+		}
+	}
+	
 	font := g_engine.GetFont(FONT_ARIALBLACK_10)
 	if c.listBlink && hasUpdate {
 		font.SetColor(255, 0 , 0)
