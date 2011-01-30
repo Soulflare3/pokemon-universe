@@ -94,6 +94,15 @@ func (p *Packet) ReadUint32() uint32 {
 	return v
 }
 
+func (p *Packet) ReadUint64() uint64 {
+	v := uint64((uint64(p.Buffer[p.readPos]) | (uint64(p.Buffer[p.readPos+1]) << 8) |
+				 (uint64(p.Buffer[p.readPos+2]) << 16) | (uint64(p.Buffer[p.readPos+3]) << 24) |
+				 (uint64(p.Buffer[p.readPos+4]) << 32) | (uint64(p.Buffer[p.readPos+5]) << 40) |
+				 (uint64(p.Buffer[p.readPos+6]) << 48) | (uint64(p.Buffer[p.readPos+7]) << 56)))
+	p.readPos += 8
+	return v
+}
+
 func (p *Packet) ReadString() string {
 	stringlen := p.ReadUint16()
 	if uint16(stringlen) >= (PACKET_MAXSIZE+p.readPos) {
@@ -151,6 +160,32 @@ func (p *Packet) AddUint32(_value uint32) bool {
 	return true
 }
 
+func (p *Packet) AddUint64(_value uint64) bool {
+	if !p.CanAdd(4) {
+		return false
+	}
+	
+	p.Buffer[p.readPos] = uint8(_value)
+	p.readPos += 1
+	p.Buffer[p.readPos] = uint8(_value >> 8)
+	p.readPos += 1
+	p.Buffer[p.readPos] = uint8(_value >> 16)
+	p.readPos += 1
+	p.Buffer[p.readPos] = uint8(_value >> 24)
+	p.readPos += 1
+	p.Buffer[p.readPos] = uint8(_value >> 32)
+	p.readPos += 1
+	p.Buffer[p.readPos] = uint8(_value >> 40)
+	p.readPos += 1		
+	p.Buffer[p.readPos] = uint8(_value >> 48)
+	p.readPos += 1
+	p.Buffer[p.readPos] = uint8(_value >> 56)
+	p.readPos += 1
+		
+	p.MsgSize += 8
+	
+	return true
+}
 func (p *Packet) AddString(_value string) bool {
 	stringlen := uint16(len(_value))
 	if !p.CanAdd(stringlen) {
