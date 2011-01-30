@@ -23,8 +23,6 @@ import (
 	"crypto/sha1"
 	"strings"
 	"mysql"
-	
-	pos "position"
 )
 
 func CheckAccountInfo(_username string, _password string) bool {
@@ -107,13 +105,42 @@ func LoadPlayerProfile(_username string) (bool, *Player) {
 		
 		positionHash, _ := rows["position"].(int64)
 		movement, _		:= rows["movement"].(int)
-		//idlocation, _	:= rows["idlocation"].(uint32)
+		money,_			:= rows["money"].(int)
+		idlocation, _	:= rows["idlocation"].(int32)
+		pcposition, _	:= rows["pc_position"].(int64)
 		
-		p.Position	= pos.NewPositionFromHash(positionHash)
+		var ok bool
+		p.Position, ok = g_game.WorldMap.GetTile(positionHash)
+		if !ok {
+			return false, nil
+		}
+		p.Location, ok = g_game.Locations.GetLocation(idlocation)
+		if !ok {
+			p.Location = p.Position.Location
+		}
+		p.LastPokeCenter, ok = g_game.WorldMap.GetTile(pcposition)
+		if !ok {
+			p.LastPokeCenter, _ = g_game.WorldMap.GetTile(p.Position.Location.PokeCenter.Hash())
+		}
+		
 		p.Movement	= movement
+		p.SetMoney(money)
 		
-		//ToDo: Add other database values to player object
+		// Load outfit
+		outfitHead, _	:= rows["head"].(int)
+		outfitNek, _	:= rows["nek"].(int)
+		outfitUpper, _	:= rows["upper"].(int)
+		outfitLower, _	:= rows["lower"].(int)
+		outfitFeet, _	:= rows["feet"].(int)
 		
+		p.NewOutfit()
+		p.SetOutfitKey(OUTFIT_HEAD, outfitHead)
+		p.SetOutfitKey(OUTFIT_NEK, outfitNek)
+		p.SetOutfitKey(OUTFIT_UPPER, outfitUpper)
+		p.SetOutfitKey(OUTFIT_LOWER, outfitLower)
+		p.SetOutfitKey(OUTFIT_FEET, outfitFeet)
+		
+		// Add player object to THE GAME (you've just lost it :3)
 		g_game.AddPlayer(p)
 	}
 

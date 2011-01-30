@@ -21,14 +21,20 @@ import (
 )
 
 type Player struct {
-	name		string
-	uid			uint64 // Unique ID
-	Id			int // Database ID			
+	name			string
+	uid				uint64 // Unique ID
+	Id				int // Database ID			
 	
-	Position	pos.Position
-	Conn		*Connection	
+	Position		*Tile
+	Conn			*Connection	
 	
-	Movement	int
+	Movement		int
+	Location		*Location
+	LastPokeCenter	*Tile
+	
+	money			int
+	
+	Outfit
 }
 
 func NewPlayer(_name string) *Player {
@@ -47,8 +53,12 @@ func (p *Player) GetName() string {
 	return p.name
 }
 
-func (p *Player) GetPosition() pos.Position {
+func (p *Player) GetTile() *Tile {
 	return p.Position
+}
+
+func (p *Player) GetPosition() pos.Position {
+	return p.Position.Position
 }
 
 func (p *Player) GetMovement() int {
@@ -58,4 +68,13 @@ func (p *Player) GetMovement() int {
 func (p *Player) SetConnection(_conn *Connection) {
 	p.Conn = _conn
 	go _conn.HandleConnection()
+}
+
+func (p *Player) GetMoney() int {
+	return p.money
+}
+
+func (p *Player) SetMoney(_money int) int {
+	p.money += _money
+	return p.money
 }
