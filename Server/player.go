@@ -41,6 +41,7 @@ func NewPlayer(_name string) *Player {
 	p := Player{ name : _name }
 	p.uid 	= GenerateUniqueID()
 	p.Conn 	= nil
+	p.Outfit = NewOutfit()
 	
 	return &p
 }
@@ -68,10 +69,6 @@ func (p *Player) GetMovement() int {
 func (p *Player) SetConnection(_conn *Connection) {
 	p.Conn = _conn
 	go _conn.HandleConnection()
-}
-
-func (p *Player) GetMoney() int {
-	return p.money
 }
 
 func (p *Player) SetMoney(_money int) int {

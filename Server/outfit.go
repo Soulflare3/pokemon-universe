@@ -29,13 +29,12 @@ type Outfit struct {
 	data []int
 }
 
-func (p *Player) NewOutfit() Outfit {
-	p.Outfit = Outfit { data: make([]int, 5) }
-	return p.Outfit
+func NewOutfit() Outfit {
+	return Outfit { data: make([]int, 5) }
 }
 
-func (p *Player) NewOutfitExt(_head, _nek, _upper, _lower, _feet int) Outfit {
-	outfit := p.NewOutfit()
+func NewOutfitExt(_head, _nek, _upper, _lower, _feet int) Outfit {
+	outfit := NewOutfit()
 	outfit.data[OUTFIT_HEAD] = _head
 	outfit.data[OUTFIT_NEK] = _nek
 	outfit.data[OUTFIT_UPPER] = _upper

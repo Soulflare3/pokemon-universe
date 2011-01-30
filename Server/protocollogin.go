@@ -133,12 +133,13 @@ func LoadPlayerProfile(_username string) (bool, *Player) {
 		outfitLower, _	:= rows["lower"].(int)
 		outfitFeet, _	:= rows["feet"].(int)
 		
-		p.NewOutfit()
 		p.SetOutfitKey(OUTFIT_HEAD, outfitHead)
 		p.SetOutfitKey(OUTFIT_NEK, outfitNek)
 		p.SetOutfitKey(OUTFIT_UPPER, outfitUpper)
 		p.SetOutfitKey(OUTFIT_LOWER, outfitLower)
 		p.SetOutfitKey(OUTFIT_FEET, outfitFeet)
+		
+		p.money = 100
 		
 		// Add player object to THE GAME (you've just lost it :3)
 		g_game.AddPlayer(p)
