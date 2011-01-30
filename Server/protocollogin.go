@@ -105,7 +105,7 @@ func LoadPlayerProfile(_username string) (bool, *Player) {
 		
 		positionHash, _ := rows["position"].(int64)
 		movement, _		:= rows["movement"].(int)
-		money,_			:= rows["money"].(int)
+		money,_			:= rows["money"].(int32)
 		idlocation, _	:= rows["idlocation"].(int32)
 		pcposition, _	:= rows["pc_position"].(int64)
 		
@@ -138,8 +138,6 @@ func LoadPlayerProfile(_username string) (bool, *Player) {
 		p.SetOutfitKey(OUTFIT_UPPER, outfitUpper)
 		p.SetOutfitKey(OUTFIT_LOWER, outfitLower)
 		p.SetOutfitKey(OUTFIT_FEET, outfitFeet)
-		
-		p.money = 100
 		
 		// Add player object to THE GAME (you've just lost it :3)
 		g_game.AddPlayer(p)

@@ -23,7 +23,7 @@ import (
 )
 
 type Location struct {
-	LocationID		int32
+	ID				int32
 	Name			string
 	Music			int32
 	PokeCenter		pos.Position
@@ -58,7 +58,7 @@ func (store *LocationStore) Load() (err os.Error) {
 		pokecenter	:= row["position"].(int64) // Hash
 		pcposition 	:= pos.NewPositionFromHash(pokecenter)
 		
-		location := &Location { LocationID: idlocation,
+		location := &Location { ID: idlocation,
 								Name: name,
 								Music: music,
 								PokeCenter: pcposition }
@@ -69,9 +69,9 @@ func (store *LocationStore) Load() (err os.Error) {
 }
 
 func (store *LocationStore) addLocation(_location *Location) {
-	_, found := store.Locations[_location.LocationID]
+	_, found := store.Locations[_location.ID]
 	if found == false {
-		store.Locations[_location.LocationID] = _location
+		store.Locations[_location.ID] = _location
 	}
 }
 

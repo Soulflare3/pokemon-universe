@@ -35,14 +35,14 @@ const (
 )
 
 type TileLayer struct {
-	Layer		int32
+	Layer		int16
 	SpriteID	int32
 }
 
-type LayerMap map[int32]*TileLayer
+type LayerMap map[int16]*TileLayer
 type Tile struct {
 	Position	pos.Position
-	Blocking	int32
+	Blocking	uint16
 	Location	*Location
 	
 	Layers		LayerMap
@@ -68,7 +68,7 @@ func NewTileExt(_x int, _y int, _z int) *Tile {
 
 // AddLayer adds a new TileLayer to the tile. 
 // If the layer already exists it will return that one otherwise it'll make a new one
-func (t *Tile) AddLayer(_layer int32, _sprite int32) (layer *TileLayer) {
+func (t *Tile) AddLayer(_layer int16, _sprite int32) (layer *TileLayer) {
 	layer = t.GetLayer(_layer)
 	if layer == nil {
 		layer = &TileLayer{Layer: _layer, SpriteID: _sprite}
@@ -79,7 +79,7 @@ func (t *Tile) AddLayer(_layer int32, _sprite int32) (layer *TileLayer) {
 }
 
 // GetLayer returns a TileLayer object if the layer exists, otherwise nil
-func (t *Tile) GetLayer(_layer int32) *TileLayer {
+func (t *Tile) GetLayer(_layer int16) *TileLayer {
 	if layer, ok := t.Layers[_layer]; !ok {
 		return layer
 	}

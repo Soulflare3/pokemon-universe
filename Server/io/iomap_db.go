@@ -49,9 +49,9 @@ func (io *IOMapDB) LoadMap(_map *Map) (err os.Error) {
 		y			:=	row["y"].(int)
 		z			:=	row["z"].(int)
 		position	:=	pos.NewPositionFrom(x, y, z)
-		layer		:=	row["layer"].(int32)
+		layer		:=	row["layer"].(int16)
 		sprite		:=	row["sprite"].(int32)
-		blocking	:=	row["movement"].(int32)
+		blocking	:=	row["movement"].(uint16)
 		tp_id		:=	row["idteleport"].(int32)
 		idlocation	:=	row["idlocation"].(int32)
 		

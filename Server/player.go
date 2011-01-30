@@ -26,13 +26,14 @@ type Player struct {
 	Id				int // Database ID			
 	
 	Position		*Tile
+	Direction		int
 	Conn			*Connection	
 	
 	Movement		int
 	Location		*Location
 	LastPokeCenter	*Tile
 	
-	money			int
+	Money			int32
 	
 	Outfit
 }
@@ -68,10 +69,14 @@ func (p *Player) GetMovement() int {
 
 func (p *Player) SetConnection(_conn *Connection) {
 	p.Conn = _conn
+	p.Conn.Owner = p
 	go _conn.HandleConnection()
 }
 
-func (p *Player) SetMoney(_money int) int {
-	p.money += _money
-	return p.money
+func (p *Player) SetMoney(_money int32) int32 {
+	p.Money += _money
+	if p.Money < 0 {
+		p.Money = 0
+	}
+	return p.Money
 }
