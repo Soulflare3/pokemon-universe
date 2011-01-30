@@ -50,6 +50,9 @@ type PU_Game struct {
 	self *PU_Player
 	
 	lastDirKey int
+	
+	panel *PU_GamePanel
+	chat *PU_Chat
 }
 
 func NewGame() *PU_Game {
@@ -74,6 +77,7 @@ func (g *PU_Game) Draw() {
 			
 		case GAMESTATE_WORLD:
 			g.DrawWorld()
+			g_gui.Draw()
 	}
 }
 
@@ -247,5 +251,16 @@ func (g *PU_Game) KeyDown(_keysym int, _scancode int) {
 				}
 		}
 	}
+}
+
+func (g *PU_Game) CreateChat() {
+	g.chat = NewChat()
+	g.chat.AddChannel(CHANNEL_LOCAL, "Local", false)
+	g.chat.AddChannel(CHANNEL_WORLD, "World", false)
+	g.chat.AddChannel(CHANNEL_TRADE, "Trade", false)
+	g.chat.AddChannel(CHANNEL_BATTLE, "Battle", false)
+	//g.chat.AddChannel(CHANNEL_IRC, "Local", false)
+	g.chat.AddChannel(CHANNEL_LOG, "Log", false)
+	g.chat.SetActive(CHANNEL_LOCAL)
 }
 

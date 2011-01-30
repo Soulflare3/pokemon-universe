@@ -48,6 +48,9 @@ func (m *PU_Message_Identity) ReadPacket(_packet *punet.Packet) os.Error {
 		blue := uint8(color)
 		m.player.bodyParts[part].SetColor(int(red), int(green), int(blue))
 	}
+	
+	g_map.AddCreature(m.player)
+	g_game.self = m.player
 	return nil
 }
 

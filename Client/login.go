@@ -182,6 +182,8 @@ func DoLogin(_username string, _password string) bool {
 		}
 	}
 	
+	g_game.panel = NewGamePanel()
+	g_game.CreateChat()
 	g_game.state = GAMESTATE_WORLD
 	
 	return true

@@ -23,6 +23,8 @@ import (
 
 const (
 	FONT_PURITANBOLD_14 = iota
+	FONT_PURITANBOLD_12
+	FONT_ARIALBLACK_10
 )
 
 type PU_Font struct {

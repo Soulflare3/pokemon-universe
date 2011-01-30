@@ -26,6 +26,8 @@ import (
 
 func (g *PU_Game) LoadFonts () {
 	g_engine.LoadFont(FONT_PURITANBOLD_14, GetPath()+"data/font/Puritan2Bold.otf", 14)
+	g_engine.LoadFont(FONT_PURITANBOLD_12, GetPath()+"data/font/Puritan2Bold.otf", 12)
+	g_engine.LoadFont(FONT_ARIALBLACK_10, GetPath()+"data/font/ariblk.ttf", 10)
 }
 
 func (g* PU_Game) LoadTileImages() {

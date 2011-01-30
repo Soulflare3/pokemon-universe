@@ -37,10 +37,10 @@ func (p *PU_GameProtocol) ProcessPacket(_packet *punet.Packet) {
 			p.ReceiveLoginStatus(_packet)
 			
 		case punet.HEADER_IDENTITY:
-			p.ReceiveIdentity(_packet)
+			NewIdentityMessage(_packet)
 			
 		case punet.HEADER_TILES:
-			p.ReceiveTiles(_packet)
+			NewTilesMessage(_packet)
 			
 		//Headers that are not punet constants are headers that might change.
 		//Currently they are used to make the client compatible with the 
@@ -61,6 +61,9 @@ func (p *PU_GameProtocol) ProcessPacket(_packet *punet.Packet) {
 			
 		case 0x03:
 			p.ReceiveTilesRefreshed()
+			
+		case 0x10:
+			NewReceiveChatMessage(_packet)
 	}
 }
 
@@ -71,16 +74,6 @@ func (p *PU_GameProtocol) ReceivePing() {
 
 func (p *PU_GameProtocol) ReceiveLoginStatus(_packet *punet.Packet) {
 	g_conn.loginStatus = int(_packet.ReadUint8())
-}
-
-func (p *PU_GameProtocol) ReceiveIdentity(_packet *punet.Packet) {
-	message := NewIdentityMessage(_packet)
-	g_map.AddCreature(message.player)
-	g_game.self = message.player
-}
-
-func (p *PU_GameProtocol) ReceiveTiles(_packet *punet.Packet) {
-	NewTilesMessage(_packet)
 }
 
 func (p *PU_GameProtocol) ReceiveTilesRefreshed() {
@@ -112,3 +105,12 @@ func (p *PU_GameProtocol) SendTurn(_direction int) {
 	message.direction = _direction
 	g_conn.SendMessage(message)
 }
+
+func (p *PU_GameProtocol) SendChat(_speaktype int, _channel int, _message string) {
+	message := NewSendChatMessage()
+	message.speaktype = _speaktype
+	message.channel = _channel
+	message.message = _message
+	g_conn.SendMessage(message)
+}
+
