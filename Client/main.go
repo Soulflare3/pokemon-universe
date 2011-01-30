@@ -117,6 +117,9 @@ func EventHandler(_event *sdl.SDLEvent) {
 		
 	case sdl.SDL_MOUSEMOTION:
 		HandleMouseMotionEvent(_event.MouseMotion())
+		
+	case sdl.SDL_MOUSEWHEEL:
+		HandleMouseWheelEvent(_event.MouseWheel())
 	}
 }
 
@@ -151,4 +154,13 @@ func HandleMouseButtonEvent(_event *sdl.MouseButtonEvent) {
 
 func HandleMouseMotionEvent(_event *sdl.MouseMotionEvent) {
 	g_gui.MouseMove(int(_event.X), int(_event.Y))
+}
+
+func HandleMouseWheelEvent(_event *sdl.MouseWheelEvent) {
+	println("derp")
+	if 0-_event.Y < 0 {
+		g_gui.MouseScroll(sdl.SCROLL_UP)
+	} else if ((0-_event.Y) > 0) {
+		g_gui.MouseScroll(sdl.SCROLL_DOWN)
+	}
 }

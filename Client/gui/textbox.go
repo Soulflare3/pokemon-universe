@@ -230,11 +230,11 @@ func (t *PU_Textbox)MouseScroll(_dir int) {
 	
 	curValue := t.scrollbar.value
 	
-	if _dir == 0 { // Up
+	if _dir == sdl.SCROLL_UP {
 		if curValue-1 >= 0 {
 			t.scrollbar.value = curValue-1
 		}
-	} else if _dir == 1 { // Down
+	} else if _dir == sdl.SCROLL_DOWN {
 		maxValue := t.scrollbar.maxvalue
 		if curValue+1 <= maxValue {
 			t.scrollbar.value = curValue+1
