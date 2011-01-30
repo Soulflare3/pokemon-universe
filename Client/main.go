@@ -37,6 +37,7 @@ var g_conn *PU_Connection = NewConnection()
 var g_map *PU_Map = NewMap()
 
 var g_frameTime uint32 = 0
+var g_FPS int = 0
 
 func main() {
 	//Make sure that resources get released
@@ -66,6 +67,9 @@ func main() {
 	g_loginControls.Show() 
 	
 	lastTime := sdl.GetTicks()
+	
+	frameTime := sdl.GetTicks()
+	frameCount := 0
 
 	//Handle events 
 	for g_running {
@@ -86,6 +90,14 @@ func main() {
 		//Update frame time 
 		g_frameTime = sdl.GetTicks()-lastTime
 		lastTime = sdl.GetTicks()
+		
+		//Update FPS
+		frameCount++
+		if sdl.GetTicks()-frameTime >= 1000 {
+			g_FPS = frameCount
+			frameCount = 0
+			frameTime = sdl.GetTicks()
+		}
 	}
 	sdl.Quit()
 }
@@ -93,6 +105,12 @@ func main() {
 func Draw() {
 	sdl.RenderClear()
 	g_game.Draw()
+	
+	if font := g_engine.GetFont(FONT_PURITANBOLD_14); font != nil {
+		font.SetColor(255, 242, 0)
+		font.DrawText(fmt.Sprintf("FPS: %v", g_FPS), 760, 5)
+	}
+	
 	sdl.RenderPresent()
 }
 
