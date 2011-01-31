@@ -51,6 +51,7 @@ func (the *Game) Load() (LostIt bool) {
 	the.WorldMap = NewMap()
 	the.Locations = NewLocationStore()
 	
+	g_logger.Println(" - Loading locations")
 	// Load locations
 	if err := the.Locations.Load(); err != nil {
 		g_logger.Println(err)
@@ -58,6 +59,7 @@ func (the *Game) Load() (LostIt bool) {
 	}
 	
 	// Load worldmap
+	g_logger.Println(" - Loading worldmap")
 	if err := the.WorldMap.Load(); err != nil {
 		g_logger.Println(err)
 		LostIt = false

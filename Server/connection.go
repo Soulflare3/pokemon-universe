@@ -61,7 +61,6 @@ func (c *Connection) HandleConnection() {
 	}
 
 	c.IsOpen = false
-	g_logger.Println("Connection closed")
 }
 
 func (c *Connection) ProcessPacket(_packet *pnet.Packet) {
@@ -124,6 +123,7 @@ func (c *Connection) GenerateMapData(_direction int) {
 		}
 	}
 	
+	// Top-left coordinates
 	position := c.Owner.GetPosition()
 	positionX := (position.X - CLIENT_VIEWPORT_CENTER.X)
 	positionY := (position.Y - CLIENT_VIEWPORT_CENTER.Y)

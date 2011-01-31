@@ -74,8 +74,7 @@ func (p *Player) SetConnection(_conn *Connection) {
 }
 
 func (p *Player) SetMoney(_money int32) int32 {
-	p.Money += _money
-	if p.Money < 0 {
+	if p.Money += _money; p.Money < 0 {
 		p.Money = 0
 	}
 	return p.Money

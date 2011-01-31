@@ -18,7 +18,7 @@ package main
 
 import (
 	"os"
-	"mysql"
+	"db"
 	pos "position"
 )
 
@@ -39,31 +39,30 @@ func NewLocationStore() *LocationStore {
 }
 
 func (store *LocationStore) Load() (err os.Error) {
-	var res *mysql.MySQLResult
-	var row map[string]interface{}
-	
 	var query string = "SELECT t.idlocation, t.name, t.idmusic, p.position FROM location t LEFT JOIN pokecenter p ON p.idpokecenter = t.idpokecenter"
-	if res, err = g_db.Query(query); err != nil {
+	var result db.ResultSet
+	if result, err = g_db.StoreQuery(query); err != nil {
 		return
 	}
 	
 	for {
-		if row = res.FetchMap(); row == nil {
+		if !result.Next() {
 			break
-		}
+		}	
 		
-		idlocation	:= row["idlocation"].(int32)
-		name		:= row["name"].(string)
-		music		:= row["idmusic"].(int32)
-		pokecenter	:= row["position"].(int64) // Hash
-		pcposition 	:= pos.NewPositionFromHash(pokecenter)
+		idlocation 	:= result.GetDataInt("idlocation")
+		name		:= result.GetDataString("name")
+		music		:= result.GetDataInt("idmusic")
+		pokecenter	:= result.GetDataLong("position") // Hash
+		pcposition	:= pos.NewPositionFromHash(pokecenter)
 		
-		location := &Location { ID: idlocation,
+		location := &Location { ID: int32(idlocation),
 								Name: name,
-								Music: music,
+								Music: int32(music),
 								PokeCenter: pcposition }
 		store.addLocation(location)
 	}
+	result.Free()
 	
 	return
 }

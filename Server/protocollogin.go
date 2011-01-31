@@ -18,32 +18,30 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"hash"
 	"crypto/sha1"
 	"strings"
-	"mysql"
+	"os"
+	"db"
 )
 
 func CheckAccountInfo(_username string, _password string) bool {
+	//_username = g_db.Escape(_username)
+	//_password = g_db.Escape(_password)
+	
+	var result db.ResultSet
 	var err os.Error
-	var res *mysql.MySQLResult
-	var rows map[string]interface{}
-	
-	_username = g_db.Escape(_username)
-	_password = g_db.Escape(_password)
-	
 	var queryString string = "SELECT password, password_salt FROM player WHERE name='" + _username + "'"
-	if res, err = g_db.Query(queryString); err != nil {
+	if result, err = g_db.StoreQuery(queryString); err != nil {
 		return false
 	}
 	
-	if rows = res.FetchMap(); rows == nil {
+	if !result.Next() {
 		return false
 	}
 	
-	password, _ := rows["password"].(string)
-	salt, _ := rows["password_salt"].(string)
+	password	:= result.GetDataString("password")
+	salt		:= result.GetDataString("password_salt")
 	_password = _password + salt
 	
 	var passCheck bool = PasswordTest(_password, password)
@@ -61,30 +59,28 @@ func PasswordTest(_plain string, _hash string) bool {
 }
 
 func LoadPlayerProfile(_username string) (bool, *Player) {
+	//_username = g_db.Escape(_username)
+	
+	var result db.ResultSet
 	var err os.Error
-	var res *mysql.MySQLResult
-	var rows map[string]interface{}
-	
-	_username = g_db.Escape(_username)
-	
 	var queryString string = "SELECT idplayer, name FROM player WHERE name='" + _username +"'"
-	if res, err = g_db.Query(queryString); err != nil {
+	if result, err = g_db.StoreQuery(queryString); err != nil {
 		if IS_DEBUG {
 			g_logger.Printf("[DEBUG] LoadPlayerProfile: %v\n\r", err)
 		}
 		return false, nil
 	}
-	if rows = res.FetchMap(); rows == nil {
+	if !result.Next() {
 		return false, nil
 	}
 	
-	idPlayer, _ := rows["idplayer"].(int)
-	name, _ 	:= rows["name"].(string)
+	idPlayer := result.GetDataInt("idplayer")
+	name	 := result.GetDataString("name")
 	
 	var p *Player = g_game.GetPlayerByName(name)
 	if p == nil {
 		p = NewPlayer(name)
-		p.Id = idPlayer
+		p.Id = int(idPlayer)
 		
 		queryString = "SELECT p.`position`, p.`movement`, p.`money`, p.`idlocation`, "
 		queryString += "po.`head`, po.`nek`, po.`upper`, po.`lower`, po.`feet`, pc.`position` AS `pc_position` "
@@ -93,28 +89,28 @@ func LoadPlayerProfile(_username string) (bool, *Player) {
 		queryString += "JOIN `pokecenter` AS pc ON pc.`idpokecenter`=p.`idpokecenter` "
 		queryString += "WHERE p.`idplayer` = '" + string(idPlayer) + "'"
 		
-		if res, err = g_db.Query(queryString); err != nil {
+		if result, err = g_db.StoreQuery(queryString); err != nil {
 			if IS_DEBUG {
 				g_logger.Printf("[DEBUG] LoadPlayerProfile: %v\n\r", err)
 			}
 			return false, nil
 		}
-		if rows = res.FetchMap(); rows == nil {
+		if !result.Next() {
 			return false, nil
 		}
-		
-		positionHash, _ := rows["position"].(int64)
-		movement, _		:= rows["movement"].(int)
-		money,_			:= rows["money"].(int32)
-		idlocation, _	:= rows["idlocation"].(int32)
-		pcposition, _	:= rows["pc_position"].(int64)
+				
+		positionHash := result.GetDataLong("position")
+		movement	:= result.GetDataInt("movement")
+		money		:= result.GetDataInt("money")
+		idlocation	:= result.GetDataInt("idlocation")
+		pcposition	:= result.GetDataLong("pc_position")
 		
 		var ok bool
 		p.Position, ok = g_game.WorldMap.GetTile(positionHash)
 		if !ok {
 			return false, nil
 		}
-		p.Location, ok = g_game.Locations.GetLocation(idlocation)
+		p.Location, ok = g_game.Locations.GetLocation(int32(idlocation))
 		if !ok {
 			p.Location = p.Position.Location
 		}
@@ -123,21 +119,21 @@ func LoadPlayerProfile(_username string) (bool, *Player) {
 			p.LastPokeCenter, _ = g_game.WorldMap.GetTile(p.Position.Location.PokeCenter.Hash())
 		}
 		
-		p.Movement	= movement
-		p.SetMoney(money)
+		p.Movement = int(movement)
+		p.SetMoney(int32(money))
 		
 		// Load outfit
-		outfitHead, _	:= rows["head"].(int)
-		outfitNek, _	:= rows["nek"].(int)
-		outfitUpper, _	:= rows["upper"].(int)
-		outfitLower, _	:= rows["lower"].(int)
-		outfitFeet, _	:= rows["feet"].(int)
+		outfitHead	:= result.GetDataInt("head")
+		outfitNek	:= result.GetDataInt("nek")
+		outfitUpper	:= result.GetDataInt("upper")
+		outfitLower	:= result.GetDataInt("lower")
+		outfitFeet	:= result.GetDataInt("feet")
 		
-		p.SetOutfitKey(OUTFIT_HEAD, outfitHead)
-		p.SetOutfitKey(OUTFIT_NEK, outfitNek)
-		p.SetOutfitKey(OUTFIT_UPPER, outfitUpper)
-		p.SetOutfitKey(OUTFIT_LOWER, outfitLower)
-		p.SetOutfitKey(OUTFIT_FEET, outfitFeet)
+		p.SetOutfitKey(OUTFIT_HEAD, int(outfitHead))
+		p.SetOutfitKey(OUTFIT_NEK, int(outfitNek))
+		p.SetOutfitKey(OUTFIT_UPPER, int(outfitUpper))
+		p.SetOutfitKey(OUTFIT_LOWER, int(outfitLower))
+		p.SetOutfitKey(OUTFIT_FEET, int(outfitFeet))
 		
 		// Add player object to THE GAME (you've just lost it :3)
 		g_game.AddPlayer(p)

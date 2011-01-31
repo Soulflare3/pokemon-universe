@@ -22,7 +22,7 @@ import (
 	"flag"
 	"runtime"
 	
-	"mysql"
+	"db"
 	"conf"
 	
 	"logger" // PU.Logger package
@@ -38,7 +38,7 @@ var (
 	
 	g_config *conf.ConfigFile
 	g_logger *log.Logger
-	g_db     *mysql.MySQL
+	g_db     db.Database
 
 	g_game   *Game
 	g_server *Server
@@ -92,22 +92,20 @@ func initLogger() bool {
 
 func initDatabase() bool {
 	// Create new instance
-	g_db = mysql.New()
+	g_db = db.NewMySQL()
 
-	// Enable logging
-	g_db.Logging = true
-	
 	// Fetch database info from conf file
-	dbHost, _ := g_config.GetString("database", "host")
-	dbUser, _ := g_config.GetString("database", "user")
-	dbPass, _ := g_config.GetString("database", "pass")
-	dbData, _ := g_config.GetString("database", "db")
-
+	connectInfo := db.ClientInfo{}
+	connectInfo.SQLHost, _ 	= g_config.GetString("database", "host")
+	connectInfo.SQLUser, _ 	= g_config.GetString("database", "user")
+	connectInfo.SQLPass, _ 	= g_config.GetString("database", "pass")
+	connectInfo.SQLDB, _ 	= g_config.GetString("database", "db")
+	
 	// Enable/Disable intern mysql logging system
-	g_db.Logging, _ = g_config.GetBool("database", "show_log")
+	//g_db.Logging, _ = g_config.GetBool("database", "show_log")
 
 	// Connect to database
-	err := g_db.Connect(dbHost, dbUser, dbPass, dbData)
+	err := g_db.Connect(connectInfo)
 	if err != nil {
 		g_logger.Printf("[Error] Could not connect to database: %v\n\r", err)
 		return false
@@ -118,7 +116,7 @@ func initDatabase() bool {
 
 func main() {
 	// Use all cpu cores
-	runtime.GOMAXPROCS(4)
+	runtime.GOMAXPROCS(2)
 
 	// Flags
 	configFile = flag.String("config", "server.conf", "Name of the config file to load")
