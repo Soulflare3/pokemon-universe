@@ -101,7 +101,7 @@ func (self *MySQL) ExecuteQuery(_query string) (err os.Error) {
 		}
 	}
 	
-	// we should call that every time as someone would call executeQuery('SELECT...')
+	// we should call that every time as someone would call ExecuteQuery('SELECT...')
 	// as it is described in MySQL manual: "it doesn't hurt" :P
 	m_res := C.mysql_store_result(&self.handle)
 	if m_res != nil {
@@ -184,7 +184,7 @@ func (res *MySQLResult) GetData(_s string) interface{} {
 	if found {
 		value := C.wm_row(res.row, C.int(id))
 		if value != nil {
-			return value
+			return C.GoString(value)
 		}
 	}
 	
