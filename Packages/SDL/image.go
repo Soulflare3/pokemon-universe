@@ -41,8 +41,8 @@ func (s *Surface) Release() {
 	C.SDL_FreeSurface(s.Get())
 }
 
-func (s *Surface) CreateTexture() *Texture {
-	var tex = C.SDL_CreateTextureFromSurface(C.Uint32(0), s.Get())
+func (s *Surface) CreateTexture(_renderer *Renderer) *Texture {
+	var tex = C.SDL_CreateTextureFromSurface(_renderer.Get(), s.Get())
 	return (*Texture)(cast(tex))
 }
 

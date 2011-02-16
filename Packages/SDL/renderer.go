@@ -33,10 +33,15 @@ type Texture struct {
     H int32
    	ModMode int32
 	BlendMode *C.SDL_BlendMode
-    ScaleMode *C.SDL_ScaleMode
     R, G, B, A uint8
+	
+	Native *Texture
+    Yuv *[0]byte
+	
+	Pixels *[0]byte
 
-    Renderer *C.struct_SDL_Renderer
+    Pitch int32
+	Locked_rect Rect
 
     Driverdata *[0]byte
 
@@ -50,20 +55,16 @@ func (t *Texture) Get() *C.SDL_Texture {
 
 func (t *Texture) Release() {
 	C.SDL_DestroyTexture(t.Get())
-} 
+}
 
 func (t *Texture) SetAlpha(_alpha uint8) {
 	C.SDL_SetTextureAlphaMod(t.Get(), C.Uint8(_alpha))
 }
 
-func (t *Texture) SetScaleMode(_mode int) {
-	C.SDL_SetTextureScaleMode(t.Get(), C.SDL_ScaleMode(_mode))
-}
-
-func (t *Texture) RenderCopy(_srcrect *Rect, _dstrect *Rect) {
+func (t *Texture) RenderCopy(_renderer *Renderer, _srcrect *Rect, _dstrect *Rect) {
 	src := (*C.SDL_Rect)(cast(_srcrect))
 	dst := (*C.SDL_Rect)(cast(_dstrect))
-	C.SDL_RenderCopy(t.Get(), src, dst)
+	C.SDL_RenderCopy(_renderer.Get(), t.Get(), src, dst)
 }
 
 func (t *Texture) SetColorMod(_red uint8, _green uint8, _blue uint8) {
@@ -76,6 +77,18 @@ func (t *Texture) SetBlendMode(_blendmode int) {
 
 func GetNumRenderDrivers() int {
 	return int(C.SDL_GetNumRenderDrivers())
+}
+
+type RendererInfo struct {
+    name *byte
+    flags uint32
+    mod_modes uint32
+    blend_modes uint32
+    scale_modes uint32
+    num_texture_formats uint32
+    texture_formats [50]uint32
+    max_texture_width int32
+    max_texture_height int32
 }
 
 func GetRenderDriverInfo(_index int) *RendererInfo {
@@ -98,45 +111,42 @@ func GetRenderDriverName(_index int) string {
 	return strname
 }
 
-func CreateRenderer(_window *Window, _index int) string {
-    if C.SDL_CreateRenderer(_window.window, C.int(_index), C.SDL_RENDERER_PRESENTVSYNC | C.SDL_RENDERER_ACCELERATED) != 0 {
-        return GetError()
+type Renderer C.SDL_Renderer
+
+func (r *Renderer) Get() *C.SDL_Renderer {
+	return (*C.SDL_Renderer)(cast(r))
+}
+
+func (r *Renderer) Release() {
+	C.SDL_DestroyRenderer(r.Get())
+}
+
+func CreateRenderer(_window *Window, _index int) (renderer *Renderer, error string) {
+	raw := C.SDL_CreateRenderer(_window.window, C.int(_index), C.SDL_RENDERER_PRESENTVSYNC | C.SDL_RENDERER_ACCELERATED)
+    if raw == nil {
+		error = GetError()
+        return
     }
-	return ""
+	renderer = (*Renderer)(cast(raw))
+	return
 }
 
-func SelectRenderer(_window *Window) {
-	C.SDL_SelectRenderer(_window.window)
+func RenderClear(_renderer *Renderer) {
+	C.SDL_RenderClear(_renderer.Get())
 }
 
-func RenderClear() {
-	C.SDL_RenderClear()
+func RenderPresent(_renderer *Renderer) {
+	C.SDL_RenderPresent(_renderer.Get())
 }
 
-func RenderPresent() {
-	C.SDL_RenderPresent()
+func RenderFillRect(_renderer *Renderer, _rect Rect)  {
+	C.SDL_RenderFillRect(_renderer.Get(), (*C.SDL_Rect)(cast(&_rect)))
 }
 
-func RenderFillRect(_rect Rect)  {
-	C.SDL_RenderFillRect((*C.SDL_Rect)(cast(&_rect)))
+func SetRenderDrawColor(_renderer *Renderer, _r uint8, _g uint8, _b uint8, _a uint8) {
+	C.SDL_SetRenderDrawColor(_renderer.Get(), C.Uint8(_r), C.Uint8(_g), C.Uint8(_b), C.Uint8(_a))
 }
 
-func SetRenderDrawColor(_r uint8, _g uint8, _b uint8, _a uint8) {
-	C.SDL_SetRenderDrawColor(C.Uint8(_r), C.Uint8(_g), C.Uint8(_b), C.Uint8(_a))
-}
-
-func SetRenderDrawBlendMode(_mode int) {
-	C.SDL_SetRenderDrawBlendMode(C.SDL_BlendMode(_mode))
-}
-
-type RendererInfo struct {
-    name *byte
-    flags uint32
-    mod_modes uint32
-    blend_modes uint32
-    scale_modes uint32
-    num_texture_formats uint32
-    texture_formats [50]uint32
-    max_texture_width int32
-    max_texture_height int32
+func SetRenderDrawBlendMode(_renderer *Renderer, _mode int) {
+	C.SDL_SetRenderDrawBlendMode(_renderer.Get(), C.SDL_BlendMode(_mode))
 }
