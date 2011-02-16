@@ -52,15 +52,28 @@ func (e *PU_Engine) Init() {
         return
     }
 
-	//Try to find and use OpenGL
-	rendererIndex := 0
+	//Find our available renderers
+	openglIndex := 0
+	d3dIndex := -1
 	numRenderers := sdl.GetNumRenderDrivers()
 	for i := 0; i < numRenderers; i++ {
 		rendererName := sdl.GetRenderDriverName(i)	
+		println(rendererName)
 		if rendererName == "opengl" {
-			rendererIndex = i		
+			openglIndex = i		
+		} else if rendererName == "direct3d" {
+			d3dIndex = i
 		}
 	}
+	
+	//Default renderer is OpenGL
+	rendererIndex := openglIndex
+	
+	//If we found DirectX (on Windows), use that
+	if d3dIndex != -1 {
+		rendererIndex = d3dIndex
+	}
+	
 	e.renderer, err = sdl.CreateRenderer(e.window, rendererIndex)
 	if err != "" {
 		fmt.Printf("Error in CreateRenderer: %v", err) 
