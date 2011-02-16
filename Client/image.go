@@ -46,7 +46,7 @@ func NewImageFromSurface(_surface *sdl.Surface) *PU_Image {
 }
 
 func (i *PU_Image) Reload() {
-	i.texture = i.surface.CreateTexture()
+	i.texture = i.surface.CreateTexture(g_engine.renderer)
 	i.w = uint16(i.texture.W)
 	i.h = uint16(i.texture.H)
 }
@@ -75,7 +75,7 @@ func (i *PU_Image) SetAlphaMod(_alpha uint8) {
 
 func (i *PU_Image) Render(_src *sdl.Rect, _dst *sdl.Rect) {
 	i.texture.SetBlendMode(i.blendmode)
-	i.texture.RenderCopy(_src, _dst)
+	i.texture.RenderCopy(g_engine.renderer, _src, _dst)
 }
 
 func (i *PU_Image) Draw(_x int, _y int) {

@@ -109,9 +109,12 @@ func (c *PU_Connection) ReceivePackets() {
 		copy(packet.Buffer[2:], databuffer[:])
 		
 		//put the packet in the buffer
-		put := c.packetChan <- packet
-		if !put {
-			fmt.Printf("Error: Packet buffer full\n")
+		select {
+			case c.packetChan <- packet:
+				//great success
+				
+			default:
+				fmt.Printf("Error: Packet buffer full\n")
 		}
 	}
 }
@@ -124,10 +127,15 @@ func (c *PU_Connection) HandlePacket() {
 	//check if there's a packet in the buffer and process it
 	//repeat until buffer is empty
 	for {
-		packet, present := <- c.packetChan
-		if present {
-			c.protocol.ProcessPacket(packet)
-		} else {
+		var breakloop bool
+		select {
+			case packet := <- c.packetChan:
+				c.protocol.ProcessPacket(packet)
+				
+			default:
+				breakloop = true
+		}
+		if breakloop {
 			break
 		}
 	}

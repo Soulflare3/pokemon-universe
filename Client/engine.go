@@ -35,6 +35,7 @@ type PU_Engine struct {
 	resourceList *list.List
 	fonts map[int]*PU_Font
 	window *sdl.Window
+	renderer *sdl.Renderer
 }
 
 func NewEngine() *PU_Engine {
@@ -60,8 +61,11 @@ func (e *PU_Engine) Init() {
 			rendererIndex = i		
 		}
 	}
-	sdl.CreateRenderer(e.window, rendererIndex)
-	sdl.SelectRenderer(e.window)
+	e.renderer, err = sdl.CreateRenderer(e.window, rendererIndex)
+	if err != "" {
+		fmt.Printf("Error in CreateRenderer: %v", err) 
+		return
+	}
 	
 	sdl.InitTTF();
 }
@@ -74,6 +78,9 @@ func (e *PU_Engine) Exit() {
 			res.Release()
 		}
 	}
+	
+	//Destroy the renderer
+	e.renderer.Release()
 
 	//Destroy the window
 	sdl.DestroyWindow(e.window)
@@ -83,11 +90,11 @@ func (e *PU_Engine) Exit() {
 } 
 
 func (e *PU_Engine) DrawFillRect(_rect *PU_Rect, _color *sdl.Color, _alpha uint8) {
-	sdl.SetRenderDrawColor(_color.R, _color.G, _color.B, _alpha)
-	sdl.SetRenderDrawBlendMode(sdl.SDL_BLENDMODE_BLEND)
-	sdl.RenderFillRect(*_rect.ToSDL())
-	sdl.SetRenderDrawBlendMode(sdl.SDL_BLENDMODE_NONE)
-	sdl.SetRenderDrawColor(0, 0, 0, 255)
+	sdl.SetRenderDrawColor(e.renderer, _color.R, _color.G, _color.B, _alpha)
+	sdl.SetRenderDrawBlendMode(e.renderer, sdl.SDL_BLENDMODE_BLEND)
+	sdl.RenderFillRect(e.renderer, *_rect.ToSDL())
+	sdl.SetRenderDrawBlendMode(e.renderer, sdl.SDL_BLENDMODE_NONE)
+	sdl.SetRenderDrawColor(e.renderer, 0, 0, 0, 255)
 }
 
 func (e *PU_Engine) AddResource(_res IResource) {

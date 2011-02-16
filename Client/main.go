@@ -103,7 +103,7 @@ func main() {
 }
 
 func Draw() {
-	sdl.RenderClear()
+	sdl.RenderClear(g_engine.renderer)
 	g_game.Draw()
 	
 	if font := g_engine.GetFont(FONT_PURITANBOLD_14); font != nil {
@@ -111,7 +111,7 @@ func Draw() {
 		font.DrawBorderedText(fmt.Sprintf("FPS: %v", g_FPS), 760, 5)
 	}
 	
-	sdl.RenderPresent()
+	sdl.RenderPresent(g_engine.renderer)
 }
 
 func GetPath() string {
