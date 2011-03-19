@@ -48,7 +48,6 @@ type Database interface {
 }
 
 type ResultSet interface {
-	GetData(_s string) interface{}
 	GetDataInt(_s string) int32
 	GetDataLong(_s string) int64
 	GetDataString(_s string) string

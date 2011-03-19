@@ -179,18 +179,6 @@ func NewMySQLResult(_handle *C.MYSQL_RES) (res *MySQLResult) {
 	return 
 }
 
-func (res *MySQLResult) GetData(_s string) interface{} {
-	id, found := res.listNames[_s]	
-	if found {
-		value := C.wm_row(res.row, C.int(id))
-		if value != nil {
-			return C.GoString(value)
-		}
-	}
-	
-	return nil
-}
-
 func (res *MySQLResult) GetDataInt(_s string) int32 {
 	id, found := res.listNames[_s]	
 	if found {
