@@ -1,12 +1,28 @@
-GoMySQL Version 0.2.9
-=====================
+GoMySQL Version 0.3.0-dev
+=========================
 
 
 Revision History
 ----------------
 
+0.3.x series [development]
+
+This brand new version of GoMySQL is a complete rewrite of the library, focusing on refactoring duplicate code, improving performance, implementing any missing features, resolving any outstanding bugs. As this is a huge task and the authors of the library all work on their spare time, there is no fixed release schedule, however we expect to release a beta version in early Febrary.  
+
+Planned features:  
+
+* New way to handle packets, read first, process later. Reduces code, removes complexity, removes duplication, makes error handling much easier.
+* Numerous new methods, including transaction handling and more advanced result handling.
+* Proper implementation and usage of the server status flags, improves transaction handling, enables proper "more results" check.
+* Full compatibility with all MySQL versions (including pre-4.1), MariaDB and Percona.
+
+Comments and suggestions are always welcome, please visit our Google Group for any discussions related to this new version.  
+
+* 0.3.0 - [WORK IN PROGRESS]
+
 0.2.x series [current]
 
+* 0.2.10 - Compatability update for Go release.2011-01-20
 * 0.2.9 - Added support for MySQL 5.5
 * 0.2.8 - Fixes issue #38.
 * 0.2.7 - Added additional binary type support: medium int (int32/uint32), decimal (string), new decimal (string), bit ([]byte), year (uint16), set ([]byte), enum/set use string type.
@@ -16,7 +32,7 @@ Revision History
 * 0.2.3 - Fixes issue #6 - thanks to Tom Lee [[thomaslee]](/thomaslee).
 * 0.2.2 - Resolves issue #16.
 * 0.2.1 - Updated to work with latest release of Go plus 1 or 2 minor tweaks.
-* 0.2.0 - Functions have been reworked and now always return os.Error to provide a generic and consistant design. Improved logging output. Improved client stability. Removed length vs buffered length checks as they don't work with packets > 4096 bytes. Added new Escape function, although this is currently only suitiable for short strings. Tested library with much larger databases such as multi-gigabyte tables and multi-megabyte blogs. Many minor bug fixes. Resolved issue #3, #4 and #5.
+* 0.2.0 - Functions have been reworked and now always return os.Error to provide a generic and consistent design. Improved logging output. Improved client stability. Removed length vs buffered length checks as they don't work with packets > 4096 bytes. Added new Escape function, although this is currently only suitiable for short strings. Tested library with much larger databases such as multi-gigabyte tables and multi-megabyte blogs. Many minor bug fixes. Resolved issue #3, #4 and #5.
 
 0.1.x series [deprecated]
 
@@ -32,23 +48,15 @@ Revision History
 * 0.1.5 - Clean up packet visibility all should have been private, add packet handlers for prepare/execute and related packets.
 * 0.1.4 - Connect now uses ...interface{} for parameters to remove (or reduce) 'junk' required params to call the function. [not released]
 * 0.1.3 - Added ChangeDb function to change the active database. [not released]
-* 0.1.2 - Added MultiQuery function to return mutliple result sets as an array. [not released]
+* 0.1.2 - Added MultiQuery function to return multiple result sets as an array. [not released]
 * 0.1.1 - Added support for multiple queries in a single command. [not released]
 * 0.1.0 - Initial release, supporting connect, close and query functions. [not released]
-
-
-To Do
------
-
-* Continue to add support for additional binary format options
 
 
 About
 -----
 
-A MySQL client library written in Go. The aim of this project is to provide a library with a high level of usability, good interal error handling and to emulate similar libraries available for other languages to provide an easy migration of MySQL based systems into the Go language.
-
-As of version 0.1.14 development on the MySQL protocol has been completed and the library is stable in numerous tests, future updates will be more focused on code optimisation and improvements.
+A MySQL client library written in Go. The aim of this project is to provide a library with a high level of usability, good internal error handling and to emulate similar libraries available for other languages to provide an easy migration of MySQL based systems into the Go language.
 
 Please report bugs via the GitHub issue tracker, also comments and suggestions are very welcome.
 
@@ -59,7 +67,7 @@ License
 GoMySQL is licensed under a Creative Commons Attribution-Share Alike 2.0 UK: England & Wales License.
 
 
-Compatability
+Compatibility
 -------------
 
 Implements the MySQL protocol version 4.1 so should work with MySQL server versions 4.1, 5.0, 5.1 and future releases.
@@ -100,7 +108,7 @@ Build / install:
 `make`  
 `make install`
 
-This installs the package as 'mysql' so can be importated as so:
+This installs the package as 'mysql' so can be imported as so:
 
 `import "mysql"`
 
@@ -233,7 +241,7 @@ MySQL Result Functions
 
 **MySQLResult.FetchRow()**
 
-Get the next row in the resut set.  
+Get the next row in the result set.  
 Returns an array or nil if there are no more rows.
 
 Example:
@@ -242,7 +250,7 @@ Example:
 
 **MySQLResult.FetchMap()**
 
-Get the next row in the resut set as a map.  
+Get the next row in the result set as a map.  
 Returns a map or nil if there are no more rows.
 
 Example:
@@ -284,7 +292,7 @@ Example:
 
 **MySQLStatement.SendLongData(num uint16, data string)**
 
-Send paramater as long data.  
+Send parameter as long data.  
 Multiple packets can be sent per parameter, each up to the maximum packet size.  
 Parameters that are sent as long data should be bound as nil (NULL).
 Returns os.Error.  
@@ -456,6 +464,6 @@ Error handling
 --------------
 
 As of version 0.2.0 all functions return os.Error. If the command succeeded the return value will be nil, otherwise it will contain the error.
-If returned value is not nil then mysql error code and description can then be retreived from Errno and Error properties for additional info/debugging.
+If returned value is not nil then MySQL error code and description can then be retrieved from Errno and Error properties for additional info/debugging.
 Prepared statements have their own copy of the Errno and Error properties.  
 Generated errors attempt to follow MySQL protocol/specifications as closely as possible.
