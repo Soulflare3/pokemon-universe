@@ -68,6 +68,15 @@ func (c *Connection) ProcessPacket(_packet *pnet.Packet) {
 	switch header {
 	case pnet.HEADER_LOGIN:
 		c.SendPlayerData()
+		
+	case pnet.HEADER_WALK:
+		c.ReceivePlayerWalk(_packet)
+		
+	case pnet.HEADER_TURN:
+		c.ReceivePlayerTurn(_packet)
+		
+	case pnet.HEADER_REFRESHWORLD:
+		c.ReceiveRefreshWorld()
 	}
 }
 
@@ -78,17 +87,17 @@ func (c *Connection) SendMessage(_message pnet.INetMessageWriter) {
 	c.Socket.Write(packet.Buffer[0:packet.MsgSize])
 }
 
-/*****************
-BATCH SEND FUNCTIONS
-******************/
+// ------------------------------------------------------ //
+//                     SEND
+// ------------------------------------------------------ //
 func (c *Connection) SendPlayerData() {
 	playerData := &SendPlayerData{}
-	playerData.UID		= c.Owner.GetUID()
-	playerData.Name		= c.Owner.GetName()
-	playerData.Position	= c.Owner.GetPosition()
-	playerData.Direction = c.Owner.Direction
-	playerData.Money	= c.Owner.Money
-	playerData.Outfit	= c.Owner.Outfit
+	playerData.UID			= c.Owner.GetUID()
+	playerData.Name			= c.Owner.GetName()
+	playerData.Position		= c.Owner.GetPosition()
+	playerData.Direction 	= c.Owner.Direction
+	playerData.Money		= c.Owner.Money
+	playerData.Outfit		= c.Owner.Outfit
 	c.SendMessage(playerData)
 	
 	//ToDo: Send PkMn
@@ -96,7 +105,7 @@ func (c *Connection) SendPlayerData() {
 	//ToDo: Send items
 	
 	// Send map
-	c.GenerateMapData(DIR_NULL)
+	c.SendMapData(DIR_NULL, c.Owner.GetPosition())
 	
 	// ready
 	readyMessage := &LoginMessage{}
@@ -104,7 +113,7 @@ func (c *Connection) SendPlayerData() {
 	c.SendMessage(readyMessage)
 }
 
-func (c *Connection) GenerateMapData(_direction int) {
+func (c *Connection) SendMapData(_direction uint16, _centerPosition pos.Position) {
 	xMin := 1
 	xMax := CLIENT_VIEWPORT.X
 	yMin := 1
@@ -124,14 +133,14 @@ func (c *Connection) GenerateMapData(_direction int) {
 	}
 	
 	// Top-left coordinates
-	position := c.Owner.GetPosition()
-	positionX := (position.X - CLIENT_VIEWPORT_CENTER.X)
-	positionY := (position.Y - CLIENT_VIEWPORT_CENTER.Y)
+	positionX 	:= (_centerPosition.X - CLIENT_VIEWPORT_CENTER.X)
+	positionY 	:= (_centerPosition.Y - CLIENT_VIEWPORT_CENTER.Y)
+	z			:= _centerPosition.Z
 	
 	tilesMessage := NewSendTilesMessage()
 	for x := xMin; x <= xMax; x++ {
 		for y := yMin; y <= yMax; y++ {
-			index := pos.Hash(positionX + x, positionY + y, position.Z)
+			index := pos.Hash(positionX + x, positionY + y, z)
 			tilesMessage.AddTile(index)
 		}
 		
@@ -145,3 +154,56 @@ func (c *Connection) GenerateMapData(_direction int) {
 	}
 }
 
+func (c *Connection) SendCreatureMove(_creature ICreature, _from *Tile, _to *Tile) {
+	msg := NewWalkMessage(_creature)
+	msg.AddPositions(_from.Position, _to.Position)
+	c.SendMessage(msg)
+}
+
+func (c *Connection) SendCreatureTurn(_creature ICreature) {
+	msg := NewCreatureTurnMessage(_creature)
+	msg.AddDirection(_creature.GetDirection())
+	c.SendMessage(msg)
+}
+
+func (c *Connection) SendCreatureAdd(_creature ICreature) {
+	if _creature.GetUID() != c.Owner.GetUID() {
+		msg := NewCreatureAddMessage(_creature)
+		c.SendMessage(msg)
+	}
+}
+
+func (c *Connection) SendCreatureRemove(_creature ICreature) {
+	if _creature.GetUID() != c.Owner.GetUID() {
+		msg := NewCreatureRemoveMessage(_creature)
+		c.SendMessage(msg)
+	}
+}
+
+func (c *Connection) SendPlayerWarp(_position pos.Position) {
+	msg := NewPlayerWarpMessage()
+	msg.AddDestination(_position)
+	c.SendMessage(msg)
+}
+
+// ------------------------------------------------------ //
+//                     RECEIVE
+// ------------------------------------------------------ //
+func (c *Connection) ReceivePlayerWalk(_packet *pnet.Packet) {
+	msg := NewWalkMessage(c.Owner)
+	msg.ReadPacket(_packet)
+
+}
+
+func (c *Connection) ReceivePlayerTurn(_packet *pnet.Packet) {
+	msg := NewCreatureTurnMessage(c.Owner)
+	msg.ReadPacket(_packet)
+}
+
+func (c *Connection) ReceiveRefreshWorld() {
+	// Send whole screen
+	c.SendMapData(DIR_NULL, c.Owner.GetPosition())
+	
+	msg := NewRefreshWorldMessage()
+	c.SendMessage(msg)
+}

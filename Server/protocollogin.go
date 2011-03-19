@@ -58,7 +58,9 @@ func PasswordTest(_plain string, _hash string) bool {
 	return (sha1Hash == original)
 }
 
-func LoadPlayerProfile(_username string) (bool, *Player) {
+func LoadPlayerProfile(_username string) (ret bool, p *Player) {
+	p = nil
+	ret = false
 	//_username = g_db.Escape(_username)
 	
 	var result db.ResultSet
@@ -68,18 +70,17 @@ func LoadPlayerProfile(_username string) (bool, *Player) {
 		if IS_DEBUG {
 			g_logger.Printf("[DEBUG] LoadPlayerProfile: %v\n\r", err)
 		}
-		return false, nil
+		return
 	}
 	if !result.Next() {
-		return false, nil
+		return
 	}
 	
 	idPlayer := result.GetDataInt("idplayer")
 	name	 := result.GetDataString("name")
 	
-	var p *Player = g_game.GetPlayerByName(name)
-	if p == nil {
-		p = NewPlayer(name)
+	if g_game.GetPlayerByName(name) == nil {
+		p := NewPlayer(name)
 		p.Id = int(idPlayer)
 		
 		queryString = "SELECT p.`position`, p.`movement`, p.`money`, p.`idlocation`, "
@@ -93,10 +94,10 @@ func LoadPlayerProfile(_username string) (bool, *Player) {
 			if IS_DEBUG {
 				g_logger.Printf("[DEBUG] LoadPlayerProfile: %v\n\r", err)
 			}
-			return false, nil
+			return
 		}
 		if !result.Next() {
-			return false, nil
+			return
 		}
 				
 		positionHash := result.GetDataLong("position")
@@ -108,7 +109,7 @@ func LoadPlayerProfile(_username string) (bool, *Player) {
 		var ok bool
 		p.Position, ok = g_game.WorldMap.GetTile(positionHash)
 		if !ok {
-			return false, nil
+			return
 		}
 		p.Location, ok = g_game.Locations.GetLocation(int32(idlocation))
 		if !ok {
@@ -119,7 +120,7 @@ func LoadPlayerProfile(_username string) (bool, *Player) {
 			p.LastPokeCenter, _ = g_game.WorldMap.GetTile(p.Position.Location.PokeCenter.Hash())
 		}
 		
-		p.Movement = int(movement)
+		p.Movement = uint16(movement)
 		p.SetMoney(int32(money))
 		
 		// Load outfit
@@ -136,8 +137,9 @@ func LoadPlayerProfile(_username string) (bool, *Player) {
 		p.SetOutfitKey(OUTFIT_FEET, int(outfitFeet))
 		
 		// Add player object to THE GAME (you've just lost it :3)
-		g_game.AddPlayer(p)
+		g_game.AddCreature(p)
+		ret = true
 	}
 
-	return true, p
+	return
 }

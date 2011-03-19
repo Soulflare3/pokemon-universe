@@ -48,7 +48,6 @@ var (
 	CLIENT_VIEWPORT_CENTER pos.Position = pos.Position{14,11,0}
 )
 
-
 func initConfig() bool {
 	c, err := conf.ReadConfigFile("data/" + *configFile) 
 	if err != nil {

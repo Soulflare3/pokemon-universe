@@ -88,7 +88,7 @@ func (t *Tile) GetLayer(_layer int16) *TileLayer {
 }
 
 // CheckMovement checks if a creature can move to this tile
-func (t *Tile) CheckMovement(_creature ICreature, _dir int) ReturnValue {
+func (t *Tile) CheckMovement(_creature ICreature, _dir uint16) ReturnValue {
 	movement := _creature.GetMovement()
 	blocking := t.Blocking
 	
@@ -128,10 +128,7 @@ func (t *Tile) AddCreature(_creature ICreature) (ret ReturnValue) {
 func (t *Tile) RemoveCreature(_creature ICreature) (ret ReturnValue) {
 	ret = RET_NOERROR
 	
-	_, found := t.Creatures[_creature.GetUID()]
-	if found {
-		t.Creatures[_creature.GetUID()] = nil, false
-	}
+	t.Creatures[_creature.GetUID()] = nil, false
 	
 	t.Events.OnCreatureLeave(_creature)
 	

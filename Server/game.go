@@ -16,6 +16,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
+import (
+	"sync"
+)
+
 type GameState int
 const (
 	GAME_STATE_STARTUP GameState = iota
@@ -25,15 +29,16 @@ const (
 	GAME_STATE_CLOSING
 )
 
-type PlayerList map[uint64]*Player
-
 type Game struct {
 	State		GameState
 	Creatures	CreatureList
-	Players		PlayerList
+	Players		CreatureList
 	
 	WorldMap	*Map
 	Locations	*LocationStore
+	
+	mutexCreatureList	*sync.RWMutex
+	mutexPlayerList		*sync.RWMutex	
 }
 
 func NewGame() *Game {
@@ -41,7 +46,7 @@ func NewGame() *Game {
 	game.State = GAME_STATE_STARTUP
 	// Initialize maps
 	game.Creatures = make(CreatureList)
-	game.Players = make(PlayerList)
+	game.Players = make(CreatureList)
 	
 	return &game
 }
@@ -68,19 +73,7 @@ func (the *Game) Load() (LostIt bool) {
 	return
 }
 
-func (g *Game) AddPlayer(_player *Player) {
-	uid := _player.GetUID()
-	
-	if g.Players[uid] == nil {
-		g.Players[uid] = _player
-	}
-	
-	if g.Creatures[uid] == nil {
-		g.Creatures[uid] = _player
-	}
-}
-
-func (g *Game) GetPlayerByName(_name string) *Player {
+func (g *Game) GetPlayerByName(_name string) ICreature {
 	for _, value := range g.Players {
 		if value.GetName() == _name {
 			return value
@@ -88,4 +81,133 @@ func (g *Game) GetPlayerByName(_name string) *Player {
 	}
 	
 	return nil
+}
+
+func (g *Game) AddCreature(_creature ICreature) {
+	// TODO: Maybe only take the creatues from the area the new creature is in. This saves some extra iterating
+	// TODO 2: Upgrade this to parallel stuff
+	for _, value := range g.Creatures {
+		value.OnCreatureAppear(_creature, true)
+	}
+	
+	g.Creatures[_creature.GetUID()] = _creature
+	
+	if _creature.GetType() == CTYPE_PLAYER {
+		g.Players[_creature.GetUID()] = _creature
+	}
+}
+
+func (g *Game) RemoveCreature(_guid uint64) {
+	object, exists := g.Creatures[_guid]
+	if exists {
+		g.mutexCreatureList.Lock()
+		defer g.mutexCreatureList.Unlock()
+		
+		g.Creatures[_guid] = nil, false
+		
+		if object.GetType() == CTYPE_PLAYER {
+			g.mutexPlayerList.Lock()
+			defer g.mutexPlayerList.Unlock()
+			g.Players[_guid] = nil, false
+		}
+	}
+}
+
+
+func (g *Game) OnPlayerMove(_creature ICreature, _direction uint16, _sendMap bool) {
+	ret := g.OnCreatureMove(_creature, _direction)
+	
+	player := _creature.(*Player)
+	if ret == RET_NOTPOSSIBLE {
+		player.sendCreatureMove(_creature, _creature.GetTile(), _creature.GetTile())		
+	} else if ret == RET_PLAYERISTELEPORTED {
+		player.sendPlayerWarp()
+		player.sendMapData(DIR_NULL)
+	} else {
+		player.sendMapData(_direction)
+	}
+}
+
+func (g *Game) OnPlayerTurn(_creature ICreature, _direction uint16) {
+	if _creature.GetDirection() != _direction {
+		g.OnCreatureTurn(_creature, _direction)
+	}
+}
+
+func (g *Game) OnCreatureMove(_creature ICreature, _direction uint16) (ret ReturnValue) {
+	ret = RET_NOTPOSSIBLE
+	
+	if !CreatureCanMove(_creature) {
+		return
+	}
+	
+	currentTile := _creature.GetTile()
+	destinationPosition := currentTile.Position
+	
+	switch(_direction) {
+		case DIR_NORTH:
+			destinationPosition.Y -= 1
+		case DIR_SOUTH:
+			destinationPosition.Y += 1
+		case DIR_WEST:
+			destinationPosition.X -= 1
+		case DIR_EAST:
+			destinationPosition.X += 1
+	}
+	
+	// Check if destination tile exists
+	destinationTile, ok := g.WorldMap.GetTileFromPosition(destinationPosition)
+	if !ok {
+		return		
+	}
+	
+	// Check if we can move to the destination tile
+	if ret = destinationTile.CheckMovement(_creature, _direction); ret == RET_NOTPOSSIBLE {
+		return
+	}
+	
+	// Tell creatures this creature has moved
+	g.mutexCreatureList.RLock()
+	defer g.mutexCreatureList.RUnlock()
+	for _, value := range g.Creatures {
+		if value != nil {
+			value.OnCreatureMove(_creature, currentTile, destinationTile, false)
+		}
+	}
+	
+	// Move creature object to destination tile
+	if ret = currentTile.RemoveCreature(_creature); ret == RET_NOTPOSSIBLE {
+		return
+	}
+	if ret = destinationTile.AddCreature(_creature); ret == RET_NOTPOSSIBLE {
+		currentTile.AddCreature(_creature) // Something went wrong, put creature back on old tile
+		return
+	}
+	
+	// Player is not teleported so we set his new location here
+	if ret != RET_PLAYERISTELEPORTED {
+		_creature.SetTile(destinationTile) 
+	}
+	
+	// If ICreature is a player type we can check for wild encounter
+	g.checkForWildEncounter(_creature, destinationTile)
+	
+	return
+}
+
+func (g *Game) OnCreatureTurn(_creature ICreature, _direction uint16) {
+	if _creature.GetDirection() != _direction {
+		_creature.SetDirection(_direction)
+		
+		visibleCreatures := _creature.GetVisibleCreatures()
+		for _, value := range(visibleCreatures) {
+			value.OnCreatureTurn(_creature)
+		}
+	}
+}
+
+func (g *Game) checkForWildEncounter(_creature ICreature, _tile *Tile) {
+	if _creature.GetType() == CTYPE_PLAYER {
+		// Do some checkin'
+	}
 }

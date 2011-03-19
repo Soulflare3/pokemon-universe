@@ -16,55 +16,32 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
-import (
-	pos "position"
-)
-
 type Player struct {
-	name			string
-	uid				uint64 // Unique ID
-	Id				int // Database ID			
+	Creature // Inherit generic creature data
 	
-	Position		*Tile
-	Direction		int
 	Conn			*Connection	
 	
-	Movement		int
 	Location		*Location
 	LastPokeCenter	*Tile
 	
 	Money			int32
-	
-	Outfit
 }
 
 func NewPlayer(_name string) *Player {
-	p := Player{ name : _name }
+	p := Player{ }
 	p.uid 	= GenerateUniqueID()
 	p.Conn 	= nil
 	p.Outfit = NewOutfit()
+	p.name = _name
+	
+	p.lastStep = PUSYS_TIME()
+	p.moveSpeed = 280
 	
 	return &p
 }
 
-func  (p *Player) GetUID() uint64 {
-	return p.uid
-}
-
-func (p *Player) GetName() string {
-	return p.name
-}
-
-func (p *Player) GetTile() *Tile {
-	return p.Position
-}
-
-func (p *Player) GetPosition() pos.Position {
-	return p.Position.Position
-}
-
-func (p *Player) GetMovement() int {
-	return p.Movement
+func (p *Player) GetType() int {
+	return CTYPE_PLAYER
 }
 
 func (p *Player) SetConnection(_conn *Connection) {
@@ -78,4 +55,102 @@ func (p *Player) SetMoney(_money int32) int32 {
 		p.Money = 0
 	}
 	return p.Money
+}
+
+func (p *Player) OnCreatureMove(_creature ICreature, _from *Tile, _to *Tile, _teleport bool) {
+	if _creature.GetUID() == p.GetUID() {
+		p.lastStep = PUSYS_TIME()
+	}
+	
+	canSeeFromTile	:= CanSeePosition(p.GetPosition(), _from.Position)
+	canSeeToTile	:= CanSeePosition(p.GetPosition(), _to.Position)
+
+	if canSeeFromTile && !canSeeToTile { 		// Leaving viewport
+		p.sendCreatureMove(_creature, _from, _to)
+		
+		p.RemoveVisibleCreature(_creature)
+		_creature.RemoveVisibleCreature(p)
+	} else if canSeeToTile && !canSeeFromTile {	// Entering viewport
+		p.AddVisibleCreature(_creature)
+		_creature.RemoveVisibleCreature(p)
+		
+		p.sendCreatureMove(_creature, _from, _to)
+	} else {									// Moving inside viewport
+		p.AddVisibleCreature(_creature)
+		_creature.AddVisibleCreature(p)
+		
+		p.sendCreatureMove(_creature, _from, _to)
+	}
+}
+
+func (p *Player) OnCreatureTurn(_creature ICreature) {
+	if _creature.GetUID() != p.GetUID() {
+		p.sendCreatureTurn(_creature)
+	}
+}
+
+func (p *Player) OnCreatureAppear(_creature ICreature, _isLogin bool) {
+	canSeeCreature := CanSeeCreature(p, _creature)
+	if !canSeeCreature {
+		return
+	}
+	
+	// We're checking inside the AddVisibleCreature method so no need to check here
+	p.AddVisibleCreature(_creature)
+	_creature.AddVisibleCreature(p)
+}
+
+func (p *Player) OnCreatureDisappear(_creature ICreature, _isLogout bool) {
+	// TODO: Have to do something here with _isLogout
+	
+	p.RemoveVisibleCreature(_creature)
+}
+
+func (p *Player) AddVisibleCreature(_creature ICreature) {
+	if _, found := p.VisibleCreatures[_creature.GetUID()]; !found {
+		p.VisibleCreatures[_creature.GetUID()] = _creature
+	}
+}
+
+func (p *Player) RemoveVisibleCreature(_creature ICreature) {
+	// No need to check if the key actually exists because Go is awesome
+	// http://golang.org/doc/effective_go.html#maps
+	p.VisibleCreatures[_creature.GetUID()] = nil, false
+}
+
+// ------------------------------------------------------ //
+func (p *Player) sendMapData(_dir uint16) {
+	if p.Conn != nil {
+		p.Conn.SendMapData(_dir, p.GetPosition())
+	}
+}
+
+func (p *Player) sendCreatureMove(_creature ICreature, _from, _to *Tile) {
+	if p.Conn != nil {
+		p.Conn.SendCreatureMove(_creature, _from, _to)
+	}
+}
+
+func (p *Player) sendCreatureTurn(_creature ICreature) {
+	if p.Conn != nil {
+		p.Conn.SendCreatureTurn(_creature)
+	}
+}
+
+func (p *Player) sendCreatureAdd(_creature ICreature) {
+	if p.Conn != nil {
+		p.Conn.SendCreatureAdd(_creature)
+	}
+}
+
+func (p *Player) sendCreatureRemove(_creature ICreature) {
+	if p.Conn != nil {
+		p.Conn.SendCreatureRemove(_creature)
+	}
+}
+
+func (p *Player) sendPlayerWarp() {
+	if p.Conn != nil {
+		p.Conn.SendPlayerWarp(p.GetPosition())
+	}
 }

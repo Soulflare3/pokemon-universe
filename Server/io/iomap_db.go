@@ -36,10 +36,10 @@ func (io *IOMapDB) LoadMap(_map *Map) (err os.Error) {
 		return
 	}
 
-	g_logger.Printf(" - Loaded worldmap from database")
-
-	for {
-		// DB vars
+	g_logger.Printf(" - Processing worldmap data from database")
+	
+	for ; result.Next();  {
+		
 		x 			:= result.GetDataInt("x")
 		y 			:= result.GetDataInt("y")
 		z 			:= result.GetDataInt("z")
@@ -74,10 +74,7 @@ func (io *IOMapDB) LoadMap(_map *Map) (err os.Error) {
 		}
 
 		tile.AddLayer(int16(layer), int32(sprite))
-		
-		if !result.Next() {
-			break
-		}
+
 	}
 	result.Free()
 

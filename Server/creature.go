@@ -33,6 +33,12 @@ const (
 	DIR_EAST = 4
 )
 
+const (
+	CTYPE_CREATURE = 0
+	CTYPE_NPC = 1
+	CTYPE_PLAYER = 2
+)
+
 // CreatureList is map which holds a list of ICreature interfaces
 type CreatureList map[uint64]ICreature
 
@@ -40,22 +46,34 @@ type CreatureList map[uint64]ICreature
 type ICreature interface {
 	GetUID()		uint64
 	GetName()		string
+	GetType()		int
+	
 	GetPosition()	pos.Position
-	GetMovement()	int
-}
+	GetTile()		*Tile
+	GetMovement()	uint16
+	
+	SetDirection(_dir uint16)
+	GetDirection()	uint16
+	
+	
+	GetOutfit()		Outfit
 
-// Interface for all moving creatures
-type ICreatureMove interface {
-	OnCreatureMove(_creature ICreature)
+	GetMovementSpeed() int64
+	GetTimeSinceLastMove() int64
+	
+	SetTile(_tile *Tile)
+	
+	// Methods for all moving creatures
+	OnCreatureMove(_creature ICreature, _from *Tile, _to *Tile, _teleport bool)
+	OnCreatureTurn(_creature ICreature)
 	OnCreatureAppear(_creature ICreature, _isLogin bool)
-	OnCreatureDisappear(_creature ICreature, _isLogout bool)
-}
+	OnCreatureDisappear(_creature ICreature, _isLogout bool)	
 
-// Interface for all creatures who need to see other creatures
-type ICreatureSee interface {
+	// Methods for all creatures who need to see other creatures	
 	AddVisibleCreature(_creature ICreature)
 	RemoveVisibleCreature(_creature ICreature)
 	KnowsVisibleCreature(_creature ICreature) bool
+	GetVisibleCreatures() CreatureList
 }
 
 // CanSeeCreature checks if 2 creatures are near each others viewport
@@ -70,5 +88,82 @@ func CanSeePosition(_p1 pos.Position, _p2 pos.Position) bool {
 	}
 
 	return _p1.IsInRange2p(_p2, CLIENT_VIEWPORT_CENTER)
+}
+
+// Returns true if the passed creature can move
+func CreatureCanMove(_creature ICreature) bool {
+	canMove := (_creature.GetTimeSinceLastMove() >= _creature.GetMovementSpeed())
+	return canMove
+}
+
+// Creature struct with generic variables for all creatures
+type Creature struct {
+	uid				uint64 // Unique ID
+	name			string
+	Id				int // Database ID			
+	
+	Position		*Tile
+	Direction		uint16
+	
+	Movement		uint16
+	lastStep		int64
+	moveSpeed		int64
+	
+	Outfit
+	
+	VisibleCreatures CreatureList
+}
+
+func  (c *Creature) GetUID() uint64 {
+	return c.uid
+}
+
+func (c *Creature) GetName() string {
+	return c.name
+}
+
+func (c *Creature) GetTile() *Tile {
+	return c.Position
+}
+
+func (c *Creature) SetTile(_tile *Tile) {
+	c.Position = _tile
+}
+
+func (c *Creature) GetPosition() pos.Position {
+	return c.Position.Position
+}
+
+func (c *Creature) GetMovement() uint16 {
+	return c.Movement
+}
+
+func (c *Creature) GetDirection() uint16 {
+	return c.Direction
+}
+
+func (c *Creature) SetDirection(_dir uint16) {
+	c.Direction = _dir
+}
+
+func (c *Creature) GetOutfit() Outfit {
+	return c.Outfit
+}
+
+func (c *Creature) GetMovementSpeed() int64 {
+	return c.moveSpeed
+}
+
+func (c *Creature) GetTimeSinceLastMove() int64 {
+	return PUSYS_TIME() - c.lastStep
+}
+
+func (c *Creature) KnowsVisibleCreature(_creature ICreature) (found bool) {
+	_, found = c.VisibleCreatures[_creature.GetUID()]
+	return
+}
+
+func (c *Creature) GetVisibleCreatures() CreatureList {
+	return c.VisibleCreatures
 }
 
