@@ -58,7 +58,6 @@ func (e *PU_Engine) Init() {
 	numRenderers := sdl.GetNumRenderDrivers()
 	for i := 0; i < numRenderers; i++ {
 		rendererName := sdl.GetRenderDriverName(i)	
-		println(rendererName)
 		if rendererName == "opengl" {
 			openglIndex = i		
 		} else if rendererName == "direct3d" {
@@ -104,9 +103,9 @@ func (e *PU_Engine) Exit() {
 
 func (e *PU_Engine) DrawFillRect(_rect *PU_Rect, _color *sdl.Color, _alpha uint8) {
 	sdl.SetRenderDrawColor(e.renderer, _color.R, _color.G, _color.B, _alpha)
-	sdl.SetRenderDrawBlendMode(e.renderer, sdl.SDL_BLENDMODE_BLEND)
+	sdl.SetRenderDrawBlendMode(e.renderer, sdl.BLENDMODE_BLEND)
 	sdl.RenderFillRect(e.renderer, *_rect.ToSDL())
-	sdl.SetRenderDrawBlendMode(e.renderer, sdl.SDL_BLENDMODE_NONE)
+	sdl.SetRenderDrawBlendMode(e.renderer, sdl.BLENDMODE_NONE)
 	sdl.SetRenderDrawColor(e.renderer, 0, 0, 0, 255)
 }
 

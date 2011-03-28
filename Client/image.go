@@ -30,7 +30,7 @@ type PU_Image struct {
 }
 
 func NewImage(_file string) *PU_Image {
-	image := &PU_Image{blendmode : sdl.SDL_BLENDMODE_BLEND}
+	image := &PU_Image{blendmode : sdl.BLENDMODE_BLEND}
 	
 	image.surface = sdl.LoadImage(GetPath() + _file)
 
@@ -40,7 +40,7 @@ func NewImage(_file string) *PU_Image {
 
 func NewImageFromSurface(_surface *sdl.Surface) *PU_Image {
 	image := &PU_Image{surface: _surface,
-					   blendmode : sdl.SDL_BLENDMODE_BLEND}
+					   blendmode : sdl.BLENDMODE_BLEND}
 	image.Reload()
 	return image
 }

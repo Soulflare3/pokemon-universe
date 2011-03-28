@@ -236,16 +236,16 @@ func (p *PU_Player) ContinueWalk() bool {
 			isDown := sdl.KeyDown(g_game.lastDirKey)
 			if isDown {
 				switch g_game.lastDirKey {
-					case sdl.SDL_SCANCODE_UP:
+					case sdl.KEY_UP:
 						p.Walk(DIR_NORTH)
 						
-					case sdl.SDL_SCANCODE_DOWN:
+					case sdl.KEY_DOWN:
 						p.Walk(DIR_SOUTH)
 						
-					case sdl.SDL_SCANCODE_LEFT:
+					case sdl.KEY_LEFT:
 						p.Walk(DIR_WEST)
 						
-					case sdl.SDL_SCANCODE_RIGHT:
+					case sdl.KEY_RIGHT:
 						p.Walk(DIR_EAST)
 				}
 				return true

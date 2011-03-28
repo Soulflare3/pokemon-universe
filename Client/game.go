@@ -227,47 +227,47 @@ func (g *PU_Game) KeyDown(_keysym int, _scancode int) {
 			return
 		}
 		
-		ctrlDown := sdl.KeyDown(sdl.SDL_SCANCODE_LCTRL) || sdl.KeyDown(sdl.SDL_SCANCODE_RCTRL)
+		ctrlDown := sdl.KeyDown(sdl.KEY_LCTRL) || sdl.KeyDown(sdl.KEY_RCTRL)
 		
 		switch _scancode {
-			case sdl.SDL_SCANCODE_LEFT:
+			case sdl.KEY_LEFT:
 				if ctrlDown {
 					if !g.self.walking {
 						g.self.Turn(DIR_WEST, true)
 					}
 				} else {
 					g.self.Walk(DIR_WEST)
-					g.lastDirKey = sdl.SDL_SCANCODE_LEFT
+					g.lastDirKey = sdl.KEY_LEFT
 				}
 				
-			case sdl.SDL_SCANCODE_UP:
+			case sdl.KEY_UP:
 				if ctrlDown {
 					if !g.self.walking {
 						g.self.Turn(DIR_NORTH, true)
 					}
 				} else {
 					g.self.Walk(DIR_NORTH)
-					g.lastDirKey = sdl.SDL_SCANCODE_UP
+					g.lastDirKey = sdl.KEY_UP
 				}
 				
-			case sdl.SDL_SCANCODE_RIGHT:
+			case sdl.KEY_RIGHT:
 				if ctrlDown {
 					if !g.self.walking {
 						g.self.Turn(DIR_EAST, true)
 					}
 				} else {
 					g.self.Walk(DIR_EAST)
-					g.lastDirKey = sdl.SDL_SCANCODE_RIGHT
+					g.lastDirKey = sdl.KEY_RIGHT
 				}
 				
-			case sdl.SDL_SCANCODE_DOWN:
+			case sdl.KEY_DOWN:
 				if ctrlDown {
 					if !g.self.walking {
 						g.self.Turn(DIR_SOUTH, true)
 					}
 				} else {
 					g.self.Walk(DIR_SOUTH)
-					g.lastDirKey = sdl.SDL_SCANCODE_DOWN
+					g.lastDirKey = sdl.KEY_DOWN
 				}
 		}
 	}
