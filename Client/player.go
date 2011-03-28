@@ -23,6 +23,7 @@ import (
 
 const (
 	NUM_BODYPARTS = 6
+	NUM_POKEMON = 6
 
 	BODY_BASE = 0
 	BODY_UPPER = 1
@@ -41,6 +42,7 @@ type PU_Player struct {
 	money uint32
 	
 	bodyParts [NUM_BODYPARTS]*PU_BodyPart
+	pokemon [NUM_POKEMON]*PU_Pokemon
 }
 
 func NewPlayer(_id uint32) *PU_Player {

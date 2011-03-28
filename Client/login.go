@@ -182,6 +182,7 @@ func DoLogin(_username string, _password string) bool {
 		}
 	}
 	
+	g_conn.Game().SendRefreshPokemon()
 	g_game.panel = NewGamePanel()
 	g_game.CreateChat()
 	g_game.state = GAMESTATE_WORLD

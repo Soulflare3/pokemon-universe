@@ -22,6 +22,8 @@ type PU_GamePanel struct {
 	PU_GuiElement
 
 	chatInput *PU_Textfield
+	
+	gameUI *PU_GameUI
 }
 
 func NewGamePanel() *PU_GamePanel {
@@ -33,6 +35,9 @@ func NewGamePanel() *PU_GamePanel {
 	panel.chatInput.SetColor(255,255,255)
 	panel.chatInput.KeyDownCallback = ChatKeydown
 	g_gui.SetFocus(panel.chatInput)
+	
+	panel.gameUI = NewGameUI()
+	panel.gameUI.visible = true
 	
 	return panel
 }
@@ -65,6 +70,8 @@ func (g *PU_GamePanel) Draw() {
 	if img != nil {
 		img.Draw(0, 277)
 	}
+	
+	
 }
 
 func (g *PU_GamePanel) MouseDown(_x int, _y int) {

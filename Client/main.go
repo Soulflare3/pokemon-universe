@@ -144,7 +144,6 @@ func EventHandler(_event *sdl.SDLEvent) {
 func HandleWindowEvent(_event *sdl.WindowEvent) {
 	switch _event.Event {
 	case sdl.SDL_WINDOWEVENT_CLOSE:
-		println("hier")
 		g_running = false
 	}
 }

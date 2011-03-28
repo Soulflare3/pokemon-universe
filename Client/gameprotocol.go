@@ -64,6 +64,9 @@ func (p *PU_GameProtocol) ProcessPacket(_packet *punet.Packet) {
 			
 		case 0x10:
 			NewReceiveChatMessage(_packet)
+			
+		case 0xD1:
+			NewReceivePokemonMessage(_packet)
 	}
 }
 
@@ -90,6 +93,11 @@ func (p *PU_GameProtocol) SendLogin(_username string, _password string) {
 
 func (p *PU_GameProtocol) SendRequestLoginPackets() {
 	message := NewLoginRequestMessage()
+	g_conn.SendMessage(message)
+}
+
+func (p *PU_GameProtocol) SendRefreshPokemon() {
+	message := NewRefreshPokemonMessage()
 	g_conn.SendMessage(message)
 }
 
