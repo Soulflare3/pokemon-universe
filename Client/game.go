@@ -62,6 +62,8 @@ type PU_Game struct {
 	chat *PU_Chat
 	onscreenchat *PU_OnscreenChat
 	dialogue *PU_Dialogue
+	
+	battle *PU_Battle
 }
 
 func NewGame() *PU_Game {
@@ -297,5 +299,14 @@ func (g *PU_Game) CreateChat() {
 	
 	g.onscreenchat = NewOnscreenChat()
 	g.dialogue = NewDialogue()
+}
+
+func (g *PU_Game) ShowGameUI(_show bool) {
+	g.onscreenchat.visible = _show
+	g.panel.gameUI.visible = _show
+}
+
+func (g *PU_Game) ShowBattleUI(_show bool) {
+	g.panel.battleUI.visible = _show
 }
 

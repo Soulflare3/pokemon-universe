@@ -19,10 +19,10 @@ package main
 type PU_BattleEvent_Dialogue struct {
 	npc int
 	question string
-	options map[string]int
+	options map[int]string
 }
 
-func NewBattleEvent_Dialogue(_question string, _options map[string]int) *PU_BattleEvent_Dialogue {
+func NewBattleEvent_Dialogue(_question string, _options map[int]string) *PU_BattleEvent_Dialogue {
 	event := &PU_BattleEvent_Dialogue{}
 	event.npc = -1
 	event.question = _question
@@ -32,7 +32,7 @@ func NewBattleEvent_Dialogue(_question string, _options map[string]int) *PU_Batt
 	return event
 }
 
-func NewBattleEvent_DialogueNPC(_npc int, _question string, _options map[string]int) *PU_BattleEvent_Dialogue {
+func NewBattleEvent_DialogueNPC(_npc int, _question string, _options map[int]string) *PU_BattleEvent_Dialogue {
 	event := NewBattleEvent_Dialogue(_question, _options)
 	event.npc = _npc
 	return event

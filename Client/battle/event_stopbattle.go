@@ -16,15 +16,14 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
-type PU_BattleEvent_ChangeHP struct {
-	fighter int
-	hp int
+type PU_BattleEvent_StopBattle struct {
+
 }
 
-func NewBattleEvent_ChangeHP(_fighter int, _hp int) *PU_BattleEvent_ChangeHP {
-	return &PU_BattleEvent_ChangeHP{fighter : _fighter, hp : _hp}
+func NewBattleEvent_StopBattle() *PU_BattleEvent_StopBattle {
+	return &PU_BattleEvent_StopBattle{}
 }
 
-func (e *PU_BattleEvent_ChangeHP) Execute() {
+func (e *PU_BattleEvent_StopBattle) Execute() {
 
 }

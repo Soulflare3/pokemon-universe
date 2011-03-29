@@ -25,6 +25,7 @@ type PU_GamePanel struct {
 	
 	pokebar *PU_Pokebar
 	gameUI *PU_GameUI
+	battleUI *PU_BattleUI
 }
 
 func NewGamePanel() *PU_GamePanel {
@@ -32,15 +33,18 @@ func NewGamePanel() *PU_GamePanel {
 	panel.visible = true
 	g_gui.AddElement(panel)
 	
+	panel.gameUI = NewGameUI()
+	panel.gameUI.visible = true
+	
+	panel.battleUI = NewBattleUI()
+	panel.battleUI.visible = false
+	
 	panel.chatInput = NewTextfield(NewRect(2,690,375,17), FONT_PURITANBOLD_12)
 	panel.chatInput.SetColor(255,255,255)
 	panel.chatInput.KeyDownCallback = ChatKeydown
 	g_gui.SetFocus(panel.chatInput)
 	
 	panel.pokebar = NewPokebar()
-	
-	panel.gameUI = NewGameUI()
-	panel.gameUI.visible = true
 	
 	return panel
 }

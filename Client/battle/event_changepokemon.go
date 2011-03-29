@@ -24,6 +24,12 @@ type PU_BattleEvent_ChangePokemon struct {
 	name string 
 }
 
+func NewBattleEvent_ChangePokemon_Self(_pokeid int) *PU_BattleEvent_ChangePokemon {
+	event := &PU_BattleEvent_ChangePokemon{}
+	event.pokeid = _pokeid
+	return event
+}
+
 func NewBattleEvent_ChangePokemon(_fighter int, _pokeid int, _name string, _hp int, _level int) *PU_BattleEvent_ChangePokemon {
 	event := &PU_BattleEvent_ChangePokemon{}
 	event.fighter = _fighter
