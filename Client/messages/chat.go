@@ -54,6 +54,10 @@ func (m *PU_Message_ReceiveChat) ReadPacket(_packet *punet.Packet) os.Error {
 			
 			message.Add(m.message, 16777215) //TODO: change to CreateColorKey as well .. 
 			
+			if m.channel == CHANNEL_LOCAL {
+				g_game.onscreenchat.Add(m.name, m.message)
+			}
+			
 			g_game.chat.AddMessage(m.channel, message)
 		}
 	}

@@ -60,6 +60,7 @@ type PU_Game struct {
 	
 	panel *PU_GamePanel
 	chat *PU_Chat
+	onscreenchat *PU_OnscreenChat
 }
 
 func NewGame() *PU_Game {
@@ -289,5 +290,7 @@ func (g *PU_Game) CreateChat() {
 	//g.chat.AddChannel(CHANNEL_IRC, "Local", false)
 	g.chat.AddChannel(CHANNEL_LOG, "Log", false)
 	g.chat.SetActive(CHANNEL_LOCAL)
+	
+	g.onscreenchat = NewOnscreenChat()
 }
 

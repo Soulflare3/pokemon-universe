@@ -137,7 +137,7 @@ func (t *PU_Textbox) AddText(_text *PU_Text) {
 func (t *PU_Textbox) NextWord(_text string, _start int) string {
 	for i := _start; i < len(_text); i++ {
 		if _text[i] == ' ' {
-			return string(_text[_start:i])
+			return string(_text[_start:i+1])
 		}
 	}
 	return string(_text[_start:])

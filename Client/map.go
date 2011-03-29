@@ -84,3 +84,14 @@ func (m *PU_Map) GetCreatureByID(_id uint32) ICreature {
 	return nil
 }
 
+func (m *PU_Map) GetPlayerByName(_name string) *PU_Player {
+	for e := m.creatureList.Front(); e != nil;  e = e.Next() {
+		if player, is_player := e.Value.(*PU_Player); is_player {
+			if player.name == _name {
+				return player
+			}
+		}
+	}
+	return nil
+}
+
