@@ -59,11 +59,20 @@ func (p *PU_GameProtocol) ProcessPacket(_packet *punet.Packet) {
 		case 0xB4:
 			NewCreatureTurnMessage(_packet)
 			
+		case 0xC2:
+			NewAddPlayerMessage(_packet)
+			
+		case 0xC3:
+			NewRemoveCreatureMessage(_packet)
+			
 		case 0x03:
 			p.ReceiveTilesRefreshed()
 			
 		case 0x10:
 			NewReceiveChatMessage(_packet)
+			
+		case 0x20:
+			NewReceiveDialogueMessage(_packet)
 			
 		case 0xD1:
 			NewReceivePokemonMessage(_packet)
@@ -126,5 +135,16 @@ func (p *PU_GameProtocol) SendSlotChange(_oldSlot int, _newSlot int) {
 	message := NewSlotChangeMessage()
 	message.oldSlot = _oldSlot
 	message.newSlot = _newSlot
+	g_conn.SendMessage(message)
+}
+
+func (p *PU_GameProtocol) SendDialogueAnswer(_answer int) {
+	message := NewDialogueAnswerMessage()
+	message.answer = _answer
+	g_conn.SendMessage(message)
+}
+
+func (p *PU_GameProtocol) SendActionPress() {
+	message := NewActionPressMessage()
 	g_conn.SendMessage(message)
 }

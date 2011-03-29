@@ -61,6 +61,7 @@ type PU_Game struct {
 	panel *PU_GamePanel
 	chat *PU_Chat
 	onscreenchat *PU_OnscreenChat
+	dialogue *PU_Dialogue
 }
 
 func NewGame() *PU_Game {
@@ -277,6 +278,9 @@ func (g *PU_Game) KeyDown(_keysym int, _scancode int) {
 					g.self.Walk(DIR_SOUTH)
 					g.lastDirKey = sdl.KEY_DOWN
 				}
+				
+			case sdl.KEY_RALT, sdl.KEY_LALT:
+				g_conn.Game().SendActionPress()
 		}
 	}
 }
@@ -292,5 +296,6 @@ func (g *PU_Game) CreateChat() {
 	g.chat.SetActive(CHANNEL_LOCAL)
 	
 	g.onscreenchat = NewOnscreenChat()
+	g.dialogue = NewDialogue()
 }
 
