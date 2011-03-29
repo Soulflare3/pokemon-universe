@@ -257,6 +257,18 @@ func (p *PU_Player) ContinueWalk() bool {
 	return false
 }
 
+func (p *PU_Player) GetPokemonCount() int {
+	pokecount := 0
+	for i := 0; i < NUM_POKEMON; i++ {
+		if p.pokemon[i] != nil {
+			pokecount++
+		} else {
+			break
+		}
+	}
+	return pokecount
+}
+
 type PU_BodyPart struct {
 	id int
 	

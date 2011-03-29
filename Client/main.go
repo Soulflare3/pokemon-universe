@@ -73,10 +73,15 @@ func main() {
 
 	//Handle events 
 	for g_running {
-		event, present := sdl.PollEvent()
-		if present {
-			EventHandler(event)
+		for {
+			event, present := sdl.PollEvent()
+			if present {
+				EventHandler(event)
+			} else {
+				break
+			}
 		}
+
 		
 		//Render everything on screen
 		Draw()

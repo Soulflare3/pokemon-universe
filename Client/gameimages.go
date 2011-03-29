@@ -24,6 +24,12 @@ import (
 	"strconv"
 )
 
+const (
+	POKEIMAGE_FRONT = iota
+	POKEIMAGE_BACK
+	POKEIMAGE_ICON
+)
+
 func (g *PU_Game) LoadFonts () {
 	g_engine.LoadFont(FONT_PURITANBOLD_14, GetPath()+"data/font/Puritan2Bold.otf", 14)
 	g_engine.LoadFont(FONT_PURITANBOLD_12, GetPath()+"data/font/Puritan2Bold.otf", 12)
@@ -141,3 +147,68 @@ func (g *PU_Game) LoadCreatureImages() {
 		}
 	}
 }
+
+func (g *PU_Game) LoadPokeImage(_id int, _type int) *PU_Image {
+	var imagemap map[uint16]*PU_Image
+	var location string
+	
+	switch _type {
+	case POKEIMAGE_FRONT:
+		imagemap = g.pokeImageMap_Front
+		location = "data/pokemon/front/"
+		
+	case POKEIMAGE_BACK:
+		imagemap = g.pokeImageMap_Back
+		location = "data/pokemon/back/"
+		
+	case POKEIMAGE_ICON:
+		imagemap = g.pokeImageMap_Icon
+		location = "data/pokemon/icon/"
+	}
+	
+	if imagemap != nil {
+		idfile := fmt.Sprintf("%d.png", _id)
+		
+		if _id < 10 {
+			idfile = "00"+idfile
+		} else if _id < 100 {
+			idfile = "0"+idfile 
+		}
+		
+		surface := sdl.LoadImage(location+idfile)
+		if surface == nil {
+			return nil
+		}
+	
+		image := NewImageFromSurface(surface)
+		g_engine.AddResource(image)
+		imagemap[uint16(_id)] = image
+		return image	
+	}
+	return nil
+}
+
+func (g *PU_Game) GetPokeImage(_id int, _type int) *PU_Image {
+	var imagemap map[uint16]*PU_Image
+	
+	switch _type {
+	case POKEIMAGE_FRONT:
+		imagemap = g.pokeImageMap_Front
+		
+	case POKEIMAGE_BACK:
+		imagemap = g.pokeImageMap_Back
+		
+	case POKEIMAGE_ICON:
+		imagemap = g.pokeImageMap_Icon
+	}
+	
+	if imagemap != nil {
+		if image, present := imagemap[uint16(_id)]; present {
+			return image
+		} else {
+			return g.LoadPokeImage(_id, _type)
+		}
+	}
+	return nil
+}
+

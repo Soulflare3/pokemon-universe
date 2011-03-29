@@ -45,6 +45,10 @@ type PU_Game struct {
 	guiImageMap map[uint16]*PU_Image
 	creatureImageMap map[uint32]*PU_Image
 	
+	pokeImageMap_Front map[uint16]*PU_Image
+	pokeImageMap_Back map[uint16]*PU_Image
+	pokeImageMap_Icon map[uint16]*PU_Image
+	
 	screenOffsetX int
 	screenOffsetY int
 	
@@ -63,6 +67,9 @@ func NewGame() *PU_Game {
 					tileImageMap : make(map[uint16]*PU_Image),
 					guiImageMap : make(map[uint16]*PU_Image),
 					creatureImageMap : make(map[uint32]*PU_Image),
+					pokeImageMap_Front : make(map[uint16]*PU_Image),
+					pokeImageMap_Back : make(map[uint16]*PU_Image),
+					pokeImageMap_Icon : make(map[uint16]*PU_Image),
 					playerNames : list.New()}
 }
 

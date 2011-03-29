@@ -122,3 +122,9 @@ func (p *PU_GameProtocol) SendChat(_speaktype int, _channel int, _message string
 	g_conn.SendMessage(message)
 }
 
+func (p *PU_GameProtocol) SendSlotChange(_oldSlot int, _newSlot int) {
+	message := NewSlotChangeMessage()
+	message.oldSlot = _oldSlot
+	message.newSlot = _newSlot
+	g_conn.SendMessage(message)
+}
