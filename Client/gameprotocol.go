@@ -74,8 +74,14 @@ func (p *PU_GameProtocol) ProcessPacket(_packet *punet.Packet) {
 		case 0x20:
 			NewReceiveDialogueMessage(_packet)
 			
+		case 0xD0:
+			NewBattleMessage(_packet)
+			
 		case 0xD1:
 			NewReceivePokemonMessage(_packet)
+			
+		case 0xDE:
+			NewBattleEventMessage(_packet)
 	}
 }
 
@@ -146,5 +152,13 @@ func (p *PU_GameProtocol) SendDialogueAnswer(_answer int) {
 
 func (p *PU_GameProtocol) SendActionPress() {
 	message := NewActionPressMessage()
+	g_conn.SendMessage(message)
+}
+
+func (p *PU_GameProtocol) SendBattleMove(_movetype int, _param1 int, _param2 int) {
+	message := NewBattleMoveMessage()
+	message.movetype = _movetype
+	message.param1 = _param1
+	message.param2 = _param2
 	g_conn.SendMessage(message)
 }

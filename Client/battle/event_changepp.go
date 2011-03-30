@@ -27,5 +27,11 @@ func NewBattleEvent_ChangePP(_pokemon int, _attack int, _value int) *PU_BattleEv
 }
 
 func (e *PU_BattleEvent_ChangePP) Execute() {
-
+	pokemon := g_game.self.pokemon[e.pokemon]
+	if pokemon != nil {
+		attack := pokemon.attacks[e.attack]
+		if attack != nil {
+			attack.pp = uint16(e.value)
+		}
+	}	
 }

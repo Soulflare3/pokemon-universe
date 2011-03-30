@@ -31,6 +31,9 @@ const (
 )
 
 func (g *PU_Game) LoadFonts () {
+	g_engine.LoadFont(FONT_PURITANBOLD_48, GetPath()+"data/font/Puritan2Bold.otf", 48)
+	g_engine.LoadFont(FONT_PURITANBOLD_34, GetPath()+"data/font/Puritan2Bold.otf", 34)
+	g_engine.LoadFont(FONT_PURITANBOLD_18, GetPath()+"data/font/Puritan2Bold.otf", 18)
 	g_engine.LoadFont(FONT_PURITANBOLD_14, GetPath()+"data/font/Puritan2Bold.otf", 14)
 	g_engine.LoadFont(FONT_PURITANBOLD_12, GetPath()+"data/font/Puritan2Bold.otf", 12)
 	g_engine.LoadFont(FONT_PURITANBOLD_10, GetPath()+"data/font/Puritan2Bold.otf", 10)
@@ -38,6 +41,7 @@ func (g *PU_Game) LoadFonts () {
 	g_engine.LoadFont(FONT_ARIALBLACK_9, GetPath()+"data/font/ariblk.ttf", 9)
 	g_engine.LoadFont(FONT_ARIALBLACK_10, GetPath()+"data/font/ariblk.ttf", 10)
 	g_engine.LoadFont(FONT_ARIALBLACK_14, GetPath()+"data/font/ariblk.ttf", 14)
+	g_engine.LoadFont(FONT_ARIALBLACK_16, GetPath()+"data/font/ariblk.ttf", 16)
 	g_engine.LoadFont(FONT_ARIALBLACK_18, GetPath()+"data/font/ariblk.ttf", 18)
 	g_engine.LoadFont(FONT_ARIALBLACK_48, GetPath()+"data/font/ariblk.ttf", 48)
 }

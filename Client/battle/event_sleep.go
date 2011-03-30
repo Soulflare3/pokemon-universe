@@ -25,5 +25,7 @@ func NewBattleEvent_Sleep(_ticks uint32) *PU_BattleEvent_Sleep {
 }
 
 func (e *PU_BattleEvent_Sleep) Execute() {
-
+	if g_game.battle != nil {
+		g_game.battle.Wait(e.ticks)
+	}
 }

@@ -39,5 +39,13 @@ func NewBattleEvent_DialogueNPC(_npc int, _question string, _options map[int]str
 }
 
 func (e *PU_BattleEvent_Dialogue) Execute() {
-
+	if e.npc >= 0 {
+		g_game.dialogue.SetDialogueNPC(e.npc, e.question, e.options)
+	} else {
+		if e.question != "" {
+			g_game.dialogue.SetDialogueQuestion(e.question, e.options)
+		} else {
+			g_game.dialogue.SetDialogueOptions(e.options)
+		}
+	}
 }

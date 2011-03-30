@@ -26,5 +26,5 @@ func NewBattleEvent_ChangeExp(_pokemon int, _exp int) *PU_BattleEvent_ChangeExp 
 }
 
 func (e *PU_BattleEvent_ChangeExp) Execute() {
-
+	g_game.battle.ChangeExp(e.pokemon, e.exp)
 }

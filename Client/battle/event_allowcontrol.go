@@ -25,5 +25,21 @@ func NewBattleEvent_AllowControl(_state int) *PU_BattleEvent_AllowControl {
 }
 
 func (e *PU_BattleEvent_AllowControl) Execute() {
-
+	switch e.state {
+	case BATTLECONTROL_CHOOSEMOVE:
+		g_game.panel.battleUI.Reset()
+		
+	case BATTLECONTROL_CHOOSEPOKEMON:
+		g_game.panel.battleUI.Reset()
+		g_game.panel.battleUI.moveState = BATTLEUI_CHOOSEPOKEMON
+		g_game.panel.battleUI.OpenWindow(BATTLEWINDOW_POKEMON)
+		
+	case BATTLECONTROL_CHOOSEPOKEMON_ITEM:
+		g_game.panel.battleUI.moveState = BATTLEUI_CHOOSEPOKEMON_ITEM
+		g_game.panel.battleUI.OpenWindow(BATTLEWINDOW_POKEMON)
+		
+	case BATTLECONTROL_CHOOSEATTACK_ITEM:
+		g_game.panel.battleUI.moveState = BATTLEUI_CHOOSEATTACK_ITEM
+		g_game.panel.battleUI.OpenWindow(BATTLEWINDOW_POKEMON)
+	}
 }

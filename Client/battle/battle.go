@@ -16,10 +16,160 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
-type PU_Battle struct {
+import (
+	list "container/vector"
+)
 
+type PU_Battle struct {
+	battletype int
+	
+	eventQueue list.Vector
+	
+	fighters [4]*PU_Fighter
+	self *PU_Fighter
+	changeTarget *PU_Fighter
+	
+	numPlayers int
+	
+	attackList [4]*PU_Attack
+	
+	state int
+	sleepTime int32
+	changeValue int
+}
+
+func NewBattle(_battletype int) *PU_Battle {
+	return &PU_Battle{battletype : _battletype}
+}
+
+func (b *PU_Battle) Start() {
+	g_game.panel.battleUI.Init()
+	b.state = BATTLE_RUNNING
+}
+
+func (b *PU_Battle) Stop() {
+	g_game.ShowBattleUI(false)
+	g_game.ShowGameUI(true)
+	
+	g_game.battle = nil
+	g_game.state = GAMESTATE_WORLD
 }
 
 func (b *PU_Battle) AddEvent(_event IBattleEvent) {
-	
+	b.eventQueue.Push(_event)
+	println("derp")
 }
+
+func (b *PU_Battle) SetPokemon(_slot int) {
+	if g_game.self != nil && g_game.self.pokemon[_slot] != nil {
+		b.self.pokemon = g_game.self.pokemon[_slot]
+	}
+}
+
+func (b *PU_Battle) SetPlayer(_id int, _team int, _name string, _pokename string, _pokeid int, _level int, _hp int) {
+	fighter := NewFighter(_id)
+	if fighter != nil {
+		fighter.team = _team
+		fighter.SetPokemon(_pokename, _pokeid, _level, _hp)
+	}
+	b.fighters[_id] = fighter
+}
+
+func (b *PU_Battle) SetNPC(_id int, _team int, _pokename string, _pokeid int, _level int) {
+	fighter := NewFighter(_id)
+	if fighter != nil {
+		fighter.team = _team
+		fighter.SetPokemon(_pokename, _pokeid, _level, 100)
+	}
+	b.fighters[_id] = fighter
+}
+
+func (b *PU_Battle) SetSelf(_id int, _team int, _starter int) {
+	fighter := NewFighter(_id)
+	if fighter != nil {
+		fighter.SetSelf()
+		fighter.team = _team
+		fighter.pokemon = g_game.self.pokemon[_starter]
+	}
+	b.self = fighter
+	b.SetPokemon(_starter)
+	b.fighters[_id] = fighter
+}
+
+func (b *PU_Battle) GetEnemy() *PU_Fighter {
+	for _, fighter := range b.fighters {
+		if fighter != nil && fighter.team != b.self.team {
+			return fighter
+		}
+	}
+	return nil
+}
+
+func (b *PU_Battle) Wait(_ticks uint32) {
+	b.sleepTime = int32(_ticks)
+	b.state = BATTLE_WAITING
+}
+
+func (b *PU_Battle) ChangeHP(_fighter int, _hp int) {
+	b.changeTarget = b.fighters[_fighter]
+	b.changeValue = _hp
+	b.state = BATTLE_CHANGEHP	
+}
+
+func (b *PU_Battle) ChangeExp(_fighter int, _exp int) {
+	b.changeTarget = b.fighters[_fighter]
+	b.changeValue = _exp
+	b.state = BATTLE_CHANGEEXP	
+}
+
+func (b *PU_Battle) ProcessEvents() {
+	switch b.state {
+	case BATTLE_WAITING:
+		b.sleepTime -= int32(g_frameTime)
+		if b.sleepTime <= 0 {
+			b.state = BATTLE_RUNNING
+		}
+		
+	case BATTLE_CHANGEHP:
+		oldhp := b.changeTarget.GetHP()
+		if oldhp != b.changeValue {
+			mod := 0
+			if oldhp > b.changeValue {
+				mod = -1
+			} else {
+				mod = 1
+			}
+			
+			oldhp += mod
+			b.changeTarget.SetHP(oldhp)
+		} else {
+			b.state = BATTLE_RUNNING
+		}
+		
+	case BATTLE_CHANGEEXP:
+		oldexp := b.changeTarget.GetExp()
+		if oldexp != b.changeValue {
+			mod := 0
+			if oldexp > b.changeValue {
+				mod = -1
+			} else {
+				mod = 1
+			}
+			
+			oldexp += mod
+			b.changeTarget.SetExp(oldexp)
+		} else {
+			b.state = BATTLE_RUNNING
+		}
+		
+	case BATTLE_RUNNING:
+		if b.eventQueue.Len() > 0 {
+			event := b.eventQueue.At(0).(IBattleEvent)
+			b.eventQueue.Delete(0)
+			if event != nil {
+				event.Execute()
+			}
+		}
+	}
+}
+

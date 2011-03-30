@@ -26,5 +26,8 @@ func NewBattleEvent_ChangeLevelSelf(_pokemon int, _level int) *PU_BattleEvent_Ch
 }
 
 func (e *PU_BattleEvent_ChangeLevelSelf) Execute() {
-
+	pokemon := g_game.self.pokemon[e.pokemon]
+	if pokemon != nil {
+		pokemon.level = int16(e.level)
+	}
 }

@@ -26,6 +26,7 @@ type PU_BattleEvent_ChangePokemon struct {
 
 func NewBattleEvent_ChangePokemon_Self(_pokeid int) *PU_BattleEvent_ChangePokemon {
 	event := &PU_BattleEvent_ChangePokemon{}
+	event.fighter = -1
 	event.pokeid = _pokeid
 	return event
 }
@@ -41,5 +42,13 @@ func NewBattleEvent_ChangePokemon(_fighter int, _pokeid int, _name string, _hp i
 }
 
 func (e *PU_BattleEvent_ChangePokemon) Execute() {
-
+	if e.fighter == -1 {
+		g_game.battle.SetPokemon(e.pokeid)
+		return
+	} else {
+		fighter := g_game.battle.fighters[e.fighter]
+		if fighter != nil {
+			fighter.SetPokemon(e.name, e.pokeid, e.level, e.hp)
+		}
+	}
 }

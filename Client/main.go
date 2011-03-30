@@ -92,6 +92,11 @@ func main() {
 		//Handle a network packet
 		g_conn.HandlePacket()
 		
+		//Handle a battle event
+		if g_game.state == GAMESTATE_BATTLE {
+			g_game.battle.ProcessEvents()
+		}
+		
 		//Update frame time 
 		g_frameTime = sdl.GetTicks()-lastTime
 		lastTime = sdl.GetTicks()

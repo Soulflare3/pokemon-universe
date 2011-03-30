@@ -90,8 +90,11 @@ func (g *PU_Game) Draw() {
 			g.GetGuiImage(IMG_GUI_INTROBG).Draw(0, 0)
 			g_gui.Draw()
 			
-		case GAMESTATE_WORLD:
+		case GAMESTATE_WORLD, GAMESTATE_BATTLE_INIT:
 			g.DrawWorld()
+			g_gui.Draw()
+			
+		case GAMESTATE_BATTLE:
 			g_gui.Draw()
 	}
 }
@@ -299,6 +302,18 @@ func (g *PU_Game) CreateChat() {
 	
 	g.onscreenchat = NewOnscreenChat()
 	g.dialogue = NewDialogue()
+}
+
+func (g *PU_Game) SetBattle(_battletype int) {
+	if g.self != nil {
+		g.self.CancelWalk()
+	}
+	
+	if g.battle != nil {
+		g.battle.Stop()
+	}
+	
+	g.battle = NewBattle(_battletype)
 }
 
 func (g *PU_Game) ShowGameUI(_show bool) {

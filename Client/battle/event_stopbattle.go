@@ -25,5 +25,5 @@ func NewBattleEvent_StopBattle() *PU_BattleEvent_StopBattle {
 }
 
 func (e *PU_BattleEvent_StopBattle) Execute() {
-
+	g_game.battle.Stop()
 }

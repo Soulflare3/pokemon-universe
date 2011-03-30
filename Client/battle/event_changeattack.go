@@ -50,5 +50,8 @@ func NewBattleEvent_ChangeAttack(_pokemon int, _slot int, _name string, _descrip
 }
 
 func (e *PU_BattleEvent_ChangeAttack) Execute() {
-
+	pokemon := g_game.self.pokemon[e.pokemon]
+	if pokemon != nil {
+		pokemon.SetAttack(e.slot, e.name, e.description, e.poketype, uint16(e.pp), uint16(e.ppmax), uint16(e.power), uint16(e.accuracy), e.category, e.target, e.contact)
+	}
 }

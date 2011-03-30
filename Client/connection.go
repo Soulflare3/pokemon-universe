@@ -52,6 +52,7 @@ func (c *PU_Connection) Connect() bool {
 	//TODO: read from config file
 	ip := "94.75.231.83" //arceus
 	port := "6161"
+	//port := "6666"
 	
 	var err os.Error
 	c.socket, err = net.Dial("tcp", "", ip+":"+port)

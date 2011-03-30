@@ -26,5 +26,5 @@ func NewBattleEvent_ChangeHP(_fighter int, _hp int) *PU_BattleEvent_ChangeHP {
 }
 
 func (e *PU_BattleEvent_ChangeHP) Execute() {
-
+	g_game.battle.ChangeHP(e.fighter, e.hp)
 }

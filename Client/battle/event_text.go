@@ -25,5 +25,7 @@ func NewBattleEvent_Text(_text *PU_Text) *PU_BattleEvent_Text {
 }
 
 func (e *PU_BattleEvent_Text) Execute() {
-
+	if e.text != nil {
+		g_game.chat.AddMessage(CHANNEL_BATTLE, e.text)
+	}
 }
