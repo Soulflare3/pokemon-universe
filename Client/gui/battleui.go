@@ -331,21 +331,23 @@ func (g *PU_BattleUI) MouseDown(_x int, _y int) {
 }
 
 func (g *PU_BattleUI) MouseUp(_x int, _y int) {
-	if g.window == nil {
-		dockRect := NewRect(546, 608, 417, 52)
-		if dockRect.Contains(_x, _y) {
-			for i := 0; i < 4; i++ {
-				iconRect := NewRect(dockRect.x+30+(i*100), dockRect.y+12, 28, 29)
-				if iconRect.Contains(_x, _y) {
-					switch i {
-					case ICON_BATTLE_POKEMON:
-						g.OpenWindow(BATTLEWINDOW_POKEMON)
+	if g.visible {
+		if g.window == nil {
+			dockRect := NewRect(546, 608, 417, 52)
+			if dockRect.Contains(_x, _y) {
+				for i := 0; i < 4; i++ {
+					iconRect := NewRect(dockRect.x+30+(i*100), dockRect.y+12, 28, 29)
+					if iconRect.Contains(_x, _y) {
+						switch i {
+						case ICON_BATTLE_POKEMON:
+							g.OpenWindow(BATTLEWINDOW_POKEMON)
 			
-					case ICON_BATTLE_ATTACK:
-						g.OpenWindow(BATTLEWINDOW_ATTACK)
+						case ICON_BATTLE_ATTACK:
+							g.OpenWindow(BATTLEWINDOW_ATTACK)
 			
-					case ICON_BATTLE_BAG:
-						g.OpenWindow(BATTLEWINDOW_ITEMS)
+						case ICON_BATTLE_BAG:
+							g.OpenWindow(BATTLEWINDOW_ITEMS)
+						}
 					}
 				}
 			}
