@@ -187,6 +187,7 @@ func (p *PU_Player) ReceiveWalk(_fromTile *PU_Tile, _toTile *PU_Tile) {
 		p.offset = 0
 		p.StartAnimation()
 		p.walking = true
+		
 	} else {
 		p.x = p.preWalkX
 		p.y = p.preWalkY

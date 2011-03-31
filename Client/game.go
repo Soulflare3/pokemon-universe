@@ -37,6 +37,9 @@ const (
 	GAMESTATE_WORLD
 	GAMESTATE_BATTLE_INIT
 	GAMESTATE_BATTLE
+	
+	//temporary
+	GAMESTATE_RAGEQUIT
 )
 
 type PU_Game struct {
@@ -64,6 +67,8 @@ type PU_Game struct {
 	dialogue *PU_Dialogue
 	
 	battle *PU_Battle
+	
+	temp *PU_PokeInfo
 }
 
 func NewGame() *PU_Game {
@@ -96,6 +101,9 @@ func (g *PU_Game) Draw() {
 			
 		case GAMESTATE_BATTLE:
 			g_gui.Draw()
+			
+		case GAMESTATE_RAGEQUIT:
+
 	}
 }
 
@@ -299,6 +307,7 @@ func (g *PU_Game) CreateChat() {
 	//g.chat.AddChannel(CHANNEL_IRC, "Local", false)
 	g.chat.AddChannel(CHANNEL_LOG, "Log", false)
 	g.chat.SetActive(CHANNEL_LOCAL)
+	g.chat.Activate()
 	
 	g.onscreenchat = NewOnscreenChat()
 	g.dialogue = NewDialogue()

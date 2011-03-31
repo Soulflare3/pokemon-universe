@@ -57,7 +57,6 @@ func (b *PU_Battle) Stop() {
 
 func (b *PU_Battle) AddEvent(_event IBattleEvent) {
 	b.eventQueue.Push(_event)
-	println("derp")
 }
 
 func (b *PU_Battle) SetPokemon(_slot int) {

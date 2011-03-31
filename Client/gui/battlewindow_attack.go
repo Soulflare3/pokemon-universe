@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"sdl"
 )
 
 type PU_BattleWindow_Attack struct {
@@ -47,6 +48,8 @@ func (g *PU_BattleWindow_Attack) Draw() {
 	if !g.visible {
 		return
 	}
+	
+	g_engine.DrawFillRect(NewRect(0, 0, 964, 575), &sdl.Color{0,0,0,0}, 150)	
 
 	switch g.value {
 	case MOVE_ATTACK1:

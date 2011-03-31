@@ -316,7 +316,7 @@ func (g *PU_BattleUI) DrawActive() {
 				iconFont.DrawText("Attack", dockx+(i*100)+65, docky+19)
 				
 			case ICON_BATTLE_BAG:
-				iconFont.DrawText("Bag", dockx+(i*100)+65, docky+19)
+				iconFont.DrawText("Bag", dockx+(i*100)+70, docky+19)
 				
 			case ICON_BATTLE_RUN:
 				iconFont.DrawText("Run", dockx+(i*100)+65, docky+19)

@@ -43,8 +43,11 @@ func NewChat() *PU_Chat {
 	chat := &PU_Chat{channels : make(map[int]*PU_ChatChannel),
 					 listBlinkLast : sdl.GetTicks()}
 	chat.visible = true
-	g_gui.AddElement(chat)
 	return chat
+}
+
+func (c *PU_Chat) Activate() {
+	g_gui.AddElement(c)
 }
 
 func (c *PU_Chat) SetActive(_id int) {

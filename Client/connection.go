@@ -51,8 +51,8 @@ func NewConnection() *PU_Connection {
 func (c *PU_Connection) Connect() bool {
 	//TODO: read from config file
 	ip := "94.75.231.83" //arceus
-	port := "6161"
-	//port := "6666"
+	//port := "6161"
+	port := "6666"
 	
 	var err os.Error
 	c.socket, err = net.Dial("tcp", "", ip+":"+port)
@@ -79,7 +79,7 @@ func (c *PU_Connection) ReceivePackets() {
 		var headerbuffer [2]uint8 
 		recv, err := io.ReadFull(c.socket, headerbuffer[0:])
 		if err != nil || recv == 0 {
-			fmt.Printf("Error while reading socket: %v\n", err)
+			fmt.Printf("Disconnected\n")
 			break
 		}
 

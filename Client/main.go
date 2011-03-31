@@ -87,7 +87,7 @@ func main() {
 		Draw()
 		
 		//Give the CPU some time to do other stuff
-		sdl.Delay(10)
+		sdl.Delay(1)
 		
 		//Handle a network packet
 		g_conn.HandlePacket()

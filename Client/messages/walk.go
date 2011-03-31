@@ -36,15 +36,16 @@ func NewCreatureMoveMessage(_packet *punet.Packet) *PU_Message_CreatureMove {
 
 func (m *PU_Message_CreatureMove) ReadPacket(_packet *punet.Packet) os.Error {
 	m.creature =  g_map.GetCreatureByID(_packet.ReadUint32())
-	fromX := _packet.ReadUint16()
-	fromY := _packet.ReadUint16()
-	toX := _packet.ReadUint16()
-	toY := _packet.ReadUint16()
+	fromX := int16(_packet.ReadUint16())
+	fromY := int16(_packet.ReadUint16())
+	toX := int16(_packet.ReadUint16())
+	toY := int16(_packet.ReadUint16())
 	m.fromTile = g_map.GetTile(int(fromX), int(fromY))
 	m.toTile = g_map.GetTile(int(toX), int(toY))
 	
 	if m.creature != nil {
 		m.creature.ReceiveWalk(m.fromTile, m.toTile)
+	} else {
 	}
 	return nil
 }
