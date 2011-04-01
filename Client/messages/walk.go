@@ -19,6 +19,7 @@ package main
 import (
 	punet "network"
 	"os"
+	"math"
 )
 
 //receive notification of a moving creature
@@ -42,9 +43,12 @@ func (m *PU_Message_CreatureMove) ReadPacket(_packet *punet.Packet) os.Error {
 	toY := int16(_packet.ReadUint16())
 	m.fromTile = g_map.GetTile(int(fromX), int(fromY))
 	m.toTile = g_map.GetTile(int(toX), int(toY))
-	
 	if m.creature != nil {
-		m.creature.ReceiveWalk(m.fromTile, m.toTile)
+		if int(math.Fabs(float64(fromX)-float64(toX))) > 1 || int(math.Fabs(float64(fromY)-float64(toY))) > 1 {
+			m.creature.SetPosition(toX, toY)
+		} else {
+			m.creature.ReceiveWalk(m.fromTile, m.toTile)
+		}
 	} else {
 	}
 	return nil

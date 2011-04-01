@@ -16,7 +16,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 const (
 	POKEBAR_NONE = -1
@@ -59,7 +62,7 @@ func (g *PU_Pokebar) Draw() {
 			
 			if pokemonhp > 0 {
 				var hpbar *PU_Image
-				hpperc := int((float32(pokemonhp)/float32(pokemonmaxhp))*100.0)
+				hpperc := int(math.Floor((float64(pokemonhp)/float64(pokemonmaxhp))*100.0))
 				switch {
 				case hpperc <= 20:
 					hpbar = g_game.GetGuiImage(IMG_GUI_POKEMON_REDHPBAR)
@@ -88,7 +91,7 @@ func (g *PU_Pokebar) Draw() {
 				
 				if hpbar != nil {
 					hpbarwidth := int((float32(hpperc)/100.0)*float32(hpbar.w))
-					hpbar.DrawRectInRect(NewRect(x+6, y+27, int(hpbarwidth)+2, int(hpbar.h)), NewRect(0, 0, hpbarwidth, int(hpbar.h)))
+					hpbar.DrawRectClip(NewRect(x+6, y+27, int(hpbarwidth)+2, int(hpbar.h)), NewRect(0, 0, hpbarwidth, int(hpbar.h)))
 				}
 			} else {
 				var temp *PU_Image

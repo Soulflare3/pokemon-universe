@@ -61,7 +61,7 @@ func (p *PU_Player) Turn(_dir int, _send bool) {
 		p.direction = _dir
 		
 		if _send {
-			//g_conn.protocol.SendTurn(_dir)
+			g_conn.Game().SendTurn(_dir)
 		}
 	}
 }

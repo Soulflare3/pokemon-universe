@@ -336,7 +336,7 @@ func (g *PU_BattleUI) MouseUp(_x int, _y int) {
 			dockRect := NewRect(546, 608, 417, 52)
 			if dockRect.Contains(_x, _y) {
 				for i := 0; i < 4; i++ {
-					iconRect := NewRect(dockRect.x+30+(i*100), dockRect.y+12, 28, 29)
+					iconRect := NewRect(dockRect.x+30+(i*100), dockRect.y+12, 80, 29)
 					if iconRect.Contains(_x, _y) {
 						switch i {
 						case ICON_BATTLE_POKEMON:
