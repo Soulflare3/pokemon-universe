@@ -11,9 +11,8 @@ DIRS=\
 	network\
 	logger\
 	position\
-	mysql\
+	database\
 	goconf\
-	SDL\
 	
 clean.dirs: $(addsuffix .clean, $(DIRS))
 install.dirs: $(addsuffix .install, $(DIRS))
