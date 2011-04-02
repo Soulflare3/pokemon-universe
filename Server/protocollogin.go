@@ -107,7 +107,7 @@ func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 		pcposition	:= result.GetDataLong("pc_position")
 		
 		var ok bool
-		p.Position, ok = g_game.WorldMap.GetTile(positionHash)
+		p.Position, ok = g_map.GetTile(positionHash)
 		if !ok {
 			return
 		}
@@ -115,9 +115,9 @@ func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 		if !ok {
 			p.Location = p.Position.Location
 		}
-		p.LastPokeCenter, ok = g_game.WorldMap.GetTile(pcposition)
+		p.LastPokeCenter, ok = g_map.GetTile(pcposition)
 		if !ok {
-			p.LastPokeCenter, _ = g_game.WorldMap.GetTile(p.Position.Location.PokeCenter.Hash())
+			p.LastPokeCenter, _ = g_map.GetTile(p.Position.Location.PokeCenter.Hash())
 		}
 		
 		p.Movement = uint16(movement)

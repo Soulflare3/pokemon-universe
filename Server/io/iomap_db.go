@@ -67,7 +67,7 @@ func (io *IOMapDB) LoadMap(_map *Map) (err os.Error) {
 				tp_y := result.GetDataInt("tp_y")
 				tp_z := result.GetDataInt("tp_z")
 				tp_pos := pos.NewPositionFrom(int(tp_x), int(tp_y), int(tp_z))
-				tile.Events = NewTeleport(tp_pos)
+				tile.AddEvent(NewWarp(tp_pos))
 			}
 
 			_map.addTile(tile)

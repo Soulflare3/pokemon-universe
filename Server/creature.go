@@ -49,20 +49,20 @@ type ICreature interface {
 	GetType()		int
 	
 	GetPosition()	pos.Position
-	GetTile()		*Tile
 	GetMovement()	uint16
 	
 	SetDirection(_dir uint16)
 	GetDirection()	uint16
 	
+	SetTile(_tile *Tile)
+	GetTile() *Tile
 	
 	GetOutfit()		Outfit
 
 	GetMovementSpeed() int64
 	GetTimeSinceLastMove() int64
 	
-	SetTile(_tile *Tile)
-	
+		
 	// Methods for all moving creatures
 	OnCreatureMove(_creature ICreature, _from *Tile, _to *Tile, _teleport bool)
 	OnCreatureTurn(_creature ICreature)

@@ -9,5 +9,6 @@ GOFILES=\
 	*.go\
 	io/*.go\
 	messages/*.go\
+	tileevents/*.go\
 
 include $(GOROOT)/src/Make.cmd

@@ -35,7 +35,7 @@ func (m *SendTilesMessage) GetHeader() uint8 {
 }
 
 func (m *SendTilesMessage) AddTile(_index int64) {
-	tile, ok := g_game.WorldMap.GetTile(_index)
+	tile, ok := g_map.GetTile(_index)
 	if ok {
 		m.tiles[_index] = tile
 	}

@@ -42,6 +42,7 @@ var (
 
 	g_game   *Game
 	g_server *Server
+	g_map	 *Map
 	
 	// Client viewport variables. The Z position doesn't matter in this case
 	CLIENT_VIEWPORT pos.Position = pos.Position{28,22,0} 

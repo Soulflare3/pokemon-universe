@@ -17,6 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
+	list "container/list"
 	pos "position"
 )
 
@@ -47,7 +48,7 @@ type Tile struct {
 	
 	Layers		LayerMap
 	Creatures	CreatureList // List of creatures who are active on this tile
-	Events		ITileEvent
+	Events		*list.List
 }
 
 // NewTile creates a Tile object with Position as parameter
@@ -57,6 +58,7 @@ func NewTile(_pos pos.Position) *Tile {
 	t.Layers = make(LayerMap)
 	t.Creatures = make(CreatureList)
 	t.Location = nil
+	t.Events = list.New()
 	
 	return t
 }
@@ -76,6 +78,10 @@ func (t *Tile) AddLayer(_layer int16, _sprite int32) (layer *TileLayer) {
 	}
 	
 	return
+}
+
+func (t *Tile) AddEvent(_event ITileEvent) {
+	t.Events.PushBack(_event)
 }
 
 // GetLayer returns a TileLayer object if the layer exists, otherwise nil
@@ -111,26 +117,48 @@ func (t *Tile) CheckMovement(_creature ICreature, _dir uint16) ReturnValue {
 }
 
 // AddCreature adds a new active creature to this tile
-func (t *Tile) AddCreature(_creature ICreature) (ret ReturnValue) {
+func (t *Tile) AddCreature(_creature ICreature, _checkEvents bool) (ret ReturnValue) {
 	ret = RET_NOERROR
 	
+	if t.Events.Len() > 0 {
+		for e := t.Events.Front(); e != nil; e = e.Next() {
+			event, valid := e.Value.(ITileEvent)
+			if valid {
+				ret = event.OnCreatureEnter(_creature, ret)
+			}
+		
+			if ret == RET_NOTPOSSIBLE {
+				return
+			}
+		}
+	}
+		
 	_, found := t.Creatures[_creature.GetUID()]
 	if !found {
 		t.Creatures[_creature.GetUID()] = _creature
 	}
 	
-	t.Events.OnCreatureEnter(_creature)
-	
 	return
 }
 
 // RemoveCreature removes an active creature from this tile
-func (t *Tile) RemoveCreature(_creature ICreature) (ret ReturnValue) {
+func (t *Tile) RemoveCreature(_creature ICreature, _checkEvents bool) (ret ReturnValue) {
 	ret = RET_NOERROR
+
+	if t.Events.Len() > 0 {
+		for e := t.Events.Front(); e != nil; e = e.Next() {
+			event, valid := e.Value.(ITileEvent)
+			if valid {
+				ret = event.OnCreatureLeave(_creature, ret)
+			}
+		
+			if ret == RET_NOTPOSSIBLE {
+				return
+			}
+		}
+	}
 	
 	t.Creatures[_creature.GetUID()] = nil, false
-	
-	t.Events.OnCreatureLeave(_creature)
-	
+		
 	return
 }

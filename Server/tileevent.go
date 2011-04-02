@@ -17,6 +17,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 type ITileEvent interface {
-	OnCreatureEnter(_creature ICreature) ReturnValue
-	OnCreatureLeave(_creature ICreature) ReturnValue
+	OnCreatureEnter(_creature ICreature, _prevRet ReturnValue) ReturnValue
+	OnCreatureLeave(_creature ICreature, _prevRet ReturnValue) ReturnValue
 }

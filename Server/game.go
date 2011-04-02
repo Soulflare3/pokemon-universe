@@ -34,7 +34,6 @@ type Game struct {
 	Creatures	CreatureList
 	Players		CreatureList
 	
-	WorldMap	*Map
 	Locations	*LocationStore
 	
 	mutexCreatureList	*sync.RWMutex
@@ -53,7 +52,7 @@ func NewGame() *Game {
 
 func (the *Game) Load() (LostIt bool) {
 	LostIt = true // fuck >:(
-	the.WorldMap = NewMap()
+	g_map = NewMap()
 	the.Locations = NewLocationStore()
 	
 	g_logger.Println(" - Loading locations")
@@ -65,7 +64,7 @@ func (the *Game) Load() (LostIt bool) {
 	
 	// Load worldmap
 	g_logger.Println(" - Loading worldmap")
-	if err := the.WorldMap.Load(); err != nil {
+	if err := g_map.Load(); err != nil {
 		g_logger.Println(err)
 		LostIt = false
 	}
@@ -89,10 +88,14 @@ func (g *Game) AddCreature(_creature ICreature) {
 	for _, value := range g.Creatures {
 		value.OnCreatureAppear(_creature, true)
 	}
-	
+
+	g.mutexCreatureList.Lock()
+	defer g.mutexCreatureList.Unlock()	
 	g.Creatures[_creature.GetUID()] = _creature
 	
 	if _creature.GetType() == CTYPE_PLAYER {
+		g.mutexPlayerList.Lock()
+		defer g.mutexPlayerList.Unlock()
 		g.Players[_creature.GetUID()] = _creature
 	}
 }
@@ -156,7 +159,7 @@ func (g *Game) OnCreatureMove(_creature ICreature, _direction uint16) (ret Retur
 	}
 	
 	// Check if destination tile exists
-	destinationTile, ok := g.WorldMap.GetTileFromPosition(destinationPosition)
+	destinationTile, ok := g_map.GetTileFromPosition(destinationPosition)
 	if !ok {
 		return		
 	}
@@ -165,7 +168,10 @@ func (g *Game) OnCreatureMove(_creature ICreature, _direction uint16) (ret Retur
 	if ret = destinationTile.CheckMovement(_creature, _direction); ret == RET_NOTPOSSIBLE {
 		return
 	}
-	
+
+	// Update position
+	_creature.SetTile(destinationTile)
+			
 	// Tell creatures this creature has moved
 	g.mutexCreatureList.RLock()
 	defer g.mutexCreatureList.RUnlock()
@@ -173,24 +179,19 @@ func (g *Game) OnCreatureMove(_creature ICreature, _direction uint16) (ret Retur
 		if value != nil {
 			value.OnCreatureMove(_creature, currentTile, destinationTile, false)
 		}
-	}
+	}		
 	
 	// Move creature object to destination tile
-	if ret = currentTile.RemoveCreature(_creature); ret == RET_NOTPOSSIBLE {
+	if ret = currentTile.RemoveCreature(_creature, true); ret == RET_NOTPOSSIBLE {
 		return
 	}
-	if ret = destinationTile.AddCreature(_creature); ret == RET_NOTPOSSIBLE {
-		currentTile.AddCreature(_creature) // Something went wrong, put creature back on old tile
+	if ret = destinationTile.AddCreature(_creature, true); ret == RET_NOTPOSSIBLE {
+		currentTile.AddCreature(_creature, false) // Something went wrong, put creature back on old tile
 		return
 	}
-	
-	// Player is not teleported so we set his new location here
-	if ret != RET_PLAYERISTELEPORTED {
-		_creature.SetTile(destinationTile) 
-	}
-	
+
 	// If ICreature is a player type we can check for wild encounter
-	g.checkForWildEncounter(_creature, destinationTile)
+	g.checkForWildEncounter(_creature)
 	
 	return
 }
@@ -206,7 +207,37 @@ func (g *Game) OnCreatureTurn(_creature ICreature, _direction uint16) {
 	}
 }
 
-func (g *Game) checkForWildEncounter(_creature ICreature, _tile *Tile) {
+func (g *Game) internalCreatureTeleport(_creature ICreature, _from *Tile, _to *Tile) (ret ReturnValue) {
+	ret = RET_PLAYERISTELEPORTED
+	
+	if _from == nil || _to == nil {
+		ret = RET_NOTPOSSIBLE
+	} else {
+		// Move creature object to destination tile
+		if ret = _from.RemoveCreature(_creature, true); ret == RET_NOTPOSSIBLE {
+			return
+		}
+		if ret = _to.AddCreature(_creature, true); ret == RET_NOTPOSSIBLE {
+			_from.AddCreature(_creature, false) // Something went wrong, put creature back on old tile
+			return
+		}
+		
+		_creature.SetTile(_to)
+		
+		// Tell creatures this creature has been teleported
+		g.mutexCreatureList.RLock()
+		defer g.mutexCreatureList.RUnlock()
+		for _, value := range g.Creatures {
+			if value != nil {
+				value.OnCreatureMove(_creature, _from, _to, true)
+			}
+		}		
+	}
+	
+	return
+}
+
+func (g *Game) checkForWildEncounter(_creature ICreature) {
 	if _creature.GetType() == CTYPE_PLAYER {
 		// Do some checkin'
 	}
