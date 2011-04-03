@@ -68,6 +68,10 @@ func (g *PU_OnscreenChat) Add(_name string, _text string) {
 		return
 	}
 	
+	if g.messages == nil {
+		return
+	}
+	
 	for i := 0; i < g.messages.Len(); i++ {
 		msg, ok := g.messages.At(i).(*PU_OnscreenChatMessage)
 		if ok {
