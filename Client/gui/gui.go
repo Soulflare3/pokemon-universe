@@ -16,29 +16,34 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
-import (
-	list "container/list"
-)
-
 type PU_Gui struct {
-	elementList *list.List
+	elementList []IGuiElement
 }
 
 func NewGui() *PU_Gui {
-	return &PU_Gui{elementList : list.New()}
+	return &PU_Gui{elementList : make([]IGuiElement, 0)}
 }
 
 func (g *PU_Gui) AddElement(_element IGuiElement) {
-	g.elementList.PushBack(_element)
+	g.elementList = append(g.elementList, _element)
+}
+
+func (g *PU_Gui) ElementIndex(_element IGuiElement) int {
+	for index, element := range g.elementList {
+		if element == _element {
+			return index
+		}
+	}
+	return 0
 }
 
 func (g *PU_Gui) RemoveElement(_element IGuiElement) {
-	for e := g.elementList.Front(); e != nil;  e = e.Next() {
-		if e.Value == _element {
-			g.elementList.Remove(e)
-			break
-		}
-	}
+	i := g.ElementIndex(_element)
+	n := len(g.elementList)
+	
+	copy(g.elementList[i:n-1], g.elementList[i+1:n])
+	g.elementList[n-1] = nil
+	g.elementList = g.elementList[0:n-1]
 }
 
 //Helper method to draw GUI images (at the right location and possibly clipped)
@@ -94,93 +99,67 @@ func (g *PU_Gui) GetTopRect(_element IGuiElement, _rect *PU_Rect) *PU_Rect {
 
 func (g *PU_Gui) SetFocus(_element IGuiElement) {
 	//remove all focuses and set it for the arg element
-	for e := g.elementList.Front(); e != nil; e = e.Next() {
-		if e.Value == _element {
-			e.Value.(IGuiElement).SetFocus(true)
+	for _, e := range g.elementList {
+		if e == _element {
+			e.SetFocus(true)
 		} else {
-			e.Value.(IGuiElement).SetFocus(false)
+			e.SetFocus(false)
 		}
 	}
 }
 
 func (g *PU_Gui) NextFocus() {
-	//find the current focus holder and remove all focuses
-	var currentFocus *list.Element = nil
-	for e := g.elementList.Front(); e != nil;  e = e.Next() {
-		if e.Value.(IGuiElement).HasFocus() {
-			e.Value.(IGuiElement).SetFocus(false)
-			currentFocus = e
-		}
-	}
-	
-	//if there's no current focus holder we can just start at the front
-	if currentFocus == nil {
-		currentFocus = g.elementList.Front()
-	} else {
-		currentFocus = currentFocus.Next()
-	}
-	
-	//find a new focusable element (starting at the current element's list position)
-	for e := currentFocus; e != nil; e = e.Next() {
-		if e.Value.(IGuiElement).Focusable() {
-			e.Value.(IGuiElement).SetFocus(true)
-			return
-		}
-	}
-	
-	//reaching this means we haven't found any elements to the left of the current element
-	
-	//if we already searched the whole list, we just give up here
-	if currentFocus == g.elementList.Front() {
-		return
-	}
-	
-	//search the list again, starting at the front
-	for e := g.elementList.Front(); e != nil; e = e.Next() {
-		if e.Value.(IGuiElement).Focusable() {
-			e.Value.(IGuiElement).SetFocus(true)
-			return
+	foundPos := false
+	for i := 0; i < 2; i++ {
+		for _, element := range g.elementList {
+			if !foundPos && element.HasFocus() {
+				element.SetFocus(false)
+				foundPos = true
+			} else if foundPos && element.Focusable() {
+				element.SetFocus(true)
+				return
+			}
 		}
 	}
 }
 
 func (g *PU_Gui) Draw() {
-	for e := g.elementList.Front(); e != nil;  e = e.Next() {
-		e.Value.(IGuiElement).Draw()
+	for _, e := range g.elementList {
+		e.Draw()
 	}
 }
 
 func (g *PU_Gui) MouseDown(_x int, _y int) {
-	for e := g.elementList.Front(); e != nil;  e = e.Next() {
-		e.Value.(IGuiElement).MouseDown(_x, _y)
+	for _, e := range g.elementList {
+		e.MouseDown(_x, _y)
 	}
 }
 
 func (g *PU_Gui) MouseUp(_x int, _y int) {
-	for e := g.elementList.Front(); e != nil;  e = e.Next() {
-		e.Value.(IGuiElement).MouseUp(_x, _y)
+	for _, e := range g.elementList {
+		e.MouseUp(_x, _y)
 	}
 }
 
 func (g *PU_Gui) MouseMove(_x int, _y int) {
-	for e := g.elementList.Front(); e != nil;  e = e.Next() {
-		e.Value.(IGuiElement).MouseMove(_x, _y)
+	for _, e := range g.elementList {
+		e.MouseMove(_x, _y)
 	}
 }
 
 func (g *PU_Gui) MouseScroll(_dir int) {
-	for e := g.elementList.Front(); e != nil;  e = e.Next() {
-		e.Value.(IGuiElement).MouseScroll(_dir)
+	for _, e := range g.elementList {
+		e.MouseScroll(_dir)
 	}
 }
 
 func (g *PU_Gui) KeyDown(_keysym int, _scancode int) {
-	for e := g.elementList.Front(); e != nil;  e = e.Next() {
-		if _scancode == 9 && e.Value.(IGuiElement).HasFocus() { //1 tab per event to avoid tab loop
-			e.Value.(IGuiElement).KeyDown(_keysym, _scancode)
+	for _, e := range g.elementList {
+		if _scancode == 9 && e.HasFocus() {
+			e.KeyDown(_keysym, _scancode)
 			return
 		}
-		e.Value.(IGuiElement).KeyDown(_keysym, _scancode)
+		e.KeyDown(_keysym, _scancode)
 	}
 }
 

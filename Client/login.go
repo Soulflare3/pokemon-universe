@@ -18,7 +18,6 @@ package main
 
 import (
 	"sdl"
-	list "container/list"
 )
 
 type PU_LoginControls struct {
@@ -95,8 +94,8 @@ func LoginKeydown(_keysym int, _scancode int) {
 }
 
 func Logout() {
-	g_gui.elementList = list.New()
-	g_game.state = GAMESTATE_RAGEQUIT
+	//TODO: complete this procedure
+	g_game.state = GAMESTATE_LOGIN
 	g_conn.Close()
 }
 

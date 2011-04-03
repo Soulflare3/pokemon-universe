@@ -53,7 +53,7 @@ func (e *PU_Engine) Init() {
     }
 
 	//Find our available renderers
-	openglIndex := 0
+	openglIndex := -1
 	d3dIndex := -1
 	numRenderers := sdl.GetNumRenderDrivers()
 	for i := 0; i < numRenderers; i++ {
@@ -65,21 +65,42 @@ func (e *PU_Engine) Init() {
 		}
 	}
 	
-	//Default renderer is OpenGL
-	rendererIndex := openglIndex
+	rendererIndex := 0
+	if openglIndex == -1 && d3dIndex == -1 {
+		println("No OpenGL or D3D found! Using software renderer.")
+	} else {
+		//Default renderer is OpenGL
+		rendererIndex = openglIndex
+	}
 	
 	//If we found DirectX (on Windows), use that
 	if d3dIndex != -1 {
 		rendererIndex = d3dIndex
-	}
-	
-	e.renderer, err = sdl.CreateRenderer(e.window, rendererIndex)
-	if err != "" {
-		fmt.Printf("Error in CreateRenderer: %v", err) 
-		return
+		if !e.TryD3D(rendererIndex) {
+			e.renderer, err = sdl.CreateRenderer(e.window, rendererIndex)
+			if err != "" {
+				fmt.Printf("Error in CreateRenderer (tried D3D): %v", err) 
+				return
+			}
+		}
+	} else {
+		e.renderer, err = sdl.CreateRenderer(e.window, rendererIndex)
+		if err != "" {
+			fmt.Printf("Error in CreateRenderer: %v", err) 
+			return
+		}
 	}
 	
 	sdl.InitTTF();
+}
+
+func (e *PU_Engine) TryD3D(_index int) bool {
+	var err string
+	e.renderer, err = sdl.CreateRenderer(e.window, _index)
+	if err != "" {
+		return false
+	}
+	return true
 }
 
 func (e *PU_Engine) Exit() {

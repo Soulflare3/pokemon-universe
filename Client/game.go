@@ -37,9 +37,6 @@ const (
 	GAMESTATE_WORLD
 	GAMESTATE_BATTLE_INIT
 	GAMESTATE_BATTLE
-	
-	//temporary
-	GAMESTATE_RAGEQUIT
 )
 
 type PU_Game struct {
@@ -101,29 +98,6 @@ func (g *PU_Game) Draw() {
 			
 		case GAMESTATE_BATTLE:
 			g_gui.Draw()
-			
-		case GAMESTATE_RAGEQUIT:
-            font := g_engine.GetFont(FONT_PURITANBOLD_48)
-            font.SetColor(255, 255, 255)
-            font.DrawText("April fools!", 150, 200)
-        
-            font = g_engine.GetFont(FONT_PURITANBOLD_34)
-            font.SetColor(255, 255, 255)
-            font.DrawText("Of course this isn't the real public pre-beta!", 150, 250)
-            
-            font = g_engine.GetFont(FONT_PURITANBOLD_18)
-            font.SetColor(255, 255, 255)
-            font.DrawText("Those who follow the development on https://code.google.com/p/pokemon-universe", 150, 340)
-            font.DrawText("probably figured out that this pre-beta couldn't be true. The rewrite is still in its early", 150, 360)
-            font.DrawText("stages. However, this joke is our first public preview of the new client and at the same time", 150, 380)
-            font.DrawText("a stress test for our server design. So thank you for testing!", 150, 400)
-            
-            font = g_engine.GetFont(FONT_PURITANBOLD_34)
-            font.DrawText("We hope to welcome you to our real pre-beta soon!", 150, 450)
-            
-            font = g_engine.GetFont(FONT_PURITANBOLD_12)
-            font.SetColor(255, 255, 255)
-            font.DrawText("Please don't kill us !", 150, 500)
 	}
 }
 
