@@ -68,7 +68,7 @@ func (g *PU_OnscreenChat) Add(_name string, _text string) {
 		return
 	}
 	
-	if g.messages == nil {
+	if g == nil {
 		return
 	}
 	

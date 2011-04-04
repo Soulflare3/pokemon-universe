@@ -18,17 +18,16 @@ package main
 
 import (
 	pos "position"
-	list "container/list"
 )
 
 type PU_Map struct {
 	tileMap map[int64]*PU_Tile
-	creatureList *list.List
+	creatureList []ICreature
 }
 
 func NewMap() *PU_Map {
 	return &PU_Map{tileMap : make(map[int64]*PU_Tile),
-				   creatureList : list.New()}
+				   creatureList : make([]ICreature, 0)}
 }
 
 func (m *PU_Map) GetNumTiles() int {
@@ -63,30 +62,42 @@ func (m *PU_Map) GetTile(_x int, _y int) *PU_Tile {
 }
 
 func (m* PU_Map) AddCreature(_creature ICreature) {
-	m.creatureList.PushBack(_creature)
+	m.creatureList = append(m.creatureList, _creature)
 }
 
-func (m *PU_Map) RemoveCreature(_creature ICreature) {
-	for e := m.creatureList.Front(); e != nil;  e = e.Next() {
-		if e.Value == _creature {
-			m.creatureList.Remove(e)
-			break
+func (m *PU_Map) CreatureIndex(_creature ICreature) int {
+	for index, creature := range m.creatureList {
+		if creature == _creature {
+			return index
 		}
 	}
+	return 0
+}
+
+func (m *PU_Map) RemoveCreature(_creature ICreature) {	
+	a := make([]ICreature, len(m.creatureList)-1)
+	i := 0
+	for _, creature := range m.creatureList {
+		if creature != _creature {
+			a[i] = creature
+			i++
+		}
+	}
+	m.creatureList = a
 }
 
 func (m *PU_Map) GetCreatureByID(_id uint32) ICreature {
-	for e := m.creatureList.Front(); e != nil;  e = e.Next() {
-		if e.Value.(ICreature).GetID() == _id {
-			return e.Value.(ICreature)
+	for _, c := range m.creatureList {
+		if c.GetID() == _id {
+			return c
 		}
 	}
 	return nil
 }
 
 func (m *PU_Map) GetPlayerByName(_name string) *PU_Player {
-	for e := m.creatureList.Front(); e != nil;  e = e.Next() {
-		if player, is_player := e.Value.(*PU_Player); is_player {
+	for _, c := range m.creatureList {
+		if player, is_player := c.(*PU_Player); is_player {
 			if player.name == _name {
 				return player
 			}

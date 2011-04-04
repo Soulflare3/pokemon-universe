@@ -184,7 +184,10 @@ func (g *PU_Game) LoadPokeImage(_id int, _type int) *PU_Image {
 		
 		surface := sdl.LoadImage(location+idfile)
 		if surface == nil {
-			return nil
+			surface = sdl.LoadImage(fmt.Sprintf("%s%d.png", location, _id))
+			if surface == nil {
+				return nil
+			}
 		}
 	
 		image := NewImageFromSurface(surface)

@@ -107,7 +107,7 @@ func (g *PU_Game) DrawWorld() {
 	layer2tiles := make([]*PU_Tile, (NUMTILES_X*NUMTILES_Y))
 	layer2tilesCount := 0
 	
-	walkers := make([]ICreature, g_map.creatureList.Len())
+	walkers := make([]ICreature, len(g_map.creatureList))
 	walkerCount := 0
 	
 	g.playerNames = list.New()
@@ -132,16 +132,14 @@ func (g *PU_Game) DrawWorld() {
 	}
 	
 	//draw creatures
-	for e := g_map.creatureList.Front(); e != nil; e = e.Next() {
-		if creature, is_type := e.Value.(ICreature); is_type {
-			screenx := MID_X-(int(g.self.GetX())-int(creature.GetX()))
-			screeny := MID_Y-(int(g.self.GetY())-int(creature.GetY()))
-			g.DrawCreature(creature, screenx, screeny)
-			
-			if creature.IsWalking() {
-				walkers[walkerCount] = creature
-				walkerCount++
-			}
+	for _, creature := range g_map.creatureList {
+		screenx := MID_X-(int(g.self.GetX())-int(creature.GetX()))
+		screeny := MID_Y-(int(g.self.GetY())-int(creature.GetY()))
+		g.DrawCreature(creature, screenx, screeny)
+		
+		if creature.IsWalking() {
+			walkers[walkerCount] = creature
+			walkerCount++
 		}
 	}
 	

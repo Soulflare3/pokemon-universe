@@ -38,12 +38,15 @@ func (g *PU_Gui) ElementIndex(_element IGuiElement) int {
 }
 
 func (g *PU_Gui) RemoveElement(_element IGuiElement) {
-	i := g.ElementIndex(_element)
-	n := len(g.elementList)
-	
-	copy(g.elementList[i:n-1], g.elementList[i+1:n])
-	g.elementList[n-1] = nil
-	g.elementList = g.elementList[0:n-1]
+	a := make([]IGuiElement, len(g.elementList)-1)
+	i := 0
+	for _, element := range g.elementList {
+		if element != _element {
+			a[i] = element
+			i++
+		}
+	}
+	g.elementList = a
 }
 
 //Helper method to draw GUI images (at the right location and possibly clipped)
