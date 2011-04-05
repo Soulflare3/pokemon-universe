@@ -11,7 +11,7 @@ DIRS=\
 	network\
 	logger\
 	position\
-	database\
+	gomysql\
 	goconf\
 	
 clean.dirs: $(addsuffix .clean, $(DIRS))
