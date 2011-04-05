@@ -23,7 +23,7 @@ import (
 
 type CreatureTurnMessage struct {
 	creature ICreature
-	direction uint16
+	direction int // uint16
 }
 
 func NewCreatureTurnMessage(_creature ICreature) *CreatureTurnMessage {
@@ -35,12 +35,12 @@ func (m *CreatureTurnMessage) GetHeader() uint8 {
 	return pnet.HEADER_TURN
 }
 
-func (m *CreatureTurnMessage) AddDirection(_dir uint16) {
+func (m *CreatureTurnMessage) AddDirection(_dir int) {
 	m.direction = _dir
 }
 
 func (m *CreatureTurnMessage) ReadPacket(_packet *pnet.Packet) os.Error {
-	m.direction = _packet.ReadUint16()
+	m.direction = int(_packet.ReadUint16())
 	return nil
 }
 
@@ -48,7 +48,7 @@ func (m *CreatureTurnMessage) ReadPacket(_packet *pnet.Packet) os.Error {
 func (m *CreatureTurnMessage) WritePacket() (*pnet.Packet, os.Error) {
 	packet := pnet.NewPacketExt(m.GetHeader())
 	packet.AddUint64(m.creature.GetUID())
-	packet.AddUint16(m.direction)
+	packet.AddUint16(uint16(m.direction))
 	
 	return packet, nil
 }

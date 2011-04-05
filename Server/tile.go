@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	TILEBLOCK_BLOCK = 1
+	TILEBLOCK_BLOCK int = 1
 	TILEBLOCK_WALK = 2
 	TILEBLOCK_SURF = 3
 	TILEBLOCK_TOP = 4
@@ -36,14 +36,14 @@ const (
 )
 
 type TileLayer struct {
-	Layer		int16
-	SpriteID	int32
+	Layer		int
+	SpriteID	int
 }
 
-type LayerMap map[int16]*TileLayer
+type LayerMap map[int]*TileLayer
 type Tile struct {
 	Position	pos.Position
-	Blocking	uint16
+	Blocking	int
 	Location	*Location
 	
 	Layers		LayerMap
@@ -70,7 +70,7 @@ func NewTileExt(_x int, _y int, _z int) *Tile {
 
 // AddLayer adds a new TileLayer to the tile. 
 // If the layer already exists it will return that one otherwise it'll make a new one
-func (t *Tile) AddLayer(_layer int16, _sprite int32) (layer *TileLayer) {
+func (t *Tile) AddLayer(_layer int, _sprite int) (layer *TileLayer) {
 	layer = t.GetLayer(_layer)
 	if layer == nil {
 		layer = &TileLayer{Layer: _layer, SpriteID: _sprite}
@@ -85,7 +85,7 @@ func (t *Tile) AddEvent(_event ITileEvent) {
 }
 
 // GetLayer returns a TileLayer object if the layer exists, otherwise nil
-func (t *Tile) GetLayer(_layer int16) *TileLayer {
+func (t *Tile) GetLayer(_layer int) *TileLayer {
 	if layer, ok := t.Layers[_layer]; !ok {
 		return layer
 	}
@@ -94,7 +94,7 @@ func (t *Tile) GetLayer(_layer int16) *TileLayer {
 }
 
 // CheckMovement checks if a creature can move to this tile
-func (t *Tile) CheckMovement(_creature ICreature, _dir uint16) ReturnValue {
+func (t *Tile) CheckMovement(_creature ICreature, _dir int) ReturnValue {
 	movement := _creature.GetMovement()
 	blocking := t.Blocking
 	

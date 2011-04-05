@@ -25,7 +25,7 @@ import (
 type WalkMessage struct {
 	// Receive
 	creature 	ICreature
-	direction	uint16
+	direction	int // uint16
 	sendMap		bool
 	
 	// Send
@@ -47,7 +47,7 @@ func (m *WalkMessage) GetHeader() uint8 {
 
 // ReadPacket reads all data from a packet and puts it in the object
 func (m *WalkMessage) ReadPacket(_packet *pnet.Packet) os.Error {
-	m.direction = _packet.ReadUint16()
+	m.direction = int(_packet.ReadUint16())
 	if _packet.ReadUint16() == 1 {
 		m.sendMap = true
 	}

@@ -26,7 +26,7 @@ const (
 )
 
 const NANOSECONDS_TO_MILLISECONDS = 0.000001
-func PUSYS_TIME() int64 {
+func PUSYS_TIME() int {
 	timeNano := float64(time.Nanoseconds())
-	return int64(timeNano * NANOSECONDS_TO_MILLISECONDS)
+	return int(timeNano * NANOSECONDS_TO_MILLISECONDS)
 }

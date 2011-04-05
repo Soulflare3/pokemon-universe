@@ -19,7 +19,8 @@ package main
 import (
 	"os"
 	pos "position"
-	"db"
+	"mysql"
+	"fmt"
 )
 
 type IOMapDB struct{}
@@ -31,29 +32,40 @@ func (io *IOMapDB) LoadMap(_map *Map) (err os.Error) {
 		" INNER JOIN tile_layer `tl` ON tl.`idtile` = t.`idtile`" +
 		" LEFT JOIN teleport `tp` ON tp.`idteleport` = t.`idteleport`"
 
-	var result db.ResultSet
-	if result, err = g_db.StoreQuery(query); err != nil {
+	if err = g_db.Query(query); err != nil {
 		return
 	}
-
-	g_logger.Printf(" - Processing worldmap data from database")
 	
-	for ; result.Next();  {
+	var result *mysql.Result
+	result, err = g_db.UseResult()
+	if err != nil {
+		return
+	}
+	
+	g_logger.Printf(" - Processing worldmap data from database")
+	count := 0
+	for {
+		count++
+		fmt.Printf("Row %v\r", count)
+		row := result.FetchMap()
+		if row == nil {
+			break
+		}
 		
-		x 			:= result.GetDataInt("x")
-		y 			:= result.GetDataInt("y")
-		z 			:= result.GetDataInt("z")
-		position 	:= pos.NewPositionFrom(int(x), int(y), int(z))
-		layer		:= result.GetDataInt("layer")
-		sprite		:= result.GetDataInt("sprite")
-		blocking	:= result.GetDataInt("movement")
-		tp_id 		:= result.GetDataInt("idteleport")
-		idlocation	:= result.GetDataInt("idlocation")
+		x 			:= row["x"].(int)
+		y 			:= row["y"].(int)
+		z 			:= row["z"].(int)
+		position 	:= pos.NewPositionFrom(x, y, z)
+		layer		:= row["layer"].(int)
+		sprite		:= row["sprite"].(int)
+		blocking	:= row["movement"].(int)
+		tp_id 		:= row["idteleport"].(int)
+		idlocation	:= row["idlocation"].(int)
 
 		tile, found := _map.GetTile(position.Hash())
 		if found == false {
 			tile = NewTile(position)
-			tile.Blocking = uint16(blocking)
+			tile.Blocking = blocking
 
 			// Get location
 			location, found := g_game.Locations.GetLocation(idlocation)
@@ -63,18 +75,17 @@ func (io *IOMapDB) LoadMap(_map *Map) (err os.Error) {
 
 			// Teleport event
 			if tp_id > 0 {
-				tp_x := result.GetDataInt("tp_x")
-				tp_y := result.GetDataInt("tp_y")
-				tp_z := result.GetDataInt("tp_z")
-				tp_pos := pos.NewPositionFrom(int(tp_x), int(tp_y), int(tp_z))
+				tp_x := row["tp_x"].(int)
+				tp_y := row["tp_y"].(int)
+				tp_z := row["tp_z"].(int)
+				tp_pos := pos.NewPositionFrom(tp_x, tp_y, tp_z)
 				tile.AddEvent(NewWarp(tp_pos))
 			}
 
 			_map.addTile(tile)
 		}
 
-		tile.AddLayer(int16(layer), int32(sprite))
-
+		tile.AddLayer(layer, sprite)
 	}
 	result.Free()
 

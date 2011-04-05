@@ -25,7 +25,7 @@ import (
 type Server struct {
 	Port 			string
 	
-	ClientVersion 	uint16
+	ClientVersion 	int
 }
 
 func NewServer() *Server {
@@ -41,7 +41,7 @@ func NewServer() *Server {
 	if err != nil {
 		version = 0
 	}
-	server.ClientVersion = uint16(version)
+	server.ClientVersion = version
 	
 	return &server
 }

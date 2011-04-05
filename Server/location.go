@@ -18,18 +18,18 @@ package main
 
 import (
 	"os"
-	"db"
+	"mysql"
 	pos "position"
 )
 
 type Location struct {
-	ID				int32
+	ID				int
 	Name			string
-	Music			int32
+	Music			int
 	PokeCenter		pos.Position
 }
 
-type LocationMap map[int32]*Location
+type LocationMap map[int]*Location
 type LocationStore struct {
 	Locations	LocationMap
 }
@@ -40,25 +40,31 @@ func NewLocationStore() *LocationStore {
 
 func (store *LocationStore) Load() (err os.Error) {
 	var query string = "SELECT t.idlocation, t.name, t.idmusic, p.position FROM location t LEFT JOIN pokecenter p ON p.idpokecenter = t.idpokecenter"
-	var result db.ResultSet
-	if result, err = g_db.StoreQuery(query); err != nil {
+	if err = g_db.Query(query); err != nil {
 		return
 	}
-	
+
+	var result *mysql.Result
+	result, err = g_db.UseResult()
+	if err != nil {
+		return
+	}
+
 	for {
-		if !result.Next() {
+		row := result.FetchMap()
+		if row == nil {
 			break
 		}	
 		
-		idlocation 	:= result.GetDataInt("idlocation")
-		name		:= result.GetDataString("name")
-		music		:= result.GetDataInt("idmusic")
-		pokecenter	:= result.GetDataLong("position") // Hash
+		idlocation 		:= row["idlocation"].(int)
+		name			:= row["name"].(string)
+		music			:= row["idmusic"].(int)
+		pokecenter, _	:= row["position"].(int64) // Hash
 		pcposition	:= pos.NewPositionFromHash(pokecenter)
 		
-		location := &Location { ID: int32(idlocation),
+		location := &Location { ID: idlocation,
 								Name: name,
-								Music: int32(music),
+								Music: music,
 								PokeCenter: pcposition }
 		store.addLocation(location)
 	}
@@ -74,7 +80,7 @@ func (store *LocationStore) addLocation(_location *Location) {
 	}
 }
 
-func (store *LocationStore) GetLocation(_idx int32) (location *Location, found bool) {
+func (store *LocationStore) GetLocation(_idx int) (location *Location, found bool) {
 	location, found = store.Locations[_idx]
 	return
 }

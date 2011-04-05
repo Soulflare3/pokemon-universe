@@ -41,7 +41,7 @@ func (m *CreatureAddMessage) WritePacket() (*pnet.Packet, os.Error) {
 	packet.AddString(m.creature.GetName())
 	packet.AddUint16(uint16(m.creature.GetPosition().X))
 	packet.AddUint16(uint16(m.creature.GetPosition().Y))
-	packet.AddUint16(m.creature.GetDirection())
+	packet.AddUint16(uint16(m.creature.GetDirection()))
 	
 	// Outfit
 	packet.AddUint8(uint8(m.creature.GetOutfit().GetOutfitStyle(OUTFIT_UPPER)))

@@ -21,9 +21,10 @@ import (
 	"log"
 	"flag"
 	"runtime"
+	"os"
 	
-	"db"
 	"conf"
+	"mysql"
 	
 	"logger" // PU.Logger package
 	pos "position" // PU.Position package	
@@ -38,7 +39,7 @@ var (
 	
 	g_config *conf.ConfigFile
 	g_logger *log.Logger
-	g_db     db.Database
+	g_db     *mysql.Client
 
 	g_game   *Game
 	g_server *Server
@@ -91,21 +92,18 @@ func initLogger() bool {
 }
 
 func initDatabase() bool {
-	// Create new instance
-	g_db = db.NewMySQL()
-
 	// Fetch database info from conf file
-	connectInfo := db.ClientInfo{}
-	connectInfo.SQLHost, _ 	= g_config.GetString("database", "host")
-	connectInfo.SQLUser, _ 	= g_config.GetString("database", "user")
-	connectInfo.SQLPass, _ 	= g_config.GetString("database", "pass")
-	connectInfo.SQLDB, _ 	= g_config.GetString("database", "db")
+	SQLHost, _ 	:= g_config.GetString("database", "host")
+	SQLUser, _ 	:= g_config.GetString("database", "user")
+	SQLPass, _ 	:= g_config.GetString("database", "pass")
+	SQLDB, _ 	:= g_config.GetString("database", "db")
 	
 	// Enable/Disable intern mysql logging system
-	//g_db.Logging, _ = g_config.GetBool("database", "show_log")
+	// g_db.Logging, _ = g_config.GetBool("database", "show_log")
 
 	// Connect to database
-	err := g_db.Connect(connectInfo)
+	var err os.Error
+	g_db, err = mysql.DialTCP(SQLHost, SQLUser, SQLPass, SQLDB)
 	if err != nil {
 		g_logger.Printf("[Error] Could not connect to database: %v\n\r", err)
 		return false

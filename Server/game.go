@@ -116,8 +116,7 @@ func (g *Game) RemoveCreature(_guid uint64) {
 	}
 }
 
-
-func (g *Game) OnPlayerMove(_creature ICreature, _direction uint16, _sendMap bool) {
+func (g *Game) OnPlayerMove(_creature ICreature, _direction int, _sendMap bool) {
 	ret := g.OnCreatureMove(_creature, _direction)
 	
 	player := _creature.(*Player)
@@ -131,13 +130,13 @@ func (g *Game) OnPlayerMove(_creature ICreature, _direction uint16, _sendMap boo
 	}
 }
 
-func (g *Game) OnPlayerTurn(_creature ICreature, _direction uint16) {
+func (g *Game) OnPlayerTurn(_creature ICreature, _direction int) {
 	if _creature.GetDirection() != _direction {
 		g.OnCreatureTurn(_creature, _direction)
 	}
 }
 
-func (g *Game) OnCreatureMove(_creature ICreature, _direction uint16) (ret ReturnValue) {
+func (g *Game) OnCreatureMove(_creature ICreature, _direction int) (ret ReturnValue) {
 	ret = RET_NOTPOSSIBLE
 	
 	if !CreatureCanMove(_creature) {
@@ -196,7 +195,7 @@ func (g *Game) OnCreatureMove(_creature ICreature, _direction uint16) (ret Retur
 	return
 }
 
-func (g *Game) OnCreatureTurn(_creature ICreature, _direction uint16) {
+func (g *Game) OnCreatureTurn(_creature ICreature, _direction int) {
 	if _creature.GetDirection() != _direction {
 		_creature.SetDirection(_direction)
 		

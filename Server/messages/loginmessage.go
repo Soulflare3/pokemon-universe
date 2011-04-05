@@ -38,10 +38,10 @@ type LoginMessage struct {
 	// Receive
 	Username 		string
 	Password 		string
-	ClientVersion 	uint16
+	ClientVersion 	int // uint16
 	
 	// Send
-	Status			uint32
+	Status			int // uint32
 }
 
 // GetHeader returns the header value of this message
@@ -53,7 +53,7 @@ func (m *LoginMessage) GetHeader() uint8 {
 func (m *LoginMessage) ReadPacket(_packet *pnet.Packet) os.Error {
 	m.Username = _packet.ReadString()
 	m.Password = _packet.ReadString()
-	m.ClientVersion = _packet.ReadUint16()
+	m.ClientVersion = int(_packet.ReadUint16())
 	
 	return nil
 }
@@ -61,7 +61,7 @@ func (m *LoginMessage) ReadPacket(_packet *pnet.Packet) os.Error {
 // WritePacket write the needed object data to a Packet and returns it
 func (m *LoginMessage) WritePacket() (*pnet.Packet, os.Error) {
 	packet := pnet.NewPacketExt(m.GetHeader())
-	packet.AddUint32(m.Status)
+	packet.AddUint32(uint32(m.Status))
 	
 	return packet, nil
 }

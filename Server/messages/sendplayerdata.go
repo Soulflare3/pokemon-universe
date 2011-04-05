@@ -25,8 +25,8 @@ import (
 type SendPlayerData struct {
 	UID			uint64
 	Position	pos.Position
-	Direction	uint16
-	Money		int32
+	Direction	int // uint16
+	Money		int // int32
 	Name		string
 	Outfit		Outfit
 }
@@ -39,11 +39,11 @@ func (m *SendPlayerData) GetHeader() uint8 {
 // WritePacket write the needed object data to a Packet and returns it
 func (m *SendPlayerData) WritePacket() (*pnet.Packet, os.Error) {
 	packet := pnet.NewPacketExt(m.GetHeader())
-	packet.AddUint64(m.UID)
+	packet.AddUint64(uint64(m.UID))
 	packet.AddString(m.Name)
 	packet.AddUint16(uint16(m.Position.X))
 	packet.AddUint16(uint16(m.Position.Y))
-	packet.AddUint16(m.Direction)
+	packet.AddUint16(uint16(m.Direction))
 	packet.AddUint32(uint32(m.Money))
 	
 	packet.AddUint8(uint8(m.Outfit.GetOutfitStyle(OUTFIT_UPPER)))

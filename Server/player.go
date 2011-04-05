@@ -24,7 +24,7 @@ type Player struct {
 	Location		*Location
 	LastPokeCenter	*Tile
 	
-	Money			int32
+	Money			int
 }
 
 func NewPlayer(_name string) *Player {
@@ -50,7 +50,7 @@ func (p *Player) SetConnection(_conn *Connection) {
 	go _conn.HandleConnection()
 }
 
-func (p *Player) SetMoney(_money int32) int32 {
+func (p *Player) SetMoney(_money int) int {
 	if p.Money += _money; p.Money < 0 {
 		p.Money = 0
 	}
@@ -119,7 +119,7 @@ func (p *Player) RemoveVisibleCreature(_creature ICreature) {
 }
 
 // ------------------------------------------------------ //
-func (p *Player) sendMapData(_dir uint16) {
+func (p *Player) sendMapData(_dir int) {
 	if p.Conn != nil {
 		p.Conn.SendMapData(_dir, p.GetPosition())
 	}

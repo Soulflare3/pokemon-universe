@@ -49,18 +49,18 @@ type ICreature interface {
 	GetType()		int
 	
 	GetPosition()	pos.Position
-	GetMovement()	uint16
+	GetMovement()	int
 	
-	SetDirection(_dir uint16)
-	GetDirection()	uint16
+	SetDirection(_dir int)
+	GetDirection()	int
 	
 	SetTile(_tile *Tile)
 	GetTile() *Tile
 	
 	GetOutfit()		Outfit
 
-	GetMovementSpeed() int64
-	GetTimeSinceLastMove() int64
+	GetMovementSpeed() int
+	GetTimeSinceLastMove() int
 	
 		
 	// Methods for all moving creatures
@@ -103,11 +103,11 @@ type Creature struct {
 	Id				int // Database ID			
 	
 	Position		*Tile
-	Direction		uint16
+	Direction		int
 	
-	Movement		uint16
-	lastStep		int64
-	moveSpeed		int64
+	Movement		int
+	lastStep		int
+	moveSpeed		int
 	
 	Outfit
 	
@@ -134,15 +134,15 @@ func (c *Creature) GetPosition() pos.Position {
 	return c.Position.Position
 }
 
-func (c *Creature) GetMovement() uint16 {
+func (c *Creature) GetMovement() int {
 	return c.Movement
 }
 
-func (c *Creature) GetDirection() uint16 {
+func (c *Creature) GetDirection() int {
 	return c.Direction
 }
 
-func (c *Creature) SetDirection(_dir uint16) {
+func (c *Creature) SetDirection(_dir int) {
 	c.Direction = _dir
 }
 
@@ -150,11 +150,11 @@ func (c *Creature) GetOutfit() Outfit {
 	return c.Outfit
 }
 
-func (c *Creature) GetMovementSpeed() int64 {
+func (c *Creature) GetMovementSpeed() int {
 	return c.moveSpeed
 }
 
-func (c *Creature) GetTimeSinceLastMove() int64 {
+func (c *Creature) GetTimeSinceLastMove() int {
 	return PUSYS_TIME() - c.lastStep
 }
 
