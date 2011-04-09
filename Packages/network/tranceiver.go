@@ -57,10 +57,10 @@ func (t *Tranceiver) Send(_message *Message) {
 	}
 }
 
-func (t *Tranceiver) Receive() (message *Message, received bool) {
+func (t *Tranceiver) Receive() (message *Message, error string) {
 	var msg Message
-	if t.decoder.Decode(&msg) != nil {
-		received = false
+	if err := t.decoder.Decode(&msg); err != nil {
+		error = err.String()
 		return
 	}
 	message = &msg
