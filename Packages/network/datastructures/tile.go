@@ -37,3 +37,9 @@ type Layer struct {
 type Data_Tiles struct {
 	Tiles []*Tile
 }
+
+func NewData_Tiles() (msg *Message) {
+	msg = NewMessage(HEADER_TILES)
+	msg.Tiles = &Data_Tiles{}
+	return
+}

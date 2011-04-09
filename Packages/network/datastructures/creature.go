@@ -30,7 +30,19 @@ type Data_AddCreature struct {
 	Outfit		[5]int
 }
 
+func NewData_AddCreature() (msg *Message) {
+	msg = NewMessage(HEADER_ADDCREATURE)
+	msg.AddCreature = &Data_AddCreature{}
+	return
+}
+
 //Remove creature (HEADER_REMOVECREATURE)
 type Data_RemoveCreature struct {
 	UID 	uint64
+}
+
+func NewData_RemoveCreature() (msg *Message) {
+	msg = NewMessage(HEADER_REMOVECREATURE)
+	msg.RemoveCreature = &Data_RemoveCreature{}
+	return
 }

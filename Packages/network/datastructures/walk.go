@@ -26,6 +26,12 @@ type Data_Walk struct {
 	RequestTiles	bool
 }
 
+func NewData_Walk() (msg *Message) {
+	msg = NewMessage(HEADER_WALK)
+	msg.Walk = &Data_Walk{}
+	return
+}
+
 //===============================================
 // Server -> Client
 
@@ -36,4 +42,10 @@ type Data_CreatureWalk struct {
 	FromY		int
 	ToX			int
 	ToY			int
+}
+
+func NewData_CreatureWalk() (msg *Message) {
+	msg = NewMessage(HEADER_WALK)
+	msg.CreatureWalk = &Data_CreatureWalk{}
+	return
 }

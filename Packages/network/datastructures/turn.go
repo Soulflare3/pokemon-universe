@@ -25,6 +25,12 @@ type Data_Turn struct {
 	Direction	int
 }
 
+func NewData_Turn() (msg *Message) {
+	msg = NewMessage(HEADER_TURN)
+	msg.Turn = &Data_Turn{}
+	return
+}
+
 //===============================================
 // Server -> Client
 
@@ -32,4 +38,10 @@ type Data_Turn struct {
 type Data_CreatureTurn struct {
 	UID			uint64
 	Direction	int
+}
+
+func NewData_CreatureTurn() (msg *Message) {
+	msg = NewMessage(HEADER_TURN)
+	msg.CreatureTurn = &Data_CreatureTurn{}
+	return
 }

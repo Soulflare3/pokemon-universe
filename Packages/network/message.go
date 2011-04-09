@@ -18,7 +18,7 @@ package network
 
 //Main message holding pointers to all possible datastructures
 type Message struct {
-	Header uint8
+	Header int
 	Login *Data_Login
 	LoginStatus *Data_LoginStatus
 	PlayerData *Data_PlayerData
@@ -30,4 +30,8 @@ type Message struct {
 	Turn *Data_Turn
 	CreatureTurn *Data_CreatureTurn
 	Warp *Data_Warp
+}
+
+func NewMessage(_header int) *Message {
+	return &Message{ Header : _header }
 }

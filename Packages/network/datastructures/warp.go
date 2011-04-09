@@ -25,3 +25,9 @@ type Data_Warp struct {
 	X	int
 	Y	int
 }
+
+func NewData_Warp() (msg *Message) {
+	msg = NewMessage(HEADER_WARP)
+	msg.Warp = &Data_Warp{}
+	return
+}

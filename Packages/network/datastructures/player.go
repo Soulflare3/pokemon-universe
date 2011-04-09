@@ -30,3 +30,9 @@ type Data_PlayerData struct {
 	Money		int
 	Outfit		[5]int
 }
+
+func NewData_PlayerData() (msg *Message) {
+	msg = NewMessage(HEADER_IDENTITY)
+	msg.PlayerData = &Data_PlayerData{}
+	return
+}

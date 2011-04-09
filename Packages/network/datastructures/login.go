@@ -27,10 +27,22 @@ type Data_Login struct {
 	Version int
 }
 
+func NewData_Login() (msg *Message) {
+	msg = NewMessage(HEADER_LOGIN)
+	msg.Login = &Data_Login{}
+	return
+}
+
 //===============================================
 // Server -> Client
 
 //Login status (HEADER_LOGIN)
 type Data_LoginStatus struct {
 	Status int
+}
+
+func NewData_LoginStatus() (msg *Message) {
+	msg = NewMessage(HEADER_LOGIN)
+	msg.LoginStatus = &Data_LoginStatus{}
+	return
 }

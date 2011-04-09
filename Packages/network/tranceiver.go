@@ -29,22 +29,6 @@ type Tranceiver struct {
 func NewTranceiver(_socket io.ReadWriter) *Tranceiver {
 	tranceiver := &Tranceiver{}
 	
-	types := []interface{}{
-		(*Data_Login)(nil),
-		(*Data_LoginStatus)(nil),
-		(*Data_PlayerData)(nil),
-		(*Data_AddCreature)(nil),
-		(*Data_Tiles)(nil),
-		(*Data_Walk)(nil),
-		(*Data_CreatureWalk)(nil),
-		(*Data_Turn)(nil),
-		(*Data_CreatureTurn)(nil),
-		(*Data_Warp)(nil),
-	}
-	for _, t := range types {
-		gob.Register(t)
-	}	
-
 	tranceiver.encoder = gob.NewEncoder(_socket)
 	tranceiver.decoder = gob.NewDecoder(_socket)
 	
