@@ -16,21 +16,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package network 
 
-import "os"
-
-
 const (
 	PACKET_MAXSIZE = 16384
 )
-
-type INetMessageWriter interface {
-	WritePacket() (*Packet, os.Error)
-}
-
-type INetMessageReader interface {
-	GetHeader() uint8
-	ReadPacket(*Packet) os.Error
-}
 
 type Packet struct {
 	readPos uint16
