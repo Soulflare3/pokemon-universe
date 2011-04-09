@@ -6,8 +6,8 @@ include $(GOROOT)/src/Make.inc
 
 TARG=network
 GOFILES=\
-	packet.go\
-	const.go\
+	*.go\
+	datastructures/*.go\
 
 include $(GOROOT)/src/Make.pkg
 
