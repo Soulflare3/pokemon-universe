@@ -20,6 +20,11 @@ package network
 //===============================================
 // Server -> Client
 
+type BodyPart struct {
+	id int
+	color uint32
+}
+
 //Add creature (HEADER_ADDCREATURE)
 type Data_AddCreature struct {
 	UID 		uint64
@@ -27,7 +32,7 @@ type Data_AddCreature struct {
 	X			int
 	Y			int
 	Direction	int
-	Outfit		[5]int
+	Outfit		[5]*BodyPart
 }
 
 func NewData_AddCreature() (msg *Message) {

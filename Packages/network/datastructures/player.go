@@ -28,7 +28,7 @@ type Data_PlayerData struct {
 	Y			int
 	Direction	int
 	Money		int
-	Outfit		[5]int
+	Outfit		[5]*BodyPart
 }
 
 func NewData_PlayerData() (msg *Message) {
