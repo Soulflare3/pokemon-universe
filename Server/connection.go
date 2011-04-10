@@ -39,7 +39,6 @@ func (c *Connection) HandleConnection() {
 		var headerbuffer [2]uint8
 		recv, err := c.Socket.Read(headerbuffer[0:])
 		if err != nil || recv == 0 {
-			g_logger.Printf("Error while reading socket: %v", err)
 			break
 		}
 
@@ -52,7 +51,7 @@ func (c *Connection) HandleConnection() {
 		if recv == 0 {
 			continue
 		} else if err != nil {
-			g_logger.Printf("Connection read error: %v", err)
+			g_logger.Printf("Connection read error: %v\n\r", err)
 			continue
 		}
 
