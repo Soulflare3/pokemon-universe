@@ -26,6 +26,7 @@ type Tile struct {
 }
 
 type Layer struct {
+	Index		int
 	ID			int
 	Sprite		int
 }
