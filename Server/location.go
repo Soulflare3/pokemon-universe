@@ -49,7 +49,8 @@ func (store *LocationStore) Load() (err os.Error) {
 	if err != nil {
 		return
 	}
-
+	
+	defer result.Free()
 	for {
 		row := result.FetchMap()
 		if row == nil {
@@ -68,7 +69,6 @@ func (store *LocationStore) Load() (err os.Error) {
 								PokeCenter: pcposition }
 		store.addLocation(location)
 	}
-	result.Free()
 	
 	return
 }

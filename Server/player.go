@@ -16,6 +16,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
+type PlayerList map[uint64]*Player
+
 type Player struct {
 	Creature // Inherit generic creature data
 	
@@ -25,6 +27,7 @@ type Player struct {
 	LastPokeCenter	*Tile
 	
 	Money			int
+	TimeoutCounter	int
 }
 
 func NewPlayer(_name string) *Player {
@@ -36,6 +39,8 @@ func NewPlayer(_name string) *Player {
 	
 	p.lastStep = PUSYS_TIME()
 	p.moveSpeed = 280
+	p.VisibleCreatures = make(CreatureList)
+	p.TimeoutCounter = 0
 	
 	return &p
 }
@@ -48,6 +53,14 @@ func (p *Player) SetConnection(_conn *Connection) {
 	p.Conn = _conn
 	p.Conn.Owner = p
 	go _conn.HandleConnection()
+}
+
+// Called by Connection to remove itself from its owner
+// when the player disconnects
+func (p *Player) removeConnection() {
+	if !p.Conn.IsOpen {
+		g_game.OnPlayerLoseConnection(p)
+	}
 }
 
 func (p *Player) SetMoney(_money int) int {

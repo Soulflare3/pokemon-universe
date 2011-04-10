@@ -42,6 +42,7 @@ func (io *IOMapDB) LoadMap(_map *Map) (err os.Error) {
 		return
 	}
 	
+	defer result.Free()
 	g_logger.Printf(" - Processing worldmap data from database")
 	count := 0
 	for {
@@ -87,7 +88,6 @@ func (io *IOMapDB) LoadMap(_map *Map) (err os.Error) {
 
 		tile.AddLayer(layer, sprite)
 	}
-	result.Free()
 
 	return
 }

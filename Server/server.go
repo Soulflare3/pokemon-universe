@@ -19,13 +19,14 @@ package main
 import (
 	"net"
 	"time"
+	"fmt" 
 	pnet "network" // PU Network package
 )
 
 type Server struct {
 	Port 			string
-	
 	ClientVersion 	int
+	TimeoutCount	int
 }
 
 func NewServer() *Server {
@@ -42,13 +43,15 @@ func NewServer() *Server {
 		version = 0
 	}
 	server.ClientVersion = version
+	server.TimeoutCount = 0
 	
 	return &server
 }
 
 func (s *Server) Start() {
 	// Start timeout loop here
-	// go s.timeoutLoop()
+	g_logger.Println("[Message] Idle player checker goroutine started")
+	go s.timeoutLoop()
 
 	// Open new socket listener
 	g_logger.Println("Opening server socket on port "+s.Port)
@@ -92,12 +95,39 @@ func (s *Server) Start() {
 	}
 }
 
-// Loop which will check if players are idle for X amount of minutes
+// This function checks players without a connection every second
+// and idle players every 10 seconds
 func (s *Server) timeoutLoop() {
-	g_logger.Println("[Message] Idle player checker goroutine started")
-	for ; ; time.Sleep(10e9) { // 10 Sec
-		// Check if there are players who are idle for X min
+	s.TimeoutCount++
+	
+	// Check connectionless players
+	g_game.mutexDisconnectList.Lock()
+	defer g_game.mutexDisconnectList.Unlock()
+	for guid, value := range(g_game.PlayersDiscon) {
+		value.TimeoutCounter++
+		if value.TimeoutCounter >= 30 {
+			g_game.PlayersDiscon[guid] = nil, false
+			go g_game.RemoveCreature(guid)
+		}
 	}
+	
+	if s.TimeoutCount == 10 {
+		s.TimeoutCount = 0
+		
+		// Check idle players
+		g_game.mutexPlayerList.RLock()
+		defer g_game.mutexPlayerList.RUnlock()
+		for _, player := range(g_game.Players) {
+			if player.Conn != nil {
+				if player.GetTimeSinceLastMove() > 9e5 { // (900000sec / 15 min)
+					go g_game.OnPlayerLoseConnection(player)
+				}
+			}
+		}
+	}
+	
+	time.Sleep(1e9)
+	go s.timeoutLoop()
 }
 
 func (s *Server) parseFirstMessage(conn net.Conn, packet *pnet.Packet) {
@@ -129,12 +159,14 @@ func (s *Server) parseFirstMessage(conn net.Conn, packet *pnet.Packet) {
 			ret, player := LoadPlayerProfile(firstMessage.Username)
 			
 			if !ret || player == nil {
-				firstMessage.Status = LOGINSTATUS_FAILPROFILELOAD			
+				firstMessage.Status = LOGINSTATUS_FAILPROFILELOAD
+				g_logger.Printf("[Login] Failed to load profile for %v", firstMessage.Username)
 			} else if player.Conn != nil {
 				firstMessage.Status = LOGINSTATUS_ALREADYLOGGEDIN
+				fmt.Println("Already logged in")
 			} else {
 				firstMessage.Status = LOGINSTATUS_READY
-				
+				g_logger.Printf("[Login] %d - %v logged in", player.GetUID(), player.GetName())
 				// Assign Connection to Player object
 				player.SetConnection(connection)
 			}

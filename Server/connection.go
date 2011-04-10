@@ -61,6 +61,7 @@ func (c *Connection) HandleConnection() {
 	}
 
 	c.IsOpen = false
+	c.Owner.removeConnection()
 }
 
 func (c *Connection) ProcessPacket(_packet *pnet.Packet) {

@@ -30,14 +30,16 @@ const (
 )
 
 type Game struct {
-	State		GameState
-	Creatures	CreatureList
-	Players		CreatureList
+	State			GameState
+	Creatures		CreatureList
+	Players			PlayerList
+	PlayersDiscon	PlayerList
 	
 	Locations	*LocationStore
 	
 	mutexCreatureList	*sync.RWMutex
-	mutexPlayerList		*sync.RWMutex	
+	mutexPlayerList		*sync.RWMutex
+	mutexDisconnectList	*sync.RWMutex
 }
 
 func NewGame() *Game {
@@ -45,7 +47,13 @@ func NewGame() *Game {
 	game.State = GAME_STATE_STARTUP
 	// Initialize maps
 	game.Creatures = make(CreatureList)
-	game.Players = make(CreatureList)
+	game.Players = make(PlayerList)
+	game.PlayersDiscon = make(PlayerList)
+	
+	// Mutexes
+	game.mutexCreatureList = new(sync.RWMutex)
+	game.mutexPlayerList = new(sync.RWMutex)
+	game.mutexDisconnectList = new(sync.RWMutex)
 	
 	return &game
 }
@@ -72,19 +80,26 @@ func (the *Game) Load() (LostIt bool) {
 	return
 }
 
-func (g *Game) GetPlayerByName(_name string) ICreature {
+func (g *Game) GetPlayerByName(_name string) (ICreature, bool) {
 	for _, value := range g.Players {
 		if value.GetName() == _name {
-			return value
+			return value, true
 		}
 	}
 	
-	return nil
+	return nil, false
+}
+
+func (g *Game) OnPlayerLoseConnection(_player *Player) {
+	_player.Conn = nil
+	_player.TimeoutCounter = 0
+	g.PlayersDiscon[_player.GetUID()] = _player
 }
 
 func (g *Game) AddCreature(_creature ICreature) {
 	// TODO: Maybe only take the creatues from the area the new creature is in. This saves some extra iterating
 	// TODO 2: Upgrade this to parallel stuff
+
 	for _, value := range g.Creatures {
 		value.OnCreatureAppear(_creature, true)
 	}
@@ -96,7 +111,7 @@ func (g *Game) AddCreature(_creature ICreature) {
 	if _creature.GetType() == CTYPE_PLAYER {
 		g.mutexPlayerList.Lock()
 		defer g.mutexPlayerList.Unlock()
-		g.Players[_creature.GetUID()] = _creature
+		g.Players[_creature.GetUID()] = _creature.(*Player)
 	}
 }
 
@@ -111,6 +126,7 @@ func (g *Game) RemoveCreature(_guid uint64) {
 		if object.GetType() == CTYPE_PLAYER {
 			g.mutexPlayerList.Lock()
 			defer g.mutexPlayerList.Unlock()
+			g_logger.Printf("[Logout] %d - %v logged out", object.GetUID(), object.GetName())
 			g.Players[_guid] = nil, false
 		}
 	}

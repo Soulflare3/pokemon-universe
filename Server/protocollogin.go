@@ -41,6 +41,7 @@ func CheckAccountInfo(_username string, _password string) bool {
 	}
 	
 	row := result.FetchMap()
+	defer result.Free()
 	if row == nil {
 		return false
 	}
@@ -68,8 +69,8 @@ func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 	ret = false
 	//_username = g_db.Escape(_username)
 	
-	var queryString string = "SELECT idplayer, name FROM player WHERE name='" + _username +"'"
-	if err := g_db.Query(queryString); err != nil {
+	var queryString string = "SELECT idplayer, name FROM player WHERE name='%v'"
+	if err := g_db.Query(fmt.Sprintf(queryString, _username)); err != nil {
 		if IS_DEBUG {
 			g_logger.Printf("[DEBUG] LoadPlayerProfile: %v\n\r", err)
 		}
@@ -80,16 +81,21 @@ func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 	if err != nil {
 		return
 	}
+	
 	row := result.FetchMap()
 	if row == nil {
 		return
 	}
-	
 	idPlayer := row["idplayer"].(int)
 	name	 := row["name"].(string)
+	result.Free()
 	
-	if g_game.GetPlayerByName(name); p == nil {
-		p := NewPlayer(name)
+	value, found := g_game.GetPlayerByName(name)
+	if found {
+		p = value.(*Player)
+		ret = true
+	} else {
+		p = NewPlayer(name)
 		p.Id = idPlayer
 		
 		queryString = "SELECT p.`position`, p.`movement`, p.`money`, p.`idlocation`, "
@@ -97,20 +103,28 @@ func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 		queryString += "FROM `player` as p "
 		queryString += "JOIN `player_outfit` AS po ON po.`idplayer`=p.`idplayer` "
 		queryString += "JOIN `pokecenter` AS pc ON pc.`idpokecenter`=p.`idpokecenter` "
-		queryString += "WHERE p.`idplayer` = '" + string(idPlayer) + "'"
-		
-		if err := g_db.Query(queryString); err != nil {
+		queryString += "WHERE p.`idplayer` = '%d'"
+
+		if err := g_db.Query(fmt.Sprintf(queryString, idPlayer)); err != nil {
 			if IS_DEBUG {
-				g_logger.Printf("[DEBUG] LoadPlayerProfile: %v\n\r", err)
+				g_logger.Printf("[DEBUG] LoadPlayerProfile 1: %v\n\r", err)
 			}
 			return
 		}
 		result, err := g_db.UseResult()
 		if err != nil {
+		if IS_DEBUG {
+				g_logger.Printf("[DEBUG] LoadPlayerProfile 2: %v\n\r", err)
+			}
 			return
 		}
+		
+		defer result.Free()
 		row := result.FetchMap()
 		if row == nil {
+			if IS_DEBUG {
+				g_logger.Printf("[DEBUG] LoadPlayerProfile 3: no row for this id %d\n\r", string(idPlayer))
+			}
 			return
 		}
 				
@@ -123,10 +137,16 @@ func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 		var ok bool
 		p.Position, ok = g_map.GetTile(positionHash)
 		if !ok {
+			if IS_DEBUG {
+				g_logger.Println("[DEBUG] LoadPlayerProfile: Could not find the tile for this position", err)
+			}
 			return
 		}
 		p.Location, ok = g_game.Locations.GetLocation(idlocation)
 		if !ok {
+			if IS_DEBUG {
+				g_logger.Println("[DEBUG] LoadPlayerProfile: Could not find the location", err)
+			}		
 			p.Location = p.Position.Location
 		}
 		p.LastPokeCenter, ok = g_map.GetTile(pcposition)
@@ -150,10 +170,11 @@ func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 		p.SetOutfitKey(OUTFIT_LOWER, outfitLower)
 		p.SetOutfitKey(OUTFIT_FEET, outfitFeet)
 		
+		println("- Loaded all data, adding to Game")
 		// Add player object to THE GAME (you've just lost it :3)
 		g_game.AddCreature(p)
 		ret = true
 	}
-
+	
 	return
 }
