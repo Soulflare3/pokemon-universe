@@ -21,38 +21,39 @@ import (
 	"fmt"
 	"net"
 	punet "network"
-	"io"
 )
 
 const (
 	//this should be more than enough
-	PACKET_BUFFERSIZE = 1000
+	MESSAGE_BUFFERSIZE = 1000
 )
 
 type IProtocol interface {
 	ProcessPacket(_packet *punet.Packet)
+	ProcessMessage(_message *punet.Message)
 	SendLogin(_username string, _password string)
 }
 
 type PU_Connection struct {
 	socket net.Conn
-	packetChan chan *punet.Packet
+	msgChan chan *punet.Message
+	tranceiver *punet.Tranceiver
 	protocol IProtocol
 	loginStatus int
 	connected bool
 }
 
 func NewConnection() *PU_Connection {
-	return &PU_Connection{packetChan : make(chan *punet.Packet, PACKET_BUFFERSIZE),
+	return &PU_Connection{msgChan : make(chan *punet.Message, MESSAGE_BUFFERSIZE),
 						  protocol : NewGameProtocol(),
 						  loginStatus : LOGINSTATUS_IDLE}
 }
 
 func (c *PU_Connection) Connect() bool {
 	//TODO: read from config file
-	ip := "94.75.231.83" //arceus
-	port := "6161"
-	//port := "6666"
+	//ip := "94.75.231.83" //arceus
+	ip := "127.0.0.1"
+	port := "1337"
 	
 	var err os.Error
 	c.socket, err = net.Dial("tcp", "", ip+":"+port)
@@ -62,7 +63,8 @@ func (c *PU_Connection) Connect() bool {
 	}
 	
 	c.connected = true
-	go c.ReceivePackets()
+	c.tranceiver = punet.NewTranceiver(c.socket)
+	go c.ReceiveMessages()
 	
 	return true
 }
@@ -74,64 +76,35 @@ func (c *PU_Connection) Close() {
 	c.connected = false
 }
 
-func (c *PU_Connection) ReceivePackets() {
-	for c.connected {
-		var headerbuffer [2]uint8 
-		recv, err := io.ReadFull(c.socket, headerbuffer[0:])
-		if err != nil || recv == 0 {
-			fmt.Printf("Disconnected\n")
-			break
-		}
-
-		packet := punet.NewPacket()
-		copy(packet.Buffer[0:2], headerbuffer[0:2])
-		packet.GetHeader()
-		
-		databuffer := make([]uint8, packet.MsgSize)
-		
-		reloop := false
-		bytesReceived := uint16(0)
-		for bytesReceived < packet.MsgSize {
-			recv, err = io.ReadFull(c.socket, databuffer[bytesReceived:])
-			if recv == 0 {	
-				reloop = true
-				break 
-			} else if err != nil {
-				fmt.Printf("Connection read error: %v\n", err)
-				reloop = true
-				break
-			}
-			bytesReceived += uint16(recv)
-		}
-		if reloop {
-			continue
-		}
-		
-		copy(packet.Buffer[2:], databuffer[:])
-		
-		//put the packet in the buffer
+func (c *PU_Connection) ReceiveMessages() {
+  for c.connected {
+	if message, err := c.tranceiver.Receive(); err != "" {
+		fmt.Printf("Error receiving message: %s\n", err)
+		break
+	} else {    
 		select {
-			case c.packetChan <- packet:
-				//great success
-				
-			default:
-				fmt.Printf("Error: Packet buffer full\n")
+		  case c.msgChan <- message:
+			//great success
+
+		  default:
+			fmt.Printf("Error: Message buffer full\n")
 		}
 	}
+  }
 }
 
-func (c *PU_Connection) HandlePacket() {
+func (c *PU_Connection) HandleMessage() {
 	if !c.connected {
 		return
 	}
 	
-	//check if there's a packet in the buffer and process it
+	//check if there's a message in the buffer and process it
 	//repeat until buffer is empty
 	for {
 		var breakloop bool
 		select {
-			case packet := <- c.packetChan:
-				c.protocol.ProcessPacket(packet)
+			case message := <- c.msgChan:
+				c.protocol.ProcessMessage(message)
 				
 			default:
 				breakloop = true
@@ -142,11 +115,8 @@ func (c *PU_Connection) HandlePacket() {
 	}
 }
 
-func (c *PU_Connection) SendMessage(_message punet.INetMessageWriter) {
-	packet, _ := _message.WritePacket()
-	packet.SetHeader()
-	
-	c.socket.Write(packet.Buffer[0:packet.MsgSize])
+func (c *PU_Connection) SendMessage(_message *punet.Message) {
+	c.tranceiver.Send(_message)
 }
 
 func (c *PU_Connection) Game() *PU_GameProtocol {

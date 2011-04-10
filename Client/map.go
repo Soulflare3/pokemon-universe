@@ -86,7 +86,7 @@ func (m *PU_Map) RemoveCreature(_creature ICreature) {
 	m.creatureList = a
 }
 
-func (m *PU_Map) GetCreatureByID(_id uint32) ICreature {
+func (m *PU_Map) GetCreatureByID(_id uint64) ICreature {
 	for _, c := range m.creatureList {
 		if c.GetID() == _id {
 			return c

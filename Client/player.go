@@ -39,13 +39,13 @@ type PU_Player struct {
 	name string
 	
 	walkConfirmed bool
-	money uint32
+	money int
 	
 	bodyParts [NUM_BODYPARTS]*PU_BodyPart
 	pokemon [NUM_POKEMON]*PU_Pokemon
 }
 
-func NewPlayer(_id uint32) *PU_Player {
+func NewPlayer(_id uint64) *PU_Player {
 	player := &PU_Player{}
 	player.SetDefault(_id)
 	
@@ -61,7 +61,7 @@ func (p *PU_Player) Turn(_dir int, _send bool) {
 		p.direction = _dir
 		
 		if _send {
-			g_conn.Game().SendTurn(_dir)
+			g_conn.Game().Send_Turn(_dir)
 		}
 	}
 }
@@ -82,7 +82,7 @@ func (p *PU_Player) Draw(_x int, _y int) {
 func (p *PU_Player) Walk(_direction int) {
 	if !p.walking {
 		if p.PreWalk(_direction) {
-			g_conn.Game().SendMove(_direction, true)
+			g_conn.Game().Send_Walk(_direction, true)
 		} else {
 			p.CancelWalk()
 		}
@@ -105,8 +105,8 @@ func (p *PU_Player) PreWalk(_direction int) bool {
 			toTile = g_map.GetTile(int(p.x-1), int(p.y))
 	}
 	if p.CanWalkTo(_direction, toTile) {
-		p.preWalkX = int16(toTile.position.X)
-		p.preWalkY = int16(toTile.position.Y)
+		p.preWalkX = toTile.position.X
+		p.preWalkY = toTile.position.Y
 		
 		p.Turn(_direction, false)
 		
@@ -161,17 +161,17 @@ func (p *PU_Player) ReceiveWalk(_fromTile *PU_Tile, _toTile *PU_Tile) {
 		return
 	}
 	
-	if p.x != int16(_fromTile.position.X) || p.y != int16(_fromTile.position.Y) {
-		p.x = int16(_fromTile.position.X)
-		p.x = int16(_fromTile.position.Y)
+	if p.x != _fromTile.position.X || p.y != _fromTile.position.Y {
+		p.x = _fromTile.position.X
+		p.x = _fromTile.position.Y
 		
-		p.preWalkX = int16(_toTile.position.X)
-		p.preWalkY = int16(_toTile.position.Y)
+		p.preWalkX = _toTile.position.X
+		p.preWalkY = _toTile.position.Y
 	}
 	
 	if p != g_game.self {
-		p.preWalkX = int16(_toTile.position.X)
-		p.preWalkY = int16(_toTile.position.Y)
+		p.preWalkX = _toTile.position.X
+		p.preWalkY = _toTile.position.Y
 		
 		if p.preWalkY > p.y {
 			p.Turn(DIR_SOUTH, false)

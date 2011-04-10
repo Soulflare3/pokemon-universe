@@ -28,7 +28,7 @@ const (
 )
 
 type ICreature interface {
-	GetID() uint32
+	GetID() uint64
 	Draw(_x int, _y int)
 	IsWalking() bool
 	UpdateWalk()
@@ -36,21 +36,21 @@ type ICreature interface {
 	GetOffset() int
 	SetDirection(_direction int)
 	GetDirection() int
-	GetX() int16
-	GetY() int16
-	SetPosition(_x int16, _y int16)
+	GetX() int
+	GetY() int
+	SetPosition(_x int, _y int)
 }
 
 type PU_Creature struct {
-	id uint32
+	id uint64
 	
-	x int16
-	y int16
+	x int
+	y int
 	
 	walking bool
 	walkEnded bool
-	preWalkX int16
-	preWalkY int16
+	preWalkX int
+	preWalkY int
 	offset int
 	walkProgress float32
 	speed int
@@ -65,7 +65,7 @@ type PU_Creature struct {
 	animationLastTicks uint32
 }
 
-func (c *PU_Creature) GetID() uint32 {
+func (c *PU_Creature) GetID() uint64 {
 	return c.id
 }
 
@@ -85,25 +85,26 @@ func (c *PU_Creature) GetDirection() int {
 	return c.direction
 }
 
-func (c *PU_Creature) GetX() int16 {
+func (c *PU_Creature) GetX() int {
 	if c.walking {
 		return c.preWalkX
 	}
 	return c.x
 }
 
-func (c *PU_Creature) GetY() int16 {
+func (c *PU_Creature) GetY() int {
 	if c.walking {
 		return c.preWalkY
 	}
 	return c.y
 }
 
-func (c *PU_Creature) SetPosition(_x int16, _y int16) {
+func (c *PU_Creature) SetPosition(_x int, _y int) {
 	c.x, c.y = _x, _y
 }
 
-func (c *PU_Creature) SetDefault(_id uint32) {
+func (c *PU_Creature) SetDefault(_id uint64) {
+	c.id = _id
 	c.speed = 300
 	c.direction = DIR_SOUTH
 	c.frames = 3

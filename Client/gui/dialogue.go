@@ -69,7 +69,7 @@ func (g *PU_Dialogue) Close() {
 
 func (g *PU_Dialogue) Answer(_id int) {
 	g.state = DIALOGUE_STATE_ANSWERED
-	g_conn.Game().SendDialogueAnswer(_id)
+	//g_conn.Game().SendDialogueAnswer(_id)
 }
 
 func (g *PU_Dialogue) SetOptions(_options map[int]string) {
@@ -83,7 +83,7 @@ func (g *PU_Dialogue) SetOptions(_options map[int]string) {
 func (g *PU_Dialogue) SetDialogueNPC(_npc int, _question string, _options map[int]string) {
 	g.Reset()
 	
-	npc := g_map.GetCreatureByID(uint32(_npc)).(*PU_Player)
+	npc := g_map.GetCreatureByID(uint64(_npc)).(*PU_Player)
 	if npc != nil {
 		g.npcname = npc.name
 		g.question = ClipText(_question, FONT_ARIALBLACK_18, 470)

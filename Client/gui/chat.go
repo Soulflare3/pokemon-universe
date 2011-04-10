@@ -153,10 +153,10 @@ func (c *PU_Chat) SendMessage(_text string) {
 		if channel.id == CHANNEL_IRC {
 			//send irc message
 		} else if channel.gamechannel || channel.id == CHANNEL_LOCAL {
-			g_conn.Game().SendChat(SPEAK_NORMAL, c.activeChannel, _text)
+			//g_conn.Game().SendChat(SPEAK_NORMAL, c.activeChannel, _text)
 		} else {
 			//private message 
-			g_conn.Game().SendChat(SPEAK_PRIVATE, c.activeChannel, _text)
+			//g_conn.Game().SendChat(SPEAK_PRIVATE, c.activeChannel, _text)
 		}
 	}
 }

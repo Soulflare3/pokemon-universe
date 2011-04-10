@@ -18,39 +18,27 @@ package main
 
 import (
 	punet "network"
-	"os"
 )
 
-type PU_Message_Identity struct {
-	player *PU_Player
-}
-
-func NewIdentityMessage(_packet *punet.Packet) *PU_Message_Identity {
-	msg := &PU_Message_Identity{}
-	msg.ReadPacket(_packet)
-	return msg
-}
-
-func (m *PU_Message_Identity) ReadPacket(_packet *punet.Packet) os.Error {
-	m.player = NewPlayer(0)
-	m.player.id = _packet.ReadUint32()
-	m.player.name = _packet.ReadString()
-	m.player.x = int16(_packet.ReadUint16())
-	m.player.y = int16(_packet.ReadUint16())
-	m.player.direction = int(_packet.ReadUint16())
-	m.player.money = _packet.ReadUint32()
+func (p *PU_GameProtocol) Receive_PlayerData(_message *punet.Message) {
+	data := _message.PlayerData
+	player := NewPlayer(data.UID)
+	player.name = data.Name
+	player.x = data.X
+	player.y = data.Y
+	player.direction = data.Direction
+	player.money = data.Money
 	
 	for part := BODY_UPPER; part <= BODY_LOWER; part++ {
-		m.player.bodyParts[part].id = int(_packet.ReadUint8())
-		color := _packet.ReadUint32()
+		player.bodyParts[part].id = data.Outfit[part].ID
+		color := data.Outfit[part].Color
 		red := uint8(color >> 16)
 		green := uint8(color >> 8)
 		blue := uint8(color)
-		m.player.bodyParts[part].SetColor(int(red), int(green), int(blue))
+		player.bodyParts[part].SetColor(int(red), int(green), int(blue))
 	}
 	
-	g_map.AddCreature(m.player)
-	g_game.self = m.player
-	return nil
+	g_map.AddCreature(player)
+	g_game.self = player
 }
 

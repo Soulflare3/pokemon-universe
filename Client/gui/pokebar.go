@@ -155,7 +155,7 @@ func (g *PU_Pokebar) MouseDown(_x int, _y int) {
 
 func (g *PU_Pokebar) MouseUp(_x int, _y int) {
 	if g.dragStart != g.dragging && g.dragging != POKEBAR_NONE {
-		g_conn.Game().SendSlotChange(g.dragStart, g.dragging)
+		//g_conn.Game().SendSlotChange(g.dragStart, g.dragging)
 	}
 	g.mouseDown = false
 	g.dragging = POKEBAR_NONE

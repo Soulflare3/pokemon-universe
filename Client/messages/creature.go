@@ -18,27 +18,32 @@ package main
 
 import (
 	punet "network"
-	"os"
 )
 
-type PU_Message_RemoveCreature struct {
-
-}
-
-func NewRemoveCreatureMessage(_packet *punet.Packet) *PU_Message_RemoveCreature {
-	msg := &PU_Message_RemoveCreature{}
-	msg.ReadPacket(_packet)
-	return msg
-}
-
-func (m *PU_Message_RemoveCreature) ReadPacket(_packet *punet.Packet) os.Error {
-	id := _packet.ReadUint32()
+func (p *PU_GameProtocol) Receive_AddCreature(_message *punet.Message) {
+	data := _message.AddCreature
+	player := NewPlayer(data.UID)
+	player.name = data.Name
+	player.x = data.X
+	player.y = data.Y
+	player.direction = data.Direction
 	
-	creature := g_map.GetCreatureByID(id)
+	for part := BODY_UPPER; part <= BODY_LOWER; part++ {
+		player.bodyParts[part].id = data.Outfit[part].ID
+		color := data.Outfit[part].Color
+		red := uint8(color >> 16)
+		green := uint8(color >> 8)
+		blue := uint8(color)
+		player.bodyParts[part].SetColor(int(red), int(green), int(blue))
+	}
+	
+	g_map.AddCreature(player)
+}
+
+func (p *PU_GameProtocol) Receive_RemoveCreature(_message *punet.Message) {
+	data := _message.RemoveCreature
+	creature := g_map.GetCreatureByID(data.UID)
 	if creature != nil {
 		g_map.RemoveCreature(creature)
 	}
-
-	return nil
 }
-

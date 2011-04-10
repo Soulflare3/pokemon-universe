@@ -18,20 +18,9 @@ package main
 
 import (
 	punet "network"
-	"os"
 )
 
-//send a ping back to the server to let it know we're alive
-type PU_Message_Ping struct {
+func (p *PU_GameProtocol) Receive_Ping() {
+	message := punet.NewMessage(punet.HEADER_PING)
+	g_conn.SendMessage(message)
 }
-
-func NewPingMessage() *PU_Message_Ping {
-	return &PU_Message_Ping{}
-}
-
-func (m *PU_Message_Ping) WritePacket() (*punet.Packet, os.Error) {
-	packet := punet.NewPacket()
-	packet.AddUint8(punet.HEADER_PING)
-	return packet, nil
-}
-

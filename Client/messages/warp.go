@@ -18,51 +18,28 @@ package main
 
 import (
 	punet "network"
-	"os"
 	"sdl"
 )
 
-type PU_Message_Warp struct {
-	x int16
-	y int16	
+func (p *PU_GameProtocol) Send_RequestTileRefresh() {
+	message := punet.NewMessage(punet.HEADER_REFRESHWORLD)
+	g_conn.SendMessage(message)
 }
 
-func NewWarpMessage(_packet *punet.Packet) *PU_Message_Warp {
-	msg := &PU_Message_Warp{}
-	msg.ReadPacket(_packet)
-	return msg
+func (p *PU_GameProtocol) Receive_TilesRefreshed() {
+	g_game.state = GAMESTATE_WORLD
 }
 
-func (m *PU_Message_Warp) ReadPacket(_packet *punet.Packet) os.Error {
-	m.x = int16(_packet.ReadUint16())
-	m.y = int16(_packet.ReadUint16())	
-	
+func (p *PU_GameProtocol) Receive_Warp(_message *punet.Message) {
+	data := _message.Warp
 	g_game.state = GAMESTATE_LOADING
 	sdl.Delay(10)
 	
 	if g_game.self != nil {
 		g_game.self.CancelWalk()
-		g_game.self.SetPosition(m.x, m.y)
+		g_game.self.SetPosition(data.X, data.Y)
 	}
 	
 	//request the tiles of the new area we just arrived at 
-	message := NewTileRefreshMessage()
-	g_conn.SendMessage(message)
-	
-	return nil
+	p.Send_RequestTileRefresh()
 }
-
-//request the tiles of the new area we warped to
-type PU_Message_TileRefresh struct {
-}
-
-func NewTileRefreshMessage() *PU_Message_TileRefresh {
-	return &PU_Message_TileRefresh{}
-}
-
-func (m *PU_Message_TileRefresh) WritePacket() (*punet.Packet, os.Error) {
-	packet := punet.NewPacket()
-	packet.AddUint8(0xC4)
-	return packet, nil
-}
-

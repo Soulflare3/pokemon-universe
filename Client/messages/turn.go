@@ -18,42 +18,19 @@ package main
 
 import (
 	punet "network"
-	"os"
 )
 
-//receive notification of a turning creature
-type PU_Message_CreatureTurn struct {
-	creature ICreature
-	direction int
+func (p *PU_GameProtocol) Send_Turn(_direction int) {
+	message := punet.NewData_Turn()
+	message.Turn.Direction = _direction
+	g_conn.SendMessage(message)
 }
 
-func NewCreatureTurnMessage(_packet *punet.Packet) *PU_Message_CreatureTurn {
-	msg := &PU_Message_CreatureTurn{}
-	msg.ReadPacket(_packet)
-	return msg
-}
-
-func (m *PU_Message_CreatureTurn) ReadPacket(_packet *punet.Packet) os.Error {
-	m.creature =  g_map.GetCreatureByID(_packet.ReadUint32())
-	m.direction = int(_packet.ReadUint16())
-	if m.creature != nil && m.creature != g_game.self {
-		m.creature.SetDirection(m.direction)
+func (p *PU_GameProtocol) Receive_CreatureTurn(_message *punet.Message) {
+	data := _message.CreatureTurn
+	creature := g_map.GetCreatureByID(data.UID)
+	direction := data.Direction
+	if creature != nil && creature != g_game.self {
+		creature.SetDirection(direction)
 	}
-	return nil
 }
-
-//tell the server we're turning
-type PU_Message_Turn struct {
-	direction int
-}
-
-func NewTurnMessage() *PU_Message_Turn {
-	return &PU_Message_Turn{}
-}
-
-func (m *PU_Message_Turn) WritePacket() (*punet.Packet, os.Error) {
-	packet := punet.NewPacketExt(0xB2)
-	packet.AddUint16(uint16(m.direction))		
-	return packet, nil
-}
-

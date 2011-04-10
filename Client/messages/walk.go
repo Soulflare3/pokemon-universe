@@ -18,60 +18,32 @@ package main
 
 import (
 	punet "network"
-	"os"
 	"math"
 )
 
-//receive notification of a moving creature
-type PU_Message_CreatureMove struct {
-	creature ICreature
-	fromTile *PU_Tile
-	toTile *PU_Tile
+func (p *PU_GameProtocol) Send_Walk(_direction int, _requestTiles bool) {
+	message := punet.NewData_Walk()
+	message.Walk.Direction = _direction
+	message.Walk.RequestTiles = _requestTiles
+	g_conn.SendMessage(message)
 }
 
-func NewCreatureMoveMessage(_packet *punet.Packet) *PU_Message_CreatureMove {
-	msg := &PU_Message_CreatureMove{}
-	msg.ReadPacket(_packet)
-	return msg
+func (p *PU_GameProtocol) Receive_CancelWalk() {
+	if g_game.self != nil {
+		g_game.self.CancelWalk()
+	}
 }
 
-func (m *PU_Message_CreatureMove) ReadPacket(_packet *punet.Packet) os.Error {
-	m.creature =  g_map.GetCreatureByID(_packet.ReadUint32())
-	fromX := int16(_packet.ReadUint16())
-	fromY := int16(_packet.ReadUint16())
-	toX := int16(_packet.ReadUint16())
-	toY := int16(_packet.ReadUint16())
-	m.fromTile = g_map.GetTile(int(fromX), int(fromY))
-	m.toTile = g_map.GetTile(int(toX), int(toY))
-	if m.creature != nil {
-		if int(math.Fabs(float64(fromX)-float64(toX))) > 1 || int(math.Fabs(float64(fromY)-float64(toY))) > 1 {
-			m.creature.SetPosition(toX, toY)
+func (p *PU_GameProtocol) Receive_CreatureWalk(_message *punet.Message) {
+	data := _message.CreatureWalk
+	creature := g_map.GetCreatureByID(data.UID)
+	fromTile := g_map.GetTile(data.FromX, data.FromY)
+	toTile := g_map.GetTile(data.ToX, data.ToY)
+	if creature != nil {
+		if int(math.Fabs(float64(data.FromX)-float64(data.ToX))) > 1 || int(math.Fabs(float64(data.FromY)-float64(data.ToY))) > 1 {
+			creature.SetPosition(data.ToX, data.ToY)
 		} else {
-			m.creature.ReceiveWalk(m.fromTile, m.toTile)
+			creature.ReceiveWalk(fromTile, toTile)
 		}
-	} else {
 	}
-	return nil
 }
-
-//tell the server we're moving
-type PU_Message_Move struct {
-	direction int
-	requestTiles bool
-}
-
-func NewMoveMessage() *PU_Message_Move {
-	return &PU_Message_Move{}
-}
-
-func (m *PU_Message_Move) WritePacket() (*punet.Packet, os.Error) {
-	packet := punet.NewPacketExt(0xB1) //temporarily not using a header const from punet because this might change
-	packet.AddUint16(uint16(m.direction))
-	tiles := 0
-	if m.requestTiles {
-		tiles = 1
-	}
-	packet.AddUint16(uint16(tiles))		
-	return packet, nil
-}
-

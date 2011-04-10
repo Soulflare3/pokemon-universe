@@ -285,7 +285,7 @@ func (g *PU_Game) KeyDown(_keysym int, _scancode int) {
 				}
 				
 			case sdl.KEY_RALT, sdl.KEY_LALT:
-				g_conn.Game().SendActionPress()
+				//g_conn.Game().SendActionPress()
 		}
 	}
 }

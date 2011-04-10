@@ -27,138 +27,43 @@ func NewGameProtocol() *PU_GameProtocol {
 	return &PU_GameProtocol{}
 }
 
-func (p *PU_GameProtocol) ProcessPacket(_packet *punet.Packet) {
-	header := _packet.ReadUint8()
-	switch header {
+func (p *PU_GameProtocol) ProcessMessage(_message *punet.Message) {
+	switch _message.Header {
 		case punet.HEADER_PING:
-			p.ReceivePing()
+			p.Receive_Ping()
 			
 		case punet.HEADER_LOGIN:
-			p.ReceiveLoginStatus(_packet)
+			p.Receive_LoginStatus(_message)
 			
 		case punet.HEADER_IDENTITY:
-			NewIdentityMessage(_packet)
+			p.Receive_PlayerData(_message)
 			
 		case punet.HEADER_TILES:
-			NewTilesMessage(_packet)
+			p.Receive_Tiles(_message)
 			
-		//Headers that are not punet constants are headers that might change.
-		//Currently they are used to make the client compatible with the 
-		//old puserver.
-		case 0xB1:
-			NewCreatureMoveMessage(_packet)
-	
-		case 0xB2:
-			if g_game.self != nil {
-				g_game.self.CancelWalk()
-			}
+		case punet.HEADER_ADDCREATURE:
+			p.Receive_AddCreature(_message)
 			
-		case 0xB3:
-			NewWarpMessage(_packet)
+		case punet.HEADER_REMOVECREATURE:
+			p.Receive_RemoveCreature(_message)
 			
-		case 0xB4:
-			NewCreatureTurnMessage(_packet)
+		case punet.HEADER_WALK:
+			p.Receive_CreatureWalk(_message)
 			
-		case 0xC2:
-			NewAddPlayerMessage(_packet)
+		case punet.HEADER_TURN:
+			p.Receive_CreatureTurn(_message)
 			
-		case 0xC3:
-			NewRemoveCreatureMessage(_packet)
+		case punet.HEADER_WARP:
+			p.Receive_Warp(_message)
 			
-		case 0x03:
-			p.ReceiveTilesRefreshed()
-			
-		case 0x10:
-			NewReceiveChatMessage(_packet)
-			
-		case 0x20:
-			NewReceiveDialogueMessage(_packet)
-			
-		case 0xD0:
-			NewBattleMessage(_packet)
-			
-		case 0xD1:
-			NewReceivePokemonMessage(_packet)
-			
-		case 0xDE:
-			NewBattleEventMessage(_packet)
+		case punet.HEADER_REFRESHCOMPLETE:
+			p.Receive_TilesRefreshed()
 	}
 }
 
-func (p *PU_GameProtocol) ReceivePing() {
-	message := NewPingMessage()
-	g_conn.SendMessage(message)
-}
-
-func (p *PU_GameProtocol) ReceiveLoginStatus(_packet *punet.Packet) {
-	g_conn.loginStatus = int(_packet.ReadUint8())
-}
-
-func (p *PU_GameProtocol) ReceiveTilesRefreshed() {
-	g_game.state = GAMESTATE_WORLD
+func (p *PU_GameProtocol) ProcessPacket(_packet *punet.Packet) {
 }
 
 func (p *PU_GameProtocol) SendLogin(_username string, _password string) {
-	message := NewLoginMessage()
-	message.username = _username
-	message.password = _password
-	message.version = CLIENT_VERSION
-	g_conn.SendMessage(message)
-} 
-
-func (p *PU_GameProtocol) SendRequestLoginPackets() {
-	message := NewLoginRequestMessage()
-	g_conn.SendMessage(message)
-}
-
-func (p *PU_GameProtocol) SendRefreshPokemon() {
-	message := NewRefreshPokemonMessage()
-	g_conn.SendMessage(message)
-}
-
-func (p *PU_GameProtocol) SendMove(_direction int, _requestTiles bool) {
-	message := NewMoveMessage()
-	message.direction = _direction
-	message.requestTiles = _requestTiles
-	g_conn.SendMessage(message)
-}
-
-func (p *PU_GameProtocol) SendTurn(_direction int) {
-	message := NewTurnMessage()
-	message.direction = _direction
-	g_conn.SendMessage(message)
-}
-
-func (p *PU_GameProtocol) SendChat(_speaktype int, _channel int, _message string) {
-	message := NewSendChatMessage()
-	message.speaktype = _speaktype
-	message.channel = _channel
-	message.message = _message
-	g_conn.SendMessage(message)
-}
-
-func (p *PU_GameProtocol) SendSlotChange(_oldSlot int, _newSlot int) {
-	message := NewSlotChangeMessage()
-	message.oldSlot = _oldSlot
-	message.newSlot = _newSlot
-	g_conn.SendMessage(message)
-}
-
-func (p *PU_GameProtocol) SendDialogueAnswer(_answer int) {
-	message := NewDialogueAnswerMessage()
-	message.answer = _answer
-	g_conn.SendMessage(message)
-}
-
-func (p *PU_GameProtocol) SendActionPress() {
-	message := NewActionPressMessage()
-	g_conn.SendMessage(message)
-}
-
-func (p *PU_GameProtocol) SendBattleMove(_movetype int, _param1 int, _param2 int) {
-	message := NewBattleMoveMessage()
-	message.movetype = _movetype
-	message.param1 = _param1
-	message.param2 = _param2
-	g_conn.SendMessage(message)
+	p.Send_Login(_username, _password)
 }

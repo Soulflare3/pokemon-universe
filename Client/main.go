@@ -89,8 +89,8 @@ func main() {
 		//Give the CPU some time to do other stuff
 		sdl.Delay(1)
 		
-		//Handle a network packet
-		g_conn.HandlePacket()
+		//Handle a network message
+		g_conn.HandleMessage()
 		
 		//Handle a battle event
 		if g_game.state == GAMESTATE_BATTLE {

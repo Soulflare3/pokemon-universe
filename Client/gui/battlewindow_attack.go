@@ -182,7 +182,7 @@ func (g *PU_BattleWindow_Attack) MouseUp(_x int, _y int) {
 				if _y >= curY && _y <= curY+79 {
 					if g_game.battle.self.pokemon.attacks[i] != nil {
 						g.value = i
-						g_conn.Game().SendBattleMove(MOVE_ATTACK, i, 0)
+						//g_conn.Game().SendBattleMove(MOVE_ATTACK, i, 0)
 						g_game.panel.battleUI.ChooseMove(g.windowtype, i)
 						g_game.panel.battleUI.CloseWindow()
 					}

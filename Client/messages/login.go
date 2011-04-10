@@ -18,43 +18,21 @@ package main
 
 import (
 	punet "network"
-	"os"
 )
 
-type PU_Message_Login struct {
-	username string
-	password string
-	version uint16
+func (p *PU_GameProtocol) Send_Login(_username string, _password string) {
+	message := punet.NewMessage(punet.HEADER_LOGIN)
+	message.Login.Username = _username
+	message.Login.Password = _password
+	message.Login.Version = CLIENT_VERSION
+	g_conn.SendMessage(message)
 }
 
-func NewLoginMessage() *PU_Message_Login {
-	return &PU_Message_Login{}
+func (p *PU_GameProtocol) Send_RequestLoginPackets() {
+	message := punet.NewMessage(punet.HEADER_LOGIN)
+	g_conn.SendMessage(message)
 }
 
-func NewLoginMessageExt(_username string, _password string, _version uint16) *PU_Message_Login {
-	return &PU_Message_Login{username : _username,
-							password : _password,
-							version : _version}
-}
-
-func (m *PU_Message_Login) WritePacket() (*punet.Packet, os.Error) {
-	packet := punet.NewPacketExt(punet.HEADER_LOGIN)
-	packet.AddString(m.username)
-	packet.AddString(m.password)
-	packet.AddUint16(m.version)
-	return packet, nil
-}
-
-//This message requests tiles and the player's identify from the server after logging in
-type PU_Message_LoginRequest struct {
-}
-
-func NewLoginRequestMessage() *PU_Message_LoginRequest {
-	return &PU_Message_LoginRequest{}
-}
-
-func (m *PU_Message_LoginRequest) WritePacket() (*punet.Packet, os.Error) {
-	packet := punet.NewPacket()
-	packet.AddUint8(punet.HEADER_LOGIN)
-	return packet, nil
+func (p *PU_GameProtocol) Receive_LoginStatus(_message *punet.Message) {
+	g_conn.loginStatus = _message.LoginStatus.Status
 }

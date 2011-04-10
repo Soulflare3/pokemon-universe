@@ -175,7 +175,7 @@ func DoLogin(_username string, _password string) bool {
 	
 	//the following part is only temporary until the loginserver is ready to be used
 	g_loginControls.txtStatus.text = "Loading gameworld..."
-	g_conn.Game().SendRequestLoginPackets()
+	g_conn.Game().Send_RequestLoginPackets()
 	
 	timeout = 0
 	for g_conn.loginStatus != LOGINSTATUS_READY {
@@ -188,7 +188,7 @@ func DoLogin(_username string, _password string) bool {
 		}
 	}
 	
-	g_conn.Game().SendRefreshPokemon()
+	//g_conn.Game().SendRefreshPokemon()
 	g_game.panel = NewGamePanel()
 	g_game.CreateChat()
 	g_game.state = GAMESTATE_WORLD

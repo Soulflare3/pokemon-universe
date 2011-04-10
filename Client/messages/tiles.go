@@ -18,65 +18,32 @@ package main
 
 import (
 	punet "network"
-	"os"
 )
 
-type PU_Message_Tiles struct {
-}
-
-func NewTilesMessage(_packet *punet.Packet) *PU_Message_Tiles {
-	msg := &PU_Message_Tiles{}
-	msg.ReadPacket(_packet)
-	return msg
-}
-
-func (m *PU_Message_Tiles) ReadPacket(_packet *punet.Packet) os.Error {
-	tileCount := int(_packet.ReadUint16())
-	if tileCount > 0 {
-		for i := 0; i < tileCount; i++ {
-			m.ProcessTile(_packet)
-		}
-	}
-	return nil
-}
-
-func (m *PU_Message_Tiles) ProcessTile(_packet *punet.Packet) {
-	tileExists := true
-	tileMovement := TILE_WALK
-	layers := [3]int{-1,-1,-1}
-	
-	x := int16(_packet.ReadUint16())
-	y := int16(_packet.ReadUint16())
-	
-	tile := g_map.GetTile(int(x), int(y))
-	if tile == nil {
-		tileExists = false
-	}	
-	
-	numLayers := int(_packet.ReadUint16())
-	for i := 0; i < numLayers; i++ {
-		layer := _packet.ReadUint16()
-		id := _packet.ReadUint32()
-		movement := _packet.ReadUint16()
+func (p *PU_GameProtocol) Receive_Tiles(_message *punet.Message) {
+	data := _message.Tiles
+	for _, t := range data.Tiles {	
+		x := t.X
+		y := t.Y
 		
-		layers[layer] = int(id)
-		
-		if layer == 1 {
-			tileMovement = int(movement)
-		}
-	}
-	
-	if !tileExists {
-		tile = g_map.AddTile(int(x), int(y))
-		tile.movement = tileMovement
-		
-		for i := 0; i < 3; i++ {
-			if layers[i] != -1 {
-				tile.AddLayer(i, layers[i])
+		tile := g_map.GetTile(x, y)
+		if tile == nil {
+			tile = g_map.AddTile(x, y)
+			tile.movement = t.Blocking
+			
+			for _, l := range t.Layers {			
+				tile.AddLayer(l.Index, l.Sprite)
 			}
+			
+			return
 		}
-	} else {
-		signature := uint64(tileMovement)
+		//else
+
+		layers := [3]int{-1,-1,-1}
+		for _, l := range t.Layers {			
+			layers[l.Index] = l.Sprite
+		}
+		signature := uint64(t.Blocking)
 		shift := uint16(16)
 		for i := 0; i < 3; i++ {
 			if layers[i] != -1 {
@@ -88,7 +55,7 @@ func (m *PU_Message_Tiles) ProcessTile(_packet *punet.Packet) {
 		//we don't want to remove/add all layers of a tile each time we receive it
 		//only when something is different
 		if tile.GetSignature() != signature {
-			tile.movement = tileMovement
+			tile.movement = t.Blocking
 			for i := 0; i < 3; i ++ {
 				tile.RemoveLayer(i)
 				if layers[i] != -1 {
@@ -97,7 +64,4 @@ func (m *PU_Message_Tiles) ProcessTile(_packet *punet.Packet) {
 			}
 		}
 	}
-	
-	_packet.ReadUint16() //town id 
-	_packet.ReadString() //town name
 }

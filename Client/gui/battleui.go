@@ -117,7 +117,7 @@ func (g *PU_BattleUI) OpenWindow(_windowtype int) {
 func (g *PU_BattleUI) CloseWindow() {
 	if g.window != nil {
 		if g.window.GetType() == BATTLEWINDOW_POKEMON && (g.moveState == BATTLEUI_CHOOSEPOKEMON_ITEM || g.moveState == BATTLEUI_CHOOSEATTACK_ITEM) {
-			g_conn.Game().SendBattleMove(MOVE_ANSWER, -1, 0)
+			//g_conn.Game().SendBattleMove(MOVE_ANSWER, -1, 0)
 		} else if g.window.GetType() == BATTLEWINDOW_POKEMON && g.moveState == BATTLEUI_CHOOSEPOKEMON {
 			return //new pokemon MUST be chosen
 		}
