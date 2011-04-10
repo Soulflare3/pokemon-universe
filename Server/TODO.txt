@@ -1,9 +1,0 @@
-===== PU SERVER TO-DO =====
- * Player login
-   - Load/send items
-   - Load/send pokemon
-
- * NPC
-   - Loading
-   
- * Battle
