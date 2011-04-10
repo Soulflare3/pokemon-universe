@@ -56,7 +56,7 @@ func (p *QTPacket) GetHeader() uint16 {
 }
 
 func (p *QTPacket) SetHeader() {
-	p.Buffer[0] = uint8(p.MsgSize << 8)
+	p.Buffer[0] = uint8(p.MsgSize >> 8)
 	p.Buffer[1] = uint8(p.MsgSize)
 	p.MsgSize += 2
 }
