@@ -21,8 +21,8 @@ package network
 // Server -> Client
 
 type BodyPart struct {
-	id int
-	color uint32
+	ID int
+	Color uint32
 }
 
 //Add creature (HEADER_ADDCREATURE)
