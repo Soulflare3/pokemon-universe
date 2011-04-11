@@ -60,10 +60,14 @@ func NewData_Tiles() (msg *Message) {
 	return
 }
 
-func (d *Data_Tiles) AddTile(_x int, _y int, _blocking int) {
+func (d *Data_Tiles) AddNewTile(_x int, _y int, _blocking int) {
 	tile := NewTile()
 	tile.X 			= _x
 	tile.Y 			= _y
 	tile.Blocking 	= _blocking
 	d.Tiles = append(d.Tiles, tile)
+}
+
+func (d *Data_Tiles) AddTile(_tile *Tile) {
+	d.Tiles = append(d.Tiles, _tile)
 }

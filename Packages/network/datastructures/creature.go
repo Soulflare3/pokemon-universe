@@ -25,6 +25,10 @@ type BodyPart struct {
 	Color uint32
 }
 
+func NewBodyPart(_id int, _color uint32) *BodyPart {
+	return &BodyPart{ID : _id, Color : _color}
+}
+
 //Add creature (HEADER_ADDCREATURE)
 type Data_AddCreature struct {
 	UID 		uint64
