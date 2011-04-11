@@ -82,7 +82,6 @@ func main() {
 			}
 		}
 
-		
 		//Render everything on screen
 		Draw()
 		

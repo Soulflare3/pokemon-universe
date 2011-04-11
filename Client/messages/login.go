@@ -21,7 +21,7 @@ import (
 )
 
 func (p *PU_GameProtocol) Send_Login(_username string, _password string) {
-	message := punet.NewMessage(punet.HEADER_LOGIN)
+	message := punet.NewData_Login()
 	message.Login.Username = _username
 	message.Login.Password = _password
 	message.Login.Version = CLIENT_VERSION

@@ -134,36 +134,36 @@ func (p *Player) RemoveVisibleCreature(_creature ICreature) {
 // ------------------------------------------------------ //
 func (p *Player) sendMapData(_dir int) {
 	if p.Conn != nil {
-		p.Conn.SendMapData(_dir, p.GetPosition())
+		p.Conn.Send_Tiles(_dir, p.GetPosition())
 	}
 }
 
 func (p *Player) sendCreatureMove(_creature ICreature, _from, _to *Tile) {
 	if p.Conn != nil {
-		p.Conn.SendCreatureMove(_creature, _from, _to)
+		p.Conn.Send_CreatureWalk(_creature, _from, _to)
 	}
 }
 
 func (p *Player) sendCreatureTurn(_creature ICreature) {
 	if p.Conn != nil {
-		p.Conn.SendCreatureTurn(_creature)
+		p.Conn.Send_CreatureTurn(_creature, p.GetDirection())
 	}
 }
 
 func (p *Player) sendCreatureAdd(_creature ICreature) {
 	if p.Conn != nil {
-		p.Conn.SendCreatureAdd(_creature)
+		p.Conn.Send_CreatureAdd(_creature)
 	}
 }
 
 func (p *Player) sendCreatureRemove(_creature ICreature) {
 	if p.Conn != nil {
-		p.Conn.SendCreatureRemove(_creature)
+		p.Conn.Send_CreatureRemove(_creature)
 	}
 }
 
 func (p *Player) sendPlayerWarp() {
 	if p.Conn != nil {
-		p.Conn.SendPlayerWarp(p.GetPosition())
+		p.Conn.Send_PlayerWarp(p.GetPosition())
 	}
 }

@@ -71,27 +71,8 @@ func (s *Server) Start() {
 			continue
 		}
 		
-		var headerbuffer [2]uint8
-		recv, err := clientsock.Read(headerbuffer[0:])
-		if (err != nil) || (recv == 0) {
-			g_logger.Printf("[Warning] Could not read packet header: %v\n\r", err)
-			continue
-		}
-		// Create new packet
-		packet := pnet.NewPacket()
-		copy(packet.Buffer[0:2], headerbuffer[0:2]) // Write header buffer to packet
-		packet.GetHeader()
-		
-		databuffer := make([]uint8, packet.MsgSize)
-		recv, err = clientsock.Read(databuffer[0:])
-		if recv == 0 || err != nil {	
-			g_logger.Printf("[Warning] Server connection read error: %v\n\r", err)
-			continue
-		}
-		copy(packet.Buffer[2:], databuffer[:]) // Write rest of the received data to packet
-		
 		// Read and execute the first received packet
-		s.parseFirstMessage(clientsock, packet)
+		s.parseFirstMessage(clientsock)
 	}
 }
 
@@ -119,6 +100,7 @@ func (s *Server) timeoutLoop() {
 		defer g_game.mutexPlayerList.RUnlock()
 		for _, player := range(g_game.Players) {
 			if player.Conn != nil {
+				player.Conn.Send_Ping()
 				if player.GetTimeSinceLastMove() > 9e5 { // (900000sec / 15 min)
 					go g_game.OnPlayerLoseConnection(player)
 				}
@@ -130,42 +112,48 @@ func (s *Server) timeoutLoop() {
 	go s.timeoutLoop()
 }
 
-func (s *Server) parseFirstMessage(conn net.Conn, packet *pnet.Packet) {
-	// Read packet header
-	header := packet.ReadUint8()
-	if header != pnet.HEADER_LOGIN {
+func (s *Server) parseFirstMessage(conn net.Conn) {
+	// Make new Connection object to hold net.Conn
+	connection := NewConnection(conn)
+	var message *pnet.Message
+	var err string
+	if message, err = connection.Tranceiver.Receive(); err != "" {
+		fmt.Printf("Error receiving first message: %s\n", err)
 		return
 	}
 	
-	// Make new Connection object to hold net.Conn
-	connection := NewConnection(conn)
+	// Read message header
+	if message.Header != pnet.HEADER_LOGIN {
+		return
+	}
 	
-	// Parse packet
-	// We can use the same packet for sending the return status
-	firstMessage := &LoginMessage{}
-	firstMessage.ReadPacket(packet)
+	//Get the login data
+	loginMessage := message.Login
+	
+	//Create the login status message
+	statusMessage := pnet.NewData_LoginStatus()
 		
 	if g_game.State == GAME_STATE_CLOSING || g_game.State == GAME_STATE_CLOSED {
-		firstMessage.Status = LOGINSTATUS_SERVERCLOSED
-	} else if firstMessage.ClientVersion < s.ClientVersion {
-		firstMessage.Status = LOGINSTATUS_WRONGVERSION
+		statusMessage.LoginStatus.Status = LOGINSTATUS_SERVERCLOSED
+	} else if loginMessage.Version < s.ClientVersion {
+		statusMessage.LoginStatus.Status = LOGINSTATUS_WRONGVERSION
 	} else {
 		// Load account info
-		ret := CheckAccountInfo(firstMessage.Username, firstMessage.Password)
+		ret := CheckAccountInfo(loginMessage.Username, loginMessage.Password)
 		if !ret {
-			firstMessage.Status = LOGINSTATUS_WRONGACCOUNT
+			statusMessage.LoginStatus.Status = LOGINSTATUS_WRONGACCOUNT
 		} else { 
 			// Account exists and password is correct
-			ret, player := LoadPlayerProfile(firstMessage.Username)
+			ret, player := LoadPlayerProfile(loginMessage.Username)
 			
 			if !ret || player == nil {
-				firstMessage.Status = LOGINSTATUS_FAILPROFILELOAD
-				g_logger.Printf("[Login] Failed to load profile for %v", firstMessage.Username)
+				statusMessage.LoginStatus.Status = LOGINSTATUS_FAILPROFILELOAD
+				g_logger.Printf("[Login] Failed to load profile for %v", loginMessage.Username)
 			} else if player.Conn != nil {
-				firstMessage.Status = LOGINSTATUS_ALREADYLOGGEDIN
+				statusMessage.LoginStatus.Status = LOGINSTATUS_ALREADYLOGGEDIN
 				fmt.Println("Already logged in")
 			} else {
-				firstMessage.Status = LOGINSTATUS_READY
+				statusMessage.LoginStatus.Status = LOGINSTATUS_READY
 				g_logger.Printf("[Login] %d - %v logged in", player.GetUID(), player.GetName())
 				// Assign Connection to Player object
 				player.SetConnection(connection)
@@ -173,5 +161,5 @@ func (s *Server) parseFirstMessage(conn net.Conn, packet *pnet.Packet) {
 		}
 	}
 	
-	connection.SendMessage(firstMessage)
+	connection.SendMessage(statusMessage)
 }

@@ -18,11 +18,12 @@ package main
 
 type OutfitPart int
 const (
-	OUTFIT_HEAD OutfitPart = iota
-	OUTFIT_NEK
+	OUTFIT_BASE OutfitPart = iota
 	OUTFIT_UPPER
-	OUTFIT_LOWER
+	OUTFIT_NEK
+	OUTFIT_HEAD 
 	OUTFIT_FEET 
+	OUTFIT_LOWER
 )
 
 type Outfit struct {
@@ -30,7 +31,7 @@ type Outfit struct {
 }
 
 func NewOutfit() Outfit {
-	return Outfit { data: make([]int, 5) }
+	return Outfit { data: make([]int, 6) }
 }
 
 func NewOutfitExt(_head, _nek, _upper, _lower, _feet int) Outfit {

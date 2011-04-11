@@ -14,25 +14,21 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
-package network
-//Datastructures to be sent between server and client
+package main
 
-//===============================================
-// Server -> Client
+import (
+	pnet "network"
+)
 
-//The data of the player that this message is sent to (HEADER_IDENTITY)
-type Data_PlayerData struct {
-	UID			uint64
-	Name		string
-	X			int
-	Y			int
-	Direction	int
-	Money		int
-	Outfit		[6]*BodyPart
+func (c *Connection) Send_CreatureTurn(_creature ICreature, _dir int) {
+	msg := pnet.NewData_CreatureTurn()
+	msg.CreatureTurn.UID		= _creature.GetUID()
+	msg.CreatureTurn.Direction	= _dir
+	c.SendMessage(msg)
 }
 
-func NewData_PlayerData() (msg *Message) {
-	msg = NewMessage(HEADER_IDENTITY)
-	msg.PlayerData = &Data_PlayerData{}
-	return
+func (c *Connection) Receive_Turn(_message *pnet.Message) {
+	data := _message.Turn
+	g_game.OnPlayerTurn(c.Owner, data.Direction)
 }
+

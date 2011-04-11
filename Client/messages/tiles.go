@@ -35,7 +35,7 @@ func (p *PU_GameProtocol) Receive_Tiles(_message *punet.Message) {
 				tile.AddLayer(l.Index, l.Sprite)
 			}
 			
-			return
+			continue
 		}
 		//else
 

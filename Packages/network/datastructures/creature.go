@@ -36,7 +36,7 @@ type Data_AddCreature struct {
 	X			int
 	Y			int
 	Direction	int
-	Outfit		[5]*BodyPart
+	Outfit		[6]*BodyPart
 }
 
 func NewData_AddCreature() (msg *Message) {
