@@ -73,6 +73,7 @@ func (p *Player) SetMoney(_money int) int {
 func (p *Player) OnCreatureMove(_creature ICreature, _from *Tile, _to *Tile, _teleport bool) {
 	if _creature.GetUID() == p.GetUID() {
 		p.lastStep = PUSYS_TIME()
+		return
 	}
 	
 	canSeeFromTile	:= CanSeePosition(p.GetPosition(), _from.Position)
