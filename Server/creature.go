@@ -106,7 +106,7 @@ type Creature struct {
 	Direction		int
 	
 	Movement		int
-	lastStep		int
+	lastStep		int64
 	moveSpeed		int
 	
 	Outfit
@@ -155,7 +155,7 @@ func (c *Creature) GetMovementSpeed() int {
 }
 
 func (c *Creature) GetTimeSinceLastMove() int {
-	return PUSYS_TIME() - c.lastStep
+	return int(PUSYS_TIME() - c.lastStep)
 }
 
 func (c *Creature) KnowsVisibleCreature(_creature ICreature) (found bool) {
