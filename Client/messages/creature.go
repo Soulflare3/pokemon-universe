@@ -18,6 +18,7 @@ package main
 
 import (
 	punet "network"
+	"fmt"
 )
 
 func (p *PU_GameProtocol) Receive_AddCreature(_message *punet.Message) {
@@ -36,6 +37,8 @@ func (p *PU_GameProtocol) Receive_AddCreature(_message *punet.Message) {
 		blue := uint8(color)
 		player.bodyParts[part].SetColor(int(red), int(green), int(blue))
 	}
+	
+	fmt.Printf("%v\n", player)
 	
 	g_map.AddCreature(player)
 }

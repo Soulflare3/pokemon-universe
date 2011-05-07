@@ -35,18 +35,18 @@ type IProtocol interface {
 }
 
 type PU_Connection struct {
-	socket net.Conn
-	msgChan chan *punet.Message
-	tranceiver *punet.Tranceiver
-	protocol IProtocol
+	socket      net.Conn
+	msgChan     chan *punet.Message
+	tranceiver  *punet.Tranceiver
+	protocol    IProtocol
 	loginStatus int
-	connected bool
+	connected   bool
 }
 
 func NewConnection() *PU_Connection {
-	return &PU_Connection{msgChan : make(chan *punet.Message, MESSAGE_BUFFERSIZE),
-						  protocol : NewGameProtocol(),
-						  loginStatus : LOGINSTATUS_IDLE}
+	return &PU_Connection{msgChan: make(chan *punet.Message, MESSAGE_BUFFERSIZE),
+		protocol:    NewGameProtocol(),
+		loginStatus: LOGINSTATUS_IDLE}
 }
 
 func (c *PU_Connection) Connect() bool {
@@ -54,18 +54,18 @@ func (c *PU_Connection) Connect() bool {
 	//ip := "94.75.231.83" //arceus
 	ip := "127.0.0.1"
 	port := "1337"
-	
+
 	var err os.Error
-	c.socket, err = net.Dial("tcp", "", ip+":"+port)
+	c.socket, err = net.Dial("tcp", ip+":"+port)
 	if err != nil {
 		fmt.Printf("Connection error: %v\n", err.String())
 		return false
 	}
-	
+
 	c.connected = true
 	c.tranceiver = punet.NewTranceiver(c.socket)
 	go c.ReceiveMessages()
-	
+
 	return true
 }
 
@@ -77,37 +77,37 @@ func (c *PU_Connection) Close() {
 }
 
 func (c *PU_Connection) ReceiveMessages() {
-  for c.connected {
-	if message, err := c.tranceiver.Receive(); err != "" {
-		fmt.Printf("Error receiving message: %s\n", err)
-		break
-	} else {    
-		select {
-		  case c.msgChan <- message:
-			//great success
+	for c.connected {
+		if message, err := c.tranceiver.Receive(); err != "" {
+			fmt.Printf("Error receiving message: %s\n", err)
+			break
+		} else {
+			select {
+			case c.msgChan <- message:
+				//great success
 
-		  default:
-			fmt.Printf("Error: Message buffer full\n")
+			default:
+				fmt.Printf("Error: Message buffer full\n")
+			}
 		}
 	}
-  }
 }
 
 func (c *PU_Connection) HandleMessage() {
 	if !c.connected {
 		return
 	}
-	
+
 	//check if there's a message in the buffer and process it
 	//repeat until buffer is empty
 	for {
 		var breakloop bool
 		select {
-			case message := <- c.msgChan:
-				c.protocol.ProcessMessage(message)
-				
-			default:
-				breakloop = true
+		case message := <-c.msgChan:
+			c.protocol.ProcessMessage(message)
+
+		default:
+			breakloop = true
 		}
 		if breakloop {
 			break
