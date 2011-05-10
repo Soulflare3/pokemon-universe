@@ -26,6 +26,8 @@ const (
 	BATTLESERVER_IP = "127.0.0.1:5080"
 )
 
+var g_PokemonInfo *PokemonInfo
+
 func createTempData() {
 
 }
@@ -33,6 +35,8 @@ func createTempData() {
 func main() {
 	// Use all cpu cores
 	runtime.GOMAXPROCS(2)
+	
+	g_PokemonInfo = NewPokemonInfo()
 
 	fmt.Println("***********************************************")
 	fmt.Println("**      Pokemon Universe Battle Client       **")

@@ -123,7 +123,6 @@ func (c *PONetwork) ProcessPacket(_packet *pnet.QTPacket) {
 /*******************************************************/
 
 func (c *PONetwork) ReceiveLogin(_packet *pnet.QTPacket) {
-	fmt.Println("<- Receive Login")
 	playerInfo := NewPlayerInfo()
 	playerInfo.id = int32(_packet.ReadUint32())
 	
@@ -156,14 +155,17 @@ func (c *PONetwork) ReceivedMessage(_packet *pnet.QTPacket) {
 func (c *PONetwork) ReceiveBattleMessage(_packet *pnet.QTPacket) {
 	battleId := int32(_packet.ReadUint32())
 	_packet.ReadUint32() // Dummy var, without this everything goes wrong >.>
+	// fmt.Printf("Battle id: %d | Dummy: %d | Peek: %d\n", battleId, dummy, commandPeek)
 	c.owner.BattleCommand(battleId, _packet)
 }
 
 func (c *PONetwork) ReceivePlayersList(_packet *pnet.QTPacket) {
-	fmt.Println("<- Receive PlayersList")
 	for _packet.CanRead() {
 		playerInfo := NewPlayerInfo()
 		playerInfo.id = int32(_packet.ReadUint32())
+		if playerInfo.id == 0 {
+			break
+		}
 		
 		basicInfo := NewBasicInfo()
 		basicInfo.name = _packet.ReadString()

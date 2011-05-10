@@ -18,6 +18,7 @@ package main
 
 import (
 	"os"
+	"fmt"
 	pnet "network"
 )
 
@@ -28,7 +29,7 @@ type POClient struct {
 	myNick			string
 	
 	myNames			map[string]int32
-	myPlayersInfo	map[int32]*PlayerInfo
+	myPlayersInfo	map[int32]*PlayerInfo // List of all players on the server
 	myBattles		map[int32]*Battle
 }
 
@@ -58,9 +59,9 @@ func (c *POClient) SendLoginInfo() {
 	packet.AddUint8(5) // Generation
 	
 	// TEAM - Loop Pokemon
-	packet.AddUint16(3) // pokemon number
+	packet.AddUint16(16) // pokemon number
 	packet.AddUint8(0) // sub number (alt-forms)
-	packet.AddString("Venusaur") // nickname
+	packet.AddString("Pidgey") // nickname
 	packet.AddUint16(0) // item
 	packet.AddUint16(65) // ability
 	packet.AddUint8(0) // nature
@@ -70,7 +71,7 @@ func (c *POClient) SendLoginInfo() {
 	packet.AddUint8(50) // level
 
 	// Team - Loop Pokemon - Loop Moves
-	packet.AddUint32(331) // moveid
+	packet.AddUint32(16) // moveid
 	packet.AddUint32(0) // moveid
 	packet.AddUint32(0) // moveid
 	packet.AddUint32(0) // moveid
@@ -134,6 +135,8 @@ func (c *POClient) SendLoginInfo() {
 }
 
 func (c *POClient) PlayerLogin(_p *PlayerInfo) {
+	fmt.Printf("Received login %v (%d)\n", _p.team.name, _p.id)
+
 	c.mid = _p.id
 	c.myNick = _p.team.name
 	c.myPlayersInfo[_p.id] = _p
@@ -147,6 +150,7 @@ func (c *POClient) PlayerReceived(_p *PlayerInfo) {
 		}
 	}
 	
+	fmt.Printf("Received player %v (%d)\n", _p.team.name, _p.id)
 	c.myPlayersInfo[_p.id] = _p
 	c.myNames[_p.team.name] = _p.id
 }
@@ -157,13 +161,10 @@ func (c *POClient) GetPlayer(_id int32) (value *PlayerInfo, found bool) {
 }
 
 func (c *POClient) ChallengeStuff(_info *ChallengeInfo) {
-	println("Received a challenge! " + string(_info.description))
+	fmt.Printf("Received a challenge! %v Opp: %d\n", _info.description, _info.opponent)
 	if(_info.description == ChallengeDesc_Sent) { // We are being challenged
-		println("Received a challenge!")
-		//acceptInfo := NewChallengeInfo()
-		_info.description = ChallengeDesc_Accepted // Auto accept
-		//acceptInfo.opponent = c.battleId
-		
+		println("Received a challenge! Auto-accept")
+		_info.description = ChallengeDesc_Accepted // Auto accept	
 		c.connection.SendChallengeStuff(_info )
 	} else { // We challenged someone else (reply)
 	

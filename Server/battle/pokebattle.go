@@ -2,11 +2,12 @@ package main
 
 import (
 	pnet "network"
+	"fmt"
 )
 
 type PokeBattle struct {
 	nick			string
-	num				*PokemonUniqueId
+	num				PokemonUniqueId
 	
 	dvs				[]uint8
 	evs				[]uint8
@@ -39,16 +40,23 @@ func NewPokeBattle() *PokeBattle {
 
 func NewPokeBattleFromPacket(_packet *pnet.QTPacket) *PokeBattle {
 	poke := NewPokeBattle()
-	poke.num = NewPokemonUniqueIdFromRef(_packet.ReadUint32())
+
+	pokeNum := _packet.ReadUint16()
+	// subNum := _packet.ReadUint8()
+	// derp := _packet.ReadUint8()
 	
-	if poke.num.pokenum > 0 && poke.num.subnum >= 0 {
+	poke.num = NewPokemonUniqueIdFromRef(uint32(pokeNum))
+//	if poke.num.pokenum > 0 && poke.num.subnum >= 0 {
 		poke.nick = _packet.ReadString()
 		poke.lifePercent = _packet.ReadUint8()
 		poke.fullStatus = _packet.ReadUint32()
 		poke.gender = _packet.ReadUint8()
 		poke.shiny = (_packet.ReadUint8() == 1) 
 		poke.level = _packet.ReadUint8()
-	}
+//	}
+	
+	fmt.Printf("POKEBATTLE - pokeNum: %d | subNum %d | %d | %d\n", pokeNum, 0, 0, poke.level)
+	
 	return poke	
 }
 

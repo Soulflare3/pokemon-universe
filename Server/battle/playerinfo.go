@@ -12,7 +12,7 @@ type PlayerInfo struct {
 	auth	int8
 	flags	uint8
 	rating	int16
-	pokes	[]*PokemonUniqueId
+	pokes	[]PokemonUniqueId
 	avatar	uint16
 	tier	string
 	color	uint32
@@ -20,5 +20,5 @@ type PlayerInfo struct {
 }
 
 func NewPlayerInfo() *PlayerInfo {
-	return &PlayerInfo{ pokes: make([]*PokemonUniqueId, 6) }
+	return &PlayerInfo{ pokes: make([]PokemonUniqueId, 6) }
 }

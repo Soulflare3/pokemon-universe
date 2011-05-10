@@ -71,7 +71,7 @@ func (b *Battle) Name(_spot int8) string {
 
 func (b *Battle) RNick(_player int8) string {
 	pokenum := b.info.CurrentShallow(_player).num
-	return g_PokemonInfo.Names[pokenum]
+	return g_PokemonInfo.GetPokemonName(pokenum)
 }
 
 func (b *Battle) ReceiveInfo(_packet *pnet.QTPacket) {
@@ -127,13 +127,13 @@ func (b *Battle) DealWithCommandInfo(_packet *pnet.QTPacket, _command uint8, _sp
 }
 
 func (b *Battle) CommandSendOut(_packet *pnet.QTPacket, spot int8) {
-	silent := (_packet.ReadUint8() == 1)
-	prevIndex := int8(_packet.ReadUint8())
+	silent := false // (_packet.ReadUint8() == 1)
+	prevIndex := 0 // int8(_packet.ReadUint8())
 	
 	b.info.sub[spot] = false
 	b.info.specialSprite[spot] = PokemonName_NoPoke
 	
-	b.info.SwitchPoke(spot, prevIndex)
+	b.info.SwitchPoke(spot, int8(prevIndex))
 	shallow := NewPokeBattleFromPacket(_packet)
 	b.info.SetCurrentShallow(spot, shallow)
 	b.info.pokeAlive[spot] = true
@@ -144,12 +144,12 @@ func (b *Battle) CommandSendOut(_packet *pnet.QTPacket, spot int8) {
 	// mydisplay->updatePoke(info().player(spot), prevIndex);
 	
 	if !silent {
-		pokename := g_PokemonInfo.Names[b.info.CurrentShallow(spot).num]
+		pokename := g_PokemonInfo.GetPokemonName(shallow.num)
 		othername := b.RNick(spot)
 		if pokename != othername {
-			fmt.Printf("%v sent out %v! (%3)", b.Name(b.info.Player(spot)), othername, pokename)
+			fmt.Printf("%v sent out %v! (%3)\n", b.Name(b.info.Player(spot)), othername, pokename)
 		} else {
-			fmt.Printf("%v sent out %v!", b.Name(b.info.Player(spot)), othername)
+			fmt.Printf("%v sent out %v!\n", b.Name(b.info.Player(spot)), pokename)
 		}
 	}
 }
@@ -218,7 +218,7 @@ func (b *Battle) CommandMakeYourChoice() {
 	b.info.possible = true
 	b.info.sent = true
 	
-	
+	fmt.Println("Make a choice...")
 }
 
 // -------------------------------------------------------------------------------- //
