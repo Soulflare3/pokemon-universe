@@ -108,6 +108,8 @@ func initDatabase() bool {
 		g_logger.Printf("[Error] Could not connect to database: %v\n\r", err)
 		return false
 	}
+	
+	g_db.Reconnect = true
 
 	return true
 }
