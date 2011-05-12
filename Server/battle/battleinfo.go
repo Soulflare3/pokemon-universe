@@ -21,11 +21,11 @@ type BattleInfo struct {
 	mystats		vector.Vector
 	tempPoke	vector.Vector
 	
-	lastMove	[]int
+	lastMove	[]int8
 }
 
 func NewBattleInfo(_team *TeamBattle, _me, _opp *PlayerInfo, _mode uint8, _my, _op int32) *BattleInfo {
-	base := &BattleInfo{lastMove: make([]int, 6) }
+	base := &BattleInfo{lastMove: make([]int8, 6) }
 	base.Init(_me, _opp, _mode, _my, _op)
 	
 	base.possible = false

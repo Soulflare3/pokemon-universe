@@ -110,7 +110,7 @@ func (c *PONetwork) ProcessPacket(_packet *pnet.QTPacket) {
 		case KeepAlive: // 12
 			c.KeepAlive()
 			
-		case BattleFinished: // 9
+//		case BattleFinished: // 9
 			// TODO
 			
 		default:
@@ -155,7 +155,6 @@ func (c *PONetwork) ReceivedMessage(_packet *pnet.QTPacket) {
 func (c *PONetwork) ReceiveBattleMessage(_packet *pnet.QTPacket) {
 	battleId := int32(_packet.ReadUint32())
 	_packet.ReadUint32() // Dummy var, without this everything goes wrong >.>
-	// fmt.Printf("Battle id: %d | Dummy: %d | Peek: %d\n", battleId, dummy, commandPeek)
 	c.owner.BattleCommand(battleId, _packet)
 }
 
@@ -280,5 +279,26 @@ func (c *PONetwork) SendChallengeStuff(_info *ChallengeInfo) {
 	packet.AddUint32(_info.clauses)
 	packet.AddUint8(_info.mode)
 	
+	c.SendMessage(packet)
+}
+
+func (c *PONetwork) SendBattleCommandBattleChoice(_battleId int32, _choice *BattleChoice) {
+	packet := pnet.NewQTPacketExt(BattleMessage)
+	packet.AddUint32(uint32(_battleId))
+	packet.AddUint8(_choice.playerSlot)
+	packet.AddUint8(_choice.choiceType)
+	
+	if _choice.choiceType == ChoiceType_Switch {
+		packet.AddUint8(uint8(_choice.choice.switching.pokeSlot))
+	} else if _choice.choiceType == ChoiceType_Attack {
+		packet.AddUint8(uint8(_choice.choice.attack.attackSlot))
+		packet.AddUint8(uint8(_choice.choice.attack.attackTarget))
+	} else if _choice.choiceType == ChoiceType_Rearrange {
+		for i := 0; i < 6; i++ {
+			packet.AddUint8(uint8(_choice.choice.rearrange.pokeIndexes[i]))
+		}
+	}
+	
+	fmt.Println("Network - SendBattleChoice()")
 	c.SendMessage(packet)
 }

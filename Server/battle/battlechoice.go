@@ -80,7 +80,7 @@ func (b *BattleChoices) Struggle() bool {
 }
 
 type BattleChoice struct {
-	choicetype	uint8
+	choiceType	uint8
 	playerSlot	uint8
 	choice		ChoiceUnion
 }
@@ -93,7 +93,7 @@ func NewBattleChoiceCancel(_slot uint8, _choice CancelChoice) *BattleChoice {
 	bc := NewBattleChoice()
 	bc.choice.cancel = _choice
 	bc.playerSlot = _slot
-	bc.choicetype = ChoiceType_Cancel
+	bc.choiceType = ChoiceType_Cancel
 	
 	return bc
 }
@@ -102,7 +102,7 @@ func NewBattleChoiceAttack(_slot uint8, _choice AttackChoice) *BattleChoice {
 	bc := NewBattleChoice()
 	bc.choice.attack = _choice
 	bc.playerSlot = _slot
-	bc.choicetype = ChoiceType_Attack
+	bc.choiceType = ChoiceType_Attack
 	
 	return bc
 }
@@ -111,7 +111,7 @@ func NewBattleChoiceSwitch(_slot uint8, _choice SwitchChoice) *BattleChoice {
 	bc := NewBattleChoice()
 	bc.choice.switching = _choice
 	bc.playerSlot = _slot
-	bc.choicetype = ChoiceType_Switch
+	bc.choiceType = ChoiceType_Switch
 	
 	return bc
 }
@@ -120,7 +120,7 @@ func NewBattleChoiceRearrange(_slot uint8, _choice RearrangeChoice) *BattleChoic
 	bc := NewBattleChoice()
 	bc.choice.rearrange = _choice
 	bc.playerSlot = _slot
-	bc.choicetype = ChoiceType_Rearrange
+	bc.choiceType = ChoiceType_Rearrange
 	
 	return bc
 }
@@ -129,27 +129,35 @@ func NewBattleChoiceMoveToCenter(_slot uint8, _choice MoveToCenterChoice) *Battl
 	bc := NewBattleChoice()
 	bc.choice.move = _choice
 	bc.playerSlot = _slot
-	bc.choicetype = ChoiceType_CenterMove
+	bc.choiceType = ChoiceType_CenterMove
 	
 	return bc
 }
 
 func (b *BattleChoice) SwitchChoice() bool {
-	return (b.choicetype == ChoiceType_Switch)
+	return (b.choiceType == ChoiceType_Switch)
 }
 
 func (b *BattleChoice) AttackingChoice() bool {
-	return (b.choicetype == ChoiceType_Attack)
+	return (b.choiceType == ChoiceType_Attack)
 }
 
 func (b *BattleChoice) MoveToCenterChoice() bool {
-	return (b.choicetype == ChoiceType_CenterMove)
+	return (b.choiceType == ChoiceType_CenterMove)
 }
 
 func (b *BattleChoice) Cancelled() bool {
-	return (b.choicetype == ChoiceType_Cancel)
+	return (b.choiceType == ChoiceType_Cancel)
 }
 
 func (b *BattleChoice) RearrangeChoice() bool {
-	return (b.choicetype == ChoiceType_Rearrange)
+	return (b.choiceType == ChoiceType_Rearrange)
+}
+
+func (b *BattleChoice) setTarget(_target int8) {
+	b.choice.attack.attackTarget = _target
+}
+
+func (b *BattleChoice) setAttackSlot(_slot int8) {
+	b.choice.attack.attackSlot = _slot
 }

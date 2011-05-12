@@ -18,11 +18,14 @@ type Battle struct {
 	info			*BattleInfo
 	conf			*BattleConfiguration
 	
+	owner	*POClient
+	
 	usePokemonNames	bool
 }
 
-func NewBattle(_battleId int32, _me *PlayerInfo, _opponent *PlayerInfo, _team *TeamBattle, _conf *BattleConfiguration) *Battle {
-	battle := &Battle{battleId: _battleId,
+func NewBattle(_owner *POClient, _battleId int32, _me *PlayerInfo, _opponent *PlayerInfo, _team *TeamBattle, _conf *BattleConfiguration) *Battle {
+	battle := &Battle{ owner: _owner,
+						battleId: _battleId,
 						id1: _me.id, 
 						id2: _opponent.id,
 						started: false,
@@ -91,7 +94,7 @@ func (b *Battle) ReceiveInfo(_packet *pnet.QTPacket) {
 	}
 		
 	command := uint8(_packet.ReadUint8())
-	player := int8(_packet.ReadUint32())
+	player := int8(_packet.ReadUint8())
 	
 	b.DealWithCommandInfo(_packet, command, player, player)
 }
@@ -107,7 +110,7 @@ func (b *Battle) DealWithCommandInfo(_packet *pnet.QTPacket, _command uint8, _sp
 		case BattleCommand_AbsStatusChange: // 25
 			b.CommandAbsStatusChange(_packet, _spot)	
 		case BattleCommand_BlankMessage: // 28
-			fmt.Println("[Blank Message]")
+			// fmt.Println("[Blank Message]")
 		case BattleCommand_DynamicInfo: // 31
 			b.CommandDynamicInfo(_packet, _spot)
 		case BattleCommand_DynamicStats: // 32
@@ -122,13 +125,13 @@ func (b *Battle) DealWithCommandInfo(_packet *pnet.QTPacket, _command uint8, _sp
 			tier := _packet.ReadString()
 			fmt.Printf("[TierSelection] Tier: %v\n", tier)
 		case BattleCommand_MakeYourChoice:
-			
+			b.CommandMakeYourChoice()
 	}
 }
 
 func (b *Battle) CommandSendOut(_packet *pnet.QTPacket, spot int8) {
-	silent := false // (_packet.ReadUint8() == 1)
-	prevIndex := 0 // int8(_packet.ReadUint8())
+	silent := (_packet.ReadUint8() == 1)
+	prevIndex := int8(_packet.ReadUint8())
 	
 	b.info.sub[spot] = false
 	b.info.specialSprite[spot] = PokemonName_NoPoke
@@ -155,6 +158,7 @@ func (b *Battle) CommandSendOut(_packet *pnet.QTPacket, spot int8) {
 }
 
 func (b *Battle) CommandOfferChoice(_packet *pnet.QTPacket) {
+	fmt.Println("BattleCommand - OfferChoice")
 	if b.info.sent {
 		b.info.sent = false
 		for i := 0; i < b.info.available.Len(); i++ {
@@ -178,9 +182,9 @@ func (b *Battle) CommandAbsStatusChange(_packet *pnet.QTPacket, spot int8) {
 	}
 	
 	if status != PokemonStatus_Confused {
-		fmt.Printf("spot: %d | poke %d\n", spot, poke)
+		// fmt.Printf("spot: %d | poke %d\n", spot, poke)
 		if b.info.pokemons[spot][poke] == nil {
-			fmt.Printf("pokemons[%d][%d] == nil\n", spot, poke)
+			// fmt.Printf("pokemons[%d][%d] == nil\n", spot, poke)
 			return
 		}
 		b.info.pokemons[spot][poke].ChangeStatus(status)
@@ -193,14 +197,14 @@ func (b *Battle) CommandAbsStatusChange(_packet *pnet.QTPacket, spot int8) {
 
 func (b *Battle) CommandDynamicInfo(_packet *pnet.QTPacket, _spot int8) {
 	dynamicInfo := NewBattleDynamicInfoFromPacket(_packet)
-	b.info.statChanges.Set(int(_spot), dynamicInfo)
+	b.info.statChanges.Insert(int(_spot), dynamicInfo)
 	
 	// mydisplay->updateToolTip(spot)
 }
 
 func (b *Battle) CommandDynamicStats(_packet *pnet.QTPacket, _spot int8) {
 	battleStats := NewBattleStatsFromPacket(_packet)
-	b.info.mystats.Set(int(_spot), battleStats)
+	b.info.mystats.Insert(int(_spot), battleStats)
 }
 
 func (b *Battle) CommandClockStart(_packet *pnet.QTPacket, _spot int8) {
@@ -219,10 +223,14 @@ func (b *Battle) CommandMakeYourChoice() {
 	b.info.sent = true
 	
 	fmt.Println("Make a choice...")
+	
+	b.attackClicked(1)
 }
 
 // -------------------------------------------------------------------------------- //
 func (b *Battle) goToNextChoice() {
+	fmt.Println("Battle - goToNextChoice()")
+	
 	for i := 0; i < b.info.available.Len(); i++ {
 		slot := b.info.Slot(b.info.myself, int8(i))
 		
@@ -320,6 +328,8 @@ func (b *Battle) disableAll() {
 }
 
 func (b *Battle) sendChoice(_choice *BattleChoice) {
+	fmt.Println("Battle - SendChoice()")
+	b.owner.SendBattleChoice(b.battleId, _choice)
 	// emit battleCommand(battleId(), _choice)
 	b.info.possible = false
 }
@@ -341,4 +351,25 @@ func (b *Battle) switchTo(_pokezone int8, _spot int8, _forced bool) {
 	// for (int i = 0; i< 4; i++) {
         // myazones[info().number(spot)]->tattacks[i]->updateAttack(info().tempPoke(spot).move(i), info().tempPoke(spot), gen());
     // }	
+}
+
+func (b* Battle) attackClicked(_zone int8) {
+	slot := b.info.currentSlot
+	
+	if _zone != -1 { // Struggle
+		b.info.lastMove[b.info.Number(slot)] = _zone
+	}
+	
+	if b.info.possible {
+		attack := AttackChoice{}
+		attack.attackSlot = _zone
+		attack.attackTarget = b.info.SlotNum(b.info.opponent)
+		choice := NewBattleChoiceAttack(uint8(b.info.Number(slot)), attack)
+		b.info.choice[b.info.Number(slot)] = choice
+		
+		if !b.info.Multiples() {
+			b.info.done[b.info.Number(slot)] = true
+			b.goToNextChoice()
+		}
+	}
 }

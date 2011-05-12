@@ -161,13 +161,11 @@ func (c *POClient) GetPlayer(_id int32) (value *PlayerInfo, found bool) {
 }
 
 func (c *POClient) ChallengeStuff(_info *ChallengeInfo) {
-	fmt.Printf("Received a challenge! %v Opp: %d\n", _info.description, _info.opponent)
 	if(_info.description == ChallengeDesc_Sent) { // We are being challenged
-		println("Received a challenge! Auto-accept")
 		_info.description = ChallengeDesc_Accepted // Auto accept	
 		c.connection.SendChallengeStuff(_info )
 	} else { // We challenged someone else (reply)
-	
+		// TODO: Handle accepted challenge
 	}
 }
 
@@ -181,7 +179,7 @@ func (c *POClient) myBattleStarted(_battleId int32, _id1, _id2 int32, _team *Tea
 	
 	p1, _ := c.GetPlayer(_id1)
 	p2, _ := c.GetPlayer(_id2)
-	c.myBattles[_battleId] = NewBattle(_battleId, p1, p2, _team, _conf)
+	c.myBattles[_battleId] = NewBattle(c, _battleId, p1, p2, _team, _conf)
 }
 
 func (c *POClient) BattleCommand(_battleId int32, _packet *pnet.QTPacket) {
@@ -189,4 +187,8 @@ func (c *POClient) BattleCommand(_battleId int32, _packet *pnet.QTPacket) {
 	if found {
 		battle.ReceiveInfo(_packet)
 	}
+}
+
+func (c *POClient) SendBattleChoice(_battleId int32, _choice *BattleChoice) {
+	c.connection.SendBattleCommandBattleChoice(_battleId, _choice)
 }

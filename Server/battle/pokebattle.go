@@ -2,7 +2,6 @@ package main
 
 import (
 	pnet "network"
-	"fmt"
 )
 
 type PokeBattle struct {
@@ -42,20 +41,15 @@ func NewPokeBattleFromPacket(_packet *pnet.QTPacket) *PokeBattle {
 	poke := NewPokeBattle()
 
 	pokeNum := _packet.ReadUint16()
-	// subNum := _packet.ReadUint8()
-	// derp := _packet.ReadUint8()
-	
 	poke.num = NewPokemonUniqueIdFromRef(uint32(pokeNum))
-//	if poke.num.pokenum > 0 && poke.num.subnum >= 0 {
+	if poke.num.pokenum > 0 && poke.num.subnum >= 0 {
 		poke.nick = _packet.ReadString()
 		poke.lifePercent = _packet.ReadUint8()
 		poke.fullStatus = _packet.ReadUint32()
 		poke.gender = _packet.ReadUint8()
 		poke.shiny = (_packet.ReadUint8() == 1) 
 		poke.level = _packet.ReadUint8()
-//	}
-	
-	fmt.Printf("POKEBATTLE - pokeNum: %d | subNum %d | %d | %d\n", pokeNum, 0, 0, poke.level)
+	}
 	
 	return poke	
 }
