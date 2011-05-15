@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-type MoveMessagesPart map[uint8]string
+type MoveMessagesPart []string
 
 type MoveInfo struct {
 	Names	map[uint16]string
@@ -33,5 +33,11 @@ func (m *MoveInfo) GetMoveName(_moveNumber uint16) string {
 }
 
 func (m *MoveInfo) GetMoveMessage(_move uint16, _part uint8) string {
-	return ""
+	value, found := m.MoveMessages[_move]
+	
+	if !found {
+		fmt.Printf("ERROR - Could not find move message %d part %d\n", _move, _part)
+	}
+	
+	return value[_part]
 }
