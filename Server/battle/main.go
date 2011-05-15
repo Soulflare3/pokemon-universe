@@ -27,6 +27,10 @@ const (
 )
 
 var g_PokemonInfo *PokemonInfo
+var g_MoveInfo *MoveInfo
+var g_ItemInfo *ItemInfo
+var g_AbilityInfo *AbilityInfo
+var g_TypeInfo *TypeInfo
 
 func createTempData() {
 
@@ -37,6 +41,10 @@ func main() {
 	runtime.GOMAXPROCS(2)
 	
 	g_PokemonInfo = NewPokemonInfo()
+	g_MoveInfo = NewMoveInfo()
+	g_ItemInfo = NewItemInfo()
+	g_AbilityInfo = NewAbilityInfo()
+	g_TypeInfo = NewTypeInfo()
 
 	fmt.Println("***********************************************")
 	fmt.Println("**      Pokemon Universe Battle Client       **")

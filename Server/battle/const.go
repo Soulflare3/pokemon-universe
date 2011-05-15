@@ -76,7 +76,7 @@ const (
 )
 
 const (
-	BattleCommand_SendOut uint8 = iota
+	BattleCommand_SendOut uint8 = iota // 0
 	BattleCommand_SendBack
 	BattleCommand_UseAttack
 	BattleCommand_OfferChoice
@@ -123,6 +123,13 @@ const (
 	BattleCommand_Avoid
 	BattleCommand_RearrangeTeam
 	BattleCommand_SpotShifts
+)
+
+const (
+	BattleResult_Forfeit int8 = iota
+	BattleResult_Win
+	BattleResult_Tie
+	BattleResult_Close
 )
 
 const (

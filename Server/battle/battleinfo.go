@@ -32,7 +32,8 @@ func NewBattleInfo(_team *TeamBattle, _me, _opp *PlayerInfo, _mode uint8, _my, _
 	base.myteam = _team
 	base.sent = true
 	
-	base.currentSlot = base.SlotNum(base.myself)
+	base.currentSlot = base.Player(base.myself)
+	//base.currentSlot = base.Slot(base.myself, 0)
 	
 	for i := 0; i < base.numberOfSlots/2; i++ {
 		base.choices.Push(NewBattleChoices())
@@ -52,11 +53,11 @@ func NewBattleInfo(_team *TeamBattle, _me, _opp *PlayerInfo, _mode uint8, _my, _
 }
 
 func (b *BattleInfo) GetTempPoke(_spot int8) *PokeBattle {
-	return b.tempPoke.At(int(_spot)).(*PokeBattle)
+	return b.tempPoke.At(int(b.Number(_spot))).(*PokeBattle)
 }
 
 func (b *BattleInfo) SetTempPoke(_spot int8, _poke *PokeBattle) {
-	b.tempPoke.Set(int(_spot), _poke)
+	b.tempPoke.Set(int(b.Number(_spot)), _poke)
 }
 
 func (b *BattleInfo) SwitchPokeExt(_spot int8, _poke int8, _own bool) {
@@ -66,4 +67,8 @@ func (b *BattleInfo) SwitchPokeExt(_spot int8, _poke int8, _own bool) {
 		b.SetCurrentShallow(_spot, b.myteam.Poke(b.Number(_spot)))
 		b.SetTempPoke(_spot, b.myteam.Poke(b.Number(_spot)))
 	}
+}
+
+func (b *BattleInfo) CurrentPoke(_spot int8) *PokeBattle {
+	return b.myteam.Poke(b.Number(_spot))
 }

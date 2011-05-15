@@ -4,7 +4,17 @@ import (
 	"container/list"
 	"time"
 	"fmt"
+	"strings"
 	pnet "network"
+)
+
+const (
+	STATUSMESSAGE_PARALYZED = "%s is paralyzed! It may be unable to move!"
+	STATUSMESSAGE_ASLEEP = "%s fell asleep!"
+	STATUSMESSAGE_FROZEN = "%s was frozen solid!"
+	STATUSMESSAGE_BURNED = "%s was burned!"
+	STATUSMESSAGE_POISONED = "%s was poisoned!"
+	STATUSMESSAGE_POISONEDBADLY = "%s was badly poisoned!"
 )
 
 type Battle struct {
@@ -14,6 +24,7 @@ type Battle struct {
 	
 	delayedCommands	*list.List
 	started			bool
+	battleEnded		bool
 	
 	info			*BattleInfo
 	conf			*BattleConfiguration
@@ -21,6 +32,8 @@ type Battle struct {
 	owner	*POClient
 	
 	usePokemonNames	bool
+	
+	statusChangeMessages []string
 }
 
 func NewBattle(_owner *POClient, _battleId int32, _me *PlayerInfo, _opponent *PlayerInfo, _team *TeamBattle, _conf *BattleConfiguration) *Battle {
@@ -30,11 +43,19 @@ func NewBattle(_owner *POClient, _battleId int32, _me *PlayerInfo, _opponent *Pl
 						id2: _opponent.id,
 						started: false,
 						delayedCommands: list.New(),
-						usePokemonNames: true }
+						usePokemonNames: true,
+						statusChangeMessages: make([]string, 6) }
 	
 	battle.conf = _conf
 	battle.info = NewBattleInfo(_team, _me, _opponent, _conf.mode, _conf.spot(_me.id), _conf.spot(_opponent.id))
 	battle.info.gen = _conf.gen
+	
+	battle.statusChangeMessages[0] = STATUSMESSAGE_PARALYZED
+	battle.statusChangeMessages[1] = STATUSMESSAGE_ASLEEP
+	battle.statusChangeMessages[2] = STATUSMESSAGE_FROZEN
+	battle.statusChangeMessages[3] = STATUSMESSAGE_BURNED
+	battle.statusChangeMessages[4] = STATUSMESSAGE_POISONED
+	battle.statusChangeMessages[5] = STATUSMESSAGE_POISONEDBADLY
 	
 	return battle
 }
@@ -72,9 +93,28 @@ func (b *Battle) Name(_spot int8) string {
 	return b.info.Name(_spot)
 }
 
+func (b *Battle) Nick(_player int8) string {
+	playerName := b.Name(b.info.Player(_player))
+	pokemonName := b.RNick(_player)
+	
+	return fmt.Sprintf("%s's %s", playerName, pokemonName)
+}
+
 func (b *Battle) RNick(_player int8) string {
 	pokenum := b.info.CurrentShallow(_player).num
 	return g_PokemonInfo.GetPokemonName(pokenum)
+}
+
+func (b *Battle) Player(_spot int8) int8 {
+	return b.info.Player(_spot)
+}
+
+func (b *Battle) Opponent(_spot int8) (ret int8) {
+	ret = 1
+	if _spot == 1 {
+		ret = 0
+	}
+	return
 }
 
 func (b *Battle) ReceiveInfo(_packet *pnet.QTPacket) {
@@ -105,12 +145,34 @@ func (b *Battle) DealWithCommandInfo(_packet *pnet.QTPacket, _command uint8, _sp
 			fmt.Printf("[Warning] Received unknown battle command %v (player %v)\n\r", _command, _spot)
 		case BattleCommand_SendOut: // 0
 			b.CommandSendOut(_packet, _spot)
+		case BattleCommand_UseAttack: // 2
+			b.CommandUseAttack(_packet, _spot)
 		case BattleCommand_OfferChoice: // 3
 			b.CommandOfferChoice(_packet)
+		case BattleCommand_BeginTurn: // 4
+			b.CommandBeginTurn(_packet) 
+		case BattleCommand_ChangePP:
+			b.CommandChangePP(_packet, _spot)
+		case BattleCommand_ChangeHp: // 6
+			b.CommandChangeHp(_packet, _spot)
+		case BattleCommand_Ko: // 7
+			b.CommandKo(_spot)
+		case BattleCommand_Effective: // 8
+			b.CommandEffective(_packet)
+		case BattleCommand_CriticalHit:
+			b.CommandCriticalHit()
+		case BattleCommand_StatusChange: // 13
+			b.CommandStatusChange(_packet, _spot)
+		case BattleCommand_MoveMessage: // 17
+			b.CommandMoveMessage(_packet, _spot)
 		case BattleCommand_AbsStatusChange: // 25
 			b.CommandAbsStatusChange(_packet, _spot)	
+		case BattleCommand_StraightDamage: // 26
+			b.CommandStraightDamage(_packet, _spot)
+		case BattleCommand_BattleEnd: // 27
+			b.CommandBattleEnd(_packet, _spot)
 		case BattleCommand_BlankMessage: // 28
-			// fmt.Println("[Blank Message]")
+			 fmt.Println("")
 		case BattleCommand_DynamicInfo: // 31
 			b.CommandDynamicInfo(_packet, _spot)
 		case BattleCommand_DynamicStats: // 32
@@ -124,6 +186,10 @@ func (b *Battle) DealWithCommandInfo(_packet *pnet.QTPacket, _command uint8, _sp
 		case BattleCommand_TierSection: // 40
 			tier := _packet.ReadString()
 			fmt.Printf("[TierSelection] Tier: %v\n", tier)
+		case BattleCommand_BattleChat:
+			fallthrough
+		case BattleCommand_EndMessage:
+			b.CommandBattleChat(_packet, _spot)
 		case BattleCommand_MakeYourChoice:
 			b.CommandMakeYourChoice()
 	}
@@ -157,8 +223,16 @@ func (b *Battle) CommandSendOut(_packet *pnet.QTPacket, spot int8) {
 	}
 }
 
+func (b *Battle) CommandUseAttack(_packet *pnet.QTPacket, _spot int8) {
+	attackId := _packet.ReadUint16()
+	
+	user := b.Nick(_spot)
+	attackName := g_MoveInfo.GetMoveName(attackId)
+	
+	fmt.Printf("%s used %s!\n", user, attackName)
+}
+
 func (b *Battle) CommandOfferChoice(_packet *pnet.QTPacket) {
-	fmt.Println("BattleCommand - OfferChoice")
 	if b.info.sent {
 		b.info.sent = false
 		for i := 0; i < b.info.available.Len(); i++ {
@@ -173,7 +247,92 @@ func (b *Battle) CommandOfferChoice(_packet *pnet.QTPacket) {
 	b.info.available.Set(int(c.numSlot/2), true)
 }
 
-func (b *Battle) CommandAbsStatusChange(_packet *pnet.QTPacket, spot int8) {
+func (b *Battle) CommandBeginTurn(_packet *pnet.QTPacket) {
+	turn := _packet.ReadUint32()
+	fmt.Println("")
+	fmt.Printf("Start of turn %d\n", turn)
+}
+
+func (b *Battle) CommandChangePP(_packet *pnet.QTPacket, _spot int8) {
+	move := _packet.ReadUint8()
+	pp := _packet.ReadUint8()
+	
+	b.info.CurrentPoke(_spot).moves[move].pp = pp
+	b.info.GetTempPoke(_spot).moves[move].pp = pp
+	
+	fmt.Printf("Changed move PP to %d\n", pp)
+	
+	// myazones[info().number(spot)]->tattacks[move]->updateAttack(info().tempPoke(spot).move(move), info().tempPoke(spot), gen());
+    // mypzone->pokes[info().number(spot)]->updateToolTip();
+}
+
+func (b *Battle) CommandChangeHp(_packet *pnet.QTPacket, _spot int8) {
+	goal := _packet.ReadUint16()
+	b.info.CurrentShallow(_spot).lifePercent = uint8(goal)
+}
+
+func (b *Battle) CommandKo(_spot int8) {
+	pokemonName := b.Nick(_spot)
+	fmt.Printf("%s fainted!\n", pokemonName)
+	
+	b.switchToNaught(_spot)
+}
+
+func (b *Battle) CommandEffective(_packet *pnet.QTPacket) {
+	eff := _packet.ReadUint8()
+	
+	if eff == 0 {
+		fmt.Println("It had no effect!")
+	} else if eff == 1 || eff == 2 {
+		fmt.Println("It's not very effective...")
+	} else if eff == 8 || eff == 16 {
+		fmt.Println("It's super effective!")
+	}
+}
+
+func (b *Battle) CommandCriticalHit() {
+	fmt.Println("A critical hit!")
+}
+
+func (b *Battle) CommandStatusChange(_packet *pnet.QTPacket, _spot int8) {
+	status := int8(_packet.ReadUint8())
+	multipleTurns := (_packet.ReadUint8() == 1)
+	if status > PokemonStatus_Fine && status <= PokemonStatus_Poisoned {
+		messageId := status - 1
+		if (status == PokemonStatus_Poisoned && multipleTurns) {
+			messageId++
+		}
+		fmt.Printf(b.statusChangeMessages[messageId] + "\n", b.Nick(_spot))
+	} else if status == PokemonStatus_Confused {
+		fmt.Printf("%s became confused!\n", b.Nick(_spot))
+	}
+}
+
+func (b *Battle) CommandMoveMessage(_packet *pnet.QTPacket, _spot int8) {
+	move := _packet.ReadUint16()
+	part := _packet.ReadUint8()
+	moveType := int8(_packet.ReadUint8())
+	foe := int8(_packet.ReadUint8())
+	other := _packet.ReadUint16()
+	q := _packet.ReadString()
+	
+	message := g_MoveInfo.GetMoveMessage(move, part)
+	strings.Replace(message, "%s", b.Nick(_spot), 1)
+	strings.Replace(message, "%ts", b.Name(b.Player(_spot)), 1)
+	strings.Replace(message, "%tf", b.Name(b.Opponent(b.Player(_spot))), 1)
+	strings.Replace(message, "%t", g_TypeInfo.GetTypeName(moveType), 1)
+	strings.Replace(message, "%f", b.Nick(foe), 1)
+	strings.Replace(message, "%m", g_MoveInfo.GetMoveName(other), 1)
+	strings.Replace(message, "%d", string(other), 1)
+	strings.Replace(message, "%q", q, 1)
+	strings.Replace(message, "%i", g_ItemInfo.GetItemName(other), 1)
+	strings.Replace(message, "%a", g_AbilityInfo.GetAbilityName(other), 1)
+	strings.Replace(message, "%p", g_PokemonInfo.GetPokemonName(NewPokemonUniqueIdFromRef(uint32(other))), 1)
+	
+	fmt.Println(message)
+}
+
+func (b *Battle) CommandAbsStatusChange(_packet *pnet.QTPacket, _spot int8) {
 	poke := int8(_packet.ReadUint8())
 	status := _packet.ReadUint8()
 	
@@ -182,16 +341,33 @@ func (b *Battle) CommandAbsStatusChange(_packet *pnet.QTPacket, spot int8) {
 	}
 	
 	if status != PokemonStatus_Confused {
-		// fmt.Printf("spot: %d | poke %d\n", spot, poke)
-		if b.info.pokemons[spot][poke] == nil {
-			// fmt.Printf("pokemons[%d][%d] == nil\n", spot, poke)
+		// fmt.Printf("_spot: %d | poke %d\n", _spot, poke)
+		if b.info.pokemons[_spot][poke] == nil {
+			// fmt.Printf("pokemons[%d][%d] == nil\n", _spot, poke)
 			return
 		}
-		b.info.pokemons[spot][poke].ChangeStatus(status)
+		b.info.pokemons[_spot][poke].ChangeStatus(status)
 		if b.info.IsOut(poke) {
-			// TODO: mydisplay->updatePoke(b.info.slot(spot, poke))
+			// TODO: mydisplay->updatePoke(b.info.slot(_spot, poke))
 		}
-		// TODO: mydisplay->changeStatus(spot, poke, status)
+		// TODO: mydisplay->changeStatus(_spot, poke, status)
+	}
+}
+
+func (b *Battle) CommandStraightDamage(_packet *pnet.QTPacket, _spot int8) {
+	damage := int16(_packet.ReadUint16())
+	pokemonName := b.Nick(_spot)
+	fmt.Printf("%s lost %d of its health!\n", pokemonName, damage)
+}
+
+func (b *Battle) CommandBattleEnd(_packet *pnet.QTPacket, _spot int8) {
+	res := int8(_packet.ReadUint8())
+	b.battleEnded = true
+	
+	if res == BattleResult_Tie {
+		fmt.Printf("Tie between %s and %s!\n", b.Name(b.info.myself), b.Name(b.info.opponent))
+	} else {
+		fmt.Printf("%s won the battle!\n", b.Name(_spot))
 	}
 }
 
@@ -218,19 +394,24 @@ func (b *Battle) CommandClockStop(_packet *pnet.QTPacket, _spot int8) {
 	b.info.ticking[_spot] = false
 }
 
+func (b *Battle) CommandBattleChat(_packet *pnet.QTPacket, _spot int8) {
+	message := _packet.ReadString()
+	if len(message) > 0 {
+		fmt.Printf("%s: %s\n", b.Name(_spot), message)
+	}
+}
+
 func (b *Battle) CommandMakeYourChoice() {
 	b.info.possible = true
 	b.info.sent = true
 	
 	fmt.Println("Make a choice...")
 	
-	b.attackClicked(1)
+	b.attackClicked(0)
 }
 
 // -------------------------------------------------------------------------------- //
 func (b *Battle) goToNextChoice() {
-	fmt.Println("Battle - goToNextChoice()")
-	
 	for i := 0; i < b.info.available.Len(); i++ {
 		slot := b.info.Slot(b.info.myself, int8(i))
 		
@@ -328,14 +509,13 @@ func (b *Battle) disableAll() {
 }
 
 func (b *Battle) sendChoice(_choice *BattleChoice) {
-	fmt.Println("Battle - SendChoice()")
 	b.owner.SendBattleChoice(b.battleId, _choice)
 	// emit battleCommand(battleId(), _choice)
 	b.info.possible = false
 }
 
 func (b *Battle) switchTo(_pokezone int8, _spot int8, _forced bool) {
-	snum := b.info.SlotNum(_spot)
+	snum := b.info.Number(_spot)
 	
 	if snum != _pokezone || _forced {
 		b.info.SwitchPokeExt(_spot, _pokezone, true)
@@ -363,8 +543,8 @@ func (b* Battle) attackClicked(_zone int8) {
 	if b.info.possible {
 		attack := AttackChoice{}
 		attack.attackSlot = _zone
-		attack.attackTarget = b.info.SlotNum(b.info.opponent)
-		choice := NewBattleChoiceAttack(uint8(b.info.Number(slot)), attack)
+		attack.attackTarget = b.info.Number(b.info.opponent)
+		choice := NewBattleChoiceAttack(uint8(slot), attack)
 		b.info.choice[b.info.Number(slot)] = choice
 		
 		if !b.info.Multiples() {
@@ -372,4 +552,10 @@ func (b* Battle) attackClicked(_zone int8) {
 			b.goToNextChoice()
 		}
 	}
+}
+
+func (b *Battle) switchToNaught(_spot int8) {
+	b.info.pokeAlive.Set(int(_spot), false)
+	
+	// mydisplay->updatePoke(spot)
 }

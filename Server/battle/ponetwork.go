@@ -105,6 +105,8 @@ func (c *PONetwork) ProcessPacket(_packet *pnet.QTPacket) {
 			c.ReceiveChallengeStuff(_packet)
 		case EngageBattle: // 8
 			c.ReceiveEngageBattle(_packet)
+		case BattleFinished: // 9
+			c.ReceiveBattleFinished(_packet)
 		case BattleMessage: // 10
 			c.ReceiveBattleMessage(_packet)
 		case KeepAlive: // 12
@@ -257,6 +259,15 @@ func (c *PONetwork) ReceiveEngageBattle(_packet *pnet.QTPacket) {
 	}
 }
 
+func (c *PONetwork) ReceiveBattleFinished(_packet *pnet.QTPacket) {
+	battleId := int32(_packet.ReadUint32())
+	desc := int8(_packet.ReadUint8())
+	id1 := int32(_packet.ReadUint32())
+	id2 := int32(_packet.ReadUint32())
+	
+	c.owner.BattleFinished(battleId, desc, id1, id2)
+}
+
 /*******************************************************/
 //		Send Messages
 /*******************************************************/
@@ -298,7 +309,6 @@ func (c *PONetwork) SendBattleCommandBattleChoice(_battleId int32, _choice *Batt
 			packet.AddUint8(uint8(_choice.choice.rearrange.pokeIndexes[i]))
 		}
 	}
-	
-	fmt.Println("Network - SendBattleChoice()")
+
 	c.SendMessage(packet)
 }

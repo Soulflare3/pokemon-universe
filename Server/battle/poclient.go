@@ -68,7 +68,7 @@ func (c *POClient) SendLoginInfo() {
 	packet.AddUint8(1) // gender
 	packet.AddUint8(0) // shiny	
 	packet.AddUint8(0) // happiness
-	packet.AddUint8(50) // level
+	packet.AddUint8(100) // level
 
 	// Team - Loop Pokemon - Loop Moves
 	packet.AddUint32(16) // moveid
@@ -191,4 +191,19 @@ func (c *POClient) BattleCommand(_battleId int32, _packet *pnet.QTPacket) {
 
 func (c *POClient) SendBattleChoice(_battleId int32, _choice *BattleChoice) {
 	c.connection.SendBattleCommandBattleChoice(_battleId, _choice)
+}
+
+func (c *POClient) BattleFinished(_battleId int32, _res int8, _winner, _loser int32) {
+	if (_res == BattleResult_Close || _res == BattleResult_Forfeit) && (_battleId != 0 || (_winner == c.mid || _loser == c.mid)) {
+		// Close battle window
+	}
+	
+	c.myBattles[_battleId] = nil, false
+	
+	if value, found := c.myPlayersInfo[_winner]; found {
+		value.flags &= 0xFF ^ PlayerInfo_Battling
+	}
+	if value, found := c.myPlayersInfo[_loser]; found {
+		value.flags &= 0xFF ^ PlayerInfo_Battling
+	}
 }

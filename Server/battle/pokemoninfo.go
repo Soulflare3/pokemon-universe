@@ -5,9 +5,9 @@ type PokemonInfo struct {
 }
 
 func NewPokemonInfo() *PokemonInfo {
-	info := PokemonInfo{ Names: make(map[uint32]string) }
+	info := &PokemonInfo{ Names: make(map[uint32]string) }
 	info.init()
-	return &info
+	return info
 }
 
 func (p *PokemonInfo) init() {

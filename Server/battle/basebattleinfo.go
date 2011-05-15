@@ -1,6 +1,8 @@
 package main
 
-import "container/vector"
+import (
+	"container/vector"
+)
 
 type BaseBattleInfo struct {
 	// name [0] = mine, name[1] = other //
@@ -25,6 +27,8 @@ type BaseBattleInfo struct {
 	pokeAlive		vector.Vector
 	
 	statChanges		vector.Vector
+	
+	usePokemonNames	bool
 }
 
 func (b *BaseBattleInfo) Init(_me *PlayerInfo, _opp *PlayerInfo, _mode uint8, _myself int32, _opponent int32) {
@@ -35,6 +39,7 @@ func (b *BaseBattleInfo) Init(_me *PlayerInfo, _opp *PlayerInfo, _mode uint8, _m
 	b.mode = _mode
 	b.myself = int8(_myself)
 	b.opponent = int8(_opponent)
+	b.usePokemonNames = true
 	
 	b.pokemons = make([]([]*PokeBattle), 2)
 	for i := 0; i < 2; i++ {
@@ -76,16 +81,16 @@ func NewBaseBattleInfoDefault(_me *PlayerInfo, _opp *PlayerInfo, _mode uint8) *B
 }
 
 func (i *BaseBattleInfo) SwitchPoke(spot, poke int8) {
-	i.pokemons[i.Player(spot)][i.SlotNum(poke)], i.pokemons[i.Player(spot)][i.SlotNum(spot)] = i.CurrentShallow(spot), i.pokemons[i.Player(spot)][i.SlotNum(poke)]
+	i.pokemons[i.Player(spot)][i.Number(poke)], i.pokemons[i.Player(spot)][i.Number(spot)] = i.CurrentShallow(spot), i.pokemons[i.Player(spot)][i.Number(poke)]
 	i.pokeAlive[spot] = true;
 }
 
 func (i *BaseBattleInfo) CurrentShallow(spot int8) *PokeBattle {
-	return i.pokemons[i.Player(spot)][i.SlotNum(spot)]
+	return i.pokemons[i.Player(spot)][i.Number(spot)]
 }
 
 func (i *BaseBattleInfo) SetCurrentShallow(spot int8, shallow *PokeBattle) {
-	i.pokemons[i.Player(spot)][i.SlotNum(spot)] = shallow
+	i.pokemons[i.Player(spot)][i.Number(spot)] = shallow
 }
 
 func (i *BaseBattleInfo) Number( _spot int8) int8 {
@@ -102,10 +107,6 @@ func (i *BaseBattleInfo) Player(_slot int8) int8 {
 
 func (i *BaseBattleInfo) Slot(_player int8, _poke int8) int8 {
 	return (_player + (_poke * 2))
-}
-
-func (i *BaseBattleInfo) SlotNum(_slot int8) int8 {
-	return _slot / 2
 }
 
 func (i *BaseBattleInfo) IsOut(_poke int8) bool {
