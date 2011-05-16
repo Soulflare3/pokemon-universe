@@ -163,7 +163,7 @@ func (p *PU_Player) ReceiveWalk(_fromTile *PU_Tile, _toTile *PU_Tile) {
 	
 	if p.x != _fromTile.position.X || p.y != _fromTile.position.Y {
 		p.x = _fromTile.position.X
-		p.x = _fromTile.position.Y
+		p.y = _fromTile.position.Y
 		
 		p.preWalkX = _toTile.position.X
 		p.preWalkY = _toTile.position.Y
