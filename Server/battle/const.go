@@ -1,5 +1,4 @@
 /*Pokemon Universe MMORPG
-/*Pokemon Universe MMORPG
 Copyright (C) 2010 the Pokemon Universe Authors
 
 This program is free software; you can redistribute it and/or
@@ -829,4 +828,17 @@ const (
 	PokemonStatus_Requiemed = 20
 	PokemonStatus_Rooted = 21
 	PokemonStatus_Koed = 31
+)
+
+const ( 
+	StatusFeeling_FeelConfusion int8 = iota
+	StatusFeeling_HurtConfusion
+	StatusFeeling_FreeConfusion
+	StatusFeeling_PrevParalysed
+	StatusFeeling_PrevFrozen
+	StatusFeeling_FreeFrozen
+	StatusFeeling_FeelAsleep
+	StatusFeeling_FreeAsleep
+	StatusFeeling_HurtBurn
+	StatusFeeling_HurtPoison
 )

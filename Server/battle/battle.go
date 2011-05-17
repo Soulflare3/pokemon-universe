@@ -1,3 +1,19 @@
+/*Pokemon Universe MMORPG
+Copyright (C) 2010 the Pokemon Universe Authors
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
 import (
@@ -15,6 +31,17 @@ const (
 	STATUSMESSAGE_BURNED = "%s was burned!"
 	STATUSMESSAGE_POISONED = "%s was poisoned!"
 	STATUSMESSAGE_POISONEDBADLY = "%s was badly poisoned!"
+)
+
+const (
+	TempPokeChange_TempMove uint8 = iota
+	TempPokeChange_TempAbility
+	TempPokeChange_TempItem
+	TempPokeChange_TempSprite
+	TempPokeChange_DefiniteForme
+	TempPokeChange_AestheticForme
+	TempPokeChange_DefMove
+	TempPokeChange_TempPP
 )
 
 type Battle struct {
@@ -163,8 +190,16 @@ func (b *Battle) DealWithCommandInfo(_packet *pnet.QTPacket, _command uint8, _sp
 			b.CommandCriticalHit()
 		case BattleCommand_StatusChange: // 13
 			b.CommandStatusChange(_packet, _spot)
+		case BattleCommand_StatusMessage: // 14
+			b.CommandStatusMessage(_packet, _spot)
+		case BattleCommand_Failed: // 15
+			b.CommandFailed()
 		case BattleCommand_MoveMessage: // 17
 			b.CommandMoveMessage(_packet, _spot)
+		case BattleCommand_Flinch: // 20
+			b.CommandFlinch(_spot)
+		case BattleCommand_Recoil:
+			b.CommandRecoil(_packet, _spot)
 		case BattleCommand_AbsStatusChange: // 25
 			b.CommandAbsStatusChange(_packet, _spot)	
 		case BattleCommand_StraightDamage: // 26
@@ -177,6 +212,10 @@ func (b *Battle) DealWithCommandInfo(_packet *pnet.QTPacket, _command uint8, _sp
 			b.CommandDynamicInfo(_packet, _spot)
 		case BattleCommand_DynamicStats: // 32
 			b.CommandDynamicStats(_packet, _spot)
+		case BattleCommand_AlreadyStatusMessage: // 35
+			b.CommandAlreadyStatusMessage(_packet, _spot)
+		case BattleCommand_TempPokeChange: // 36
+			b.CommandTempPokeChange(_packet, _spot)
 		case BattleCommand_ClockStart: // 37
 			b.CommandClockStart(_packet, _spot)
 		case BattleCommand_ClockStop: // 38
@@ -190,8 +229,10 @@ func (b *Battle) DealWithCommandInfo(_packet *pnet.QTPacket, _command uint8, _sp
 			fallthrough
 		case BattleCommand_EndMessage:
 			b.CommandBattleChat(_packet, _spot)
-		case BattleCommand_MakeYourChoice:
+		case BattleCommand_MakeYourChoice: // 43
 			b.CommandMakeYourChoice()
+		case BattleCommand_Avoid:
+			b.CommandAvoid(_spot)
 	}
 }
 
@@ -308,6 +349,40 @@ func (b *Battle) CommandStatusChange(_packet *pnet.QTPacket, _spot int8) {
 	}
 }
 
+func (b *Battle) CommandStatusMessage(_packet *pnet.QTPacket, _spot int8) {
+	status := int8(_packet.ReadUint8())
+	nick := b.Nick(_spot)
+	message := "Unknown StatusFeeling"
+	switch status {
+		case StatusFeeling_FeelConfusion:
+			message = fmt.Sprintf("%s is confused!", nick)
+		case StatusFeeling_HurtConfusion:
+			message = "It hurt itself in its confusion!"
+		case StatusFeeling_FreeConfusion:
+			message = fmt.Sprintf("%s snapped out its confusion!", nick)
+		case StatusFeeling_PrevParalysed:
+			message = fmt.Sprintf("%s is paralyzed! It can't move!", nick)
+		case StatusFeeling_FeelAsleep:
+			message = fmt.Sprintf("%s is fast asleep!", nick)
+		case StatusFeeling_FreeAsleep:
+			message = fmt.Sprintf("%s woke up!", nick)
+		case StatusFeeling_HurtBurn:
+			message = fmt.Sprintf("%s is hurt by its burn!", nick)
+		case StatusFeeling_HurtPoison:
+			message = fmt.Sprintf("%s is hurt by poison!", nick)
+		case StatusFeeling_PrevFrozen:
+			message = fmt.Sprintf("%s is frozen solid!", nick)
+		case StatusFeeling_FreeFrozen:
+			message = fmt.Sprintf("%s thawed out!", nick)
+	}
+	
+	fmt.Println(message)
+}
+
+func (b *Battle) CommandFailed() {
+	fmt.Println("But it failed!")
+}
+
 func (b *Battle) CommandMoveMessage(_packet *pnet.QTPacket, _spot int8) {
 	move := _packet.ReadUint16()
 	part := _packet.ReadUint8()
@@ -330,6 +405,20 @@ func (b *Battle) CommandMoveMessage(_packet *pnet.QTPacket, _spot int8) {
 	strings.Replace(message, "%p", g_PokemonInfo.GetPokemonName(NewPokemonUniqueIdFromRef(uint32(other))), 1)
 	
 	fmt.Println(message)
+}
+
+func (b *Battle) CommandFlinch(_spot int8) {
+	nick := b.Nick(_spot)
+	fmt.Printf("%s flinched!\n", nick)
+}
+
+func (b *Battle) CommandRecoil(_packet *pnet.QTPacket, _spot int8) {
+	damage := (_packet.ReadUint8() == 1)
+	if damage {
+		fmt.Printf("%s is hit with recoil!\n", b.Nick(_spot))
+	} else {
+		fmt.Printf("%s had its energy drained!\n", b.Nick(_spot))
+	}
 }
 
 func (b *Battle) CommandAbsStatusChange(_packet *pnet.QTPacket, _spot int8) {
@@ -383,6 +472,65 @@ func (b *Battle) CommandDynamicStats(_packet *pnet.QTPacket, _spot int8) {
 	b.info.mystats.Insert(int(_spot), battleStats)
 }
 
+func (b *Battle) CommandAlreadyStatusMessage(_packet *pnet.QTPacket, _spot int8) {
+	status := _packet.ReadUint8()
+	fmt.Printf("%s is already %s.\n", b.Nick(_spot), g_StatInfo.Status(status))
+}
+
+func (b *Battle) CommandTempPokeChange(_packet *pnet.QTPacket, _spot int8) {
+	moveType := _packet.ReadUint8()
+	if moveType == TempPokeChange_TempMove || moveType == TempPokeChange_DefMove {
+		slot := _packet.ReadUint8()
+		move := _packet.ReadUint16()
+		
+		b.info.GetTempPoke(_spot).moves[slot].num = move
+		b.info.GetTempPoke(_spot).moves[slot].Load(b.info.gen)
+		// myazones[info().number(spot)]->tattacks[slot]->updateAttack(info().tempPoke(spot).move(slot), info().tempPoke(spot), gen());
+		
+		if moveType == TempPokeChange_DefMove {
+			b.info.myteam.Poke(b.info.Number(_spot)).moves[slot].num = move
+			b.info.myteam.Poke(b.info.Number(_spot)).moves[slot].Load(b.info.gen)
+		}
+	} else if moveType == TempPokeChange_TempPP {
+		slot := _packet.ReadUint8()
+		pp := _packet.ReadUint8()
+		
+		b.info.GetTempPoke(_spot).moves[slot].pp = pp
+		// myazones[info().number(spot)]->tattacks[slot]->updateAttack(info().tempPoke(spot).move(slot), info().tempPoke(spot), gen());
+	} else {
+		if moveType == TempPokeChange_TempSprite {
+			spotInt := int(_spot)
+			oldNum := b.info.specialSprite.At(spotInt).(PokemonUniqueId)
+			pokeNum := int16(_packet.ReadUint16())
+			b.info.specialSprite.Set(spotInt, NewPokemonUniqueIdFromRef(uint32(pokeNum)))
+			
+			if pokeNum == -1 {
+				b.info.lastSeenSpecialSprite.Set(spotInt, oldNum)
+			} else if pokeNum == PokemonName_NoPoke {
+				b.info.specialSprite.Set(spotInt, b.info.lastSeenSpecialSprite.At(spotInt).(PokemonUniqueId))
+			}
+			
+			// mydisplay->updatePoke(spot);
+		} else if moveType == TempPokeChange_DefiniteForme {
+			poke := int8(_packet.ReadUint8())
+			newform := _packet.ReadUint16()
+			if _spot == b.info.myself {
+				b.info.myteam.Poke(poke).num = NewPokemonUniqueIdFromRef(uint32(newform))
+			}
+			b.info.pokemons[_spot][poke].num = NewPokemonUniqueIdFromRef(uint32(newform))
+			if b.info.IsOut(poke) {
+				player := b.info.Player(_spot)
+				b.info.CurrentShallow(b.info.Slot(player, _spot)).num = NewPokemonUniqueIdFromRef(uint32(newform))
+			}
+		} else if moveType == TempPokeChange_AestheticForme {
+			newforme := _packet.ReadUint16()
+			player := b.info.Player(_spot)
+			b.info.CurrentShallow(b.info.Slot(player, _spot)).num.subnum = uint8(newforme)
+			// mydisplay->updatePoke(spot)
+		}
+	}
+}
+
 func (b *Battle) CommandClockStart(_packet *pnet.QTPacket, _spot int8) {
 	b.info.time[_spot] = _packet.ReadUint16()
 	b.info.startingTime[_spot] = time.Seconds()
@@ -408,6 +556,10 @@ func (b *Battle) CommandMakeYourChoice() {
 	fmt.Println("Make a choice...")
 	
 	b.attackClicked(0)
+}
+
+func (b *Battle) CommandAvoid(_spot int8) {
+	fmt.Printf("%s avoided the attack!\n", b.Nick(_spot))
 }
 
 // -------------------------------------------------------------------------------- //

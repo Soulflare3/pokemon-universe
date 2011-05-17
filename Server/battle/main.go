@@ -31,6 +31,7 @@ var g_MoveInfo *MoveInfo
 var g_ItemInfo *ItemInfo
 var g_AbilityInfo *AbilityInfo
 var g_TypeInfo *TypeInfo
+var g_StatInfo *StatInfo
 
 func createTempData() {
 
@@ -45,6 +46,7 @@ func main() {
 	g_ItemInfo = NewItemInfo()
 	g_AbilityInfo = NewAbilityInfo()
 	g_TypeInfo = NewTypeInfo()
+	g_StatInfo = NewStatInfo()
 
 	fmt.Println("***********************************************")
 	fmt.Println("**      Pokemon Universe Battle Client       **")
