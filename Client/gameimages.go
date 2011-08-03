@@ -127,7 +127,7 @@ func (g *PU_Game) LoadCreatureImages() {
 		g_engine.AddResource(image)
 		if image != nil {
 			file := strings.Replace(files[i].Name, ".png", "", -1)
-			parts := strings.Split(file, "_", -1)
+			parts := strings.Split(file, "_")
 
 			bodypart, err := strconv.Atoi(parts[0])
 			if err != nil {
