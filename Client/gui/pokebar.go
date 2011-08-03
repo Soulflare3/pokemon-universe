@@ -27,21 +27,21 @@ const (
 
 type PU_Pokebar struct {
 	PU_GuiElement
-	
+
 	mouseDown bool
-	offset int
+	offset    int
 	dragStart int
-	dragging int
-	dragX int
+	dragging  int
+	dragX     int
 }
 
 func NewPokebar() *PU_Pokebar {
 	bar := &PU_Pokebar{}
 	bar.visible = true
 	g_gui.AddElement(bar)
-	
+
 	bar.dragging = POKEBAR_NONE
-	
+
 	return bar
 }
 
@@ -49,31 +49,31 @@ func (g *PU_Pokebar) Draw() {
 	if !g.visible {
 		return
 	}
-	
+
 	pokecount := g_game.self.GetPokemonCount()
 	for i := 0; i < NUM_POKEMON; i++ {
 		x, y := (963-(pokecount*74))+(i*74), 664
 		if g.dragging == i {
 			x = g.dragX
-		} 
+		}
 		if pokemon := g_game.self.pokemon[i]; pokemon != nil {
 			pokemonhp := pokemon.hp
 			pokemonmaxhp := pokemon.hpmax
-			
+
 			if pokemonhp > 0 {
 				var hpbar *PU_Image
-				hpperc := int(math.Floor((float64(pokemonhp)/float64(pokemonmaxhp))*100.0))
+				hpperc := int(math.Floor((float64(pokemonhp) / float64(pokemonmaxhp)) * 100.0))
 				switch {
 				case hpperc <= 20:
 					hpbar = g_game.GetGuiImage(IMG_GUI_POKEMON_REDHPBAR)
-					
+
 				case hpperc > 20 && hpperc <= 40:
 					hpbar = g_game.GetGuiImage(IMG_GUI_POKEMON_YELLOWHPBAR)
-					
+
 				default:
 					hpbar = g_game.GetGuiImage(IMG_GUI_POKEMON_GREENHPBAR)
 				}
-				
+
 				var temp *PU_Image
 				if i == 0 {
 					temp = g_game.GetGuiImage(IMG_GUI_POKEMON_SELECTED)
@@ -83,14 +83,14 @@ func (g *PU_Pokebar) Draw() {
 				if temp != nil {
 					temp.Draw(x, y)
 				}
-				
+
 				temp = g_game.GetGuiImage(IMG_GUI_POKEMON_HPBAR)
 				if temp != nil {
 					temp.Draw(x+6, y+27)
 				}
-				
+
 				if hpbar != nil {
-					hpbarwidth := int((float32(hpperc)/100.0)*float32(hpbar.w))
+					hpbarwidth := int((float32(hpperc) / 100.0) * float32(hpbar.w))
 					hpbar.DrawRectClip(NewRect(x+6, y+27, int(hpbarwidth)+2, int(hpbar.h)), NewRect(0, 0, hpbarwidth, int(hpbar.h)))
 				}
 			} else {
@@ -99,24 +99,24 @@ func (g *PU_Pokebar) Draw() {
 				if temp != nil {
 					temp.Draw(x, y)
 				}
-			
+
 				temp = g_game.GetGuiImage(IMG_GUI_POKEMON_HPBAR)
 				if temp != nil {
 					temp.Draw(x+6, y+27)
-				}			
+				}
 			}
-			
+
 			icon := g_game.GetPokeImage(int(pokemon.id), POKEIMAGE_ICON)
-            if icon != nil {
-                    icon.Draw(x+42, y+4)
-            }
-			
+			if icon != nil {
+				icon.Draw(x+42, y+4)
+			}
+
 			font := g_engine.GetFont(FONT_ARIALBLACK_9)
-			font.SetColor(255,255,255)
+			font.SetColor(255, 255, 255)
 			font.DrawText(pokemon.name, x+6, y+2)
-			
+
 			font = g_engine.GetFont(FONT_ARIALBLACK_8)
-			font.SetColor(255,255,255)
+			font.SetColor(255, 255, 255)
 			font.DrawText(fmt.Sprintf("%d", pokemon.level), x+6, y+16)
 		} else {
 			temp := g_game.GetGuiImage(IMG_GUI_POKEMON)
@@ -146,7 +146,7 @@ func (g *PU_Pokebar) MouseDown(_x int, _y int) {
 					g.dragging = i
 					g.dragStart = i
 				}
-				return;
+				return
 			}
 		}
 	}
@@ -168,13 +168,13 @@ func (g *PU_Pokebar) MouseMove(_x int, _y int) {
 			if g_game.self != nil {
 				pokecount = g_game.self.GetPokemonCount()
 			}
-			
+
 			x, w := (963-(pokecount*74))+(g.dragging*74), 74
-			g.dragX = _x-g.offset
-			midx := g.dragX+37
+			g.dragX = _x - g.offset
+			midx := g.dragX + 37
 
 			for i := 0; i < NUM_POKEMON; i++ {
-				x = (963-(pokecount*74))+(i*74)
+				x = (963 - (pokecount * 74)) + (i * 74)
 				if midx >= x && midx <= x+w {
 					if i != g.dragging {
 						if self, pkmn := g_game.self, g_game.self.pokemon[i]; self != nil && pkmn != nil {
@@ -182,14 +182,14 @@ func (g *PU_Pokebar) MouseMove(_x int, _y int) {
 							g_game.self.pokemon[g.dragging] = g_game.self.pokemon[i]
 							g_game.self.pokemon[i] = dragPokemon
 
-							g.dragging = i;
+							g.dragging = i
 						}
-						return;
+						return
 					}
 				}
 			}
 		}
-	} 
+	}
 }
 
 func (g *PU_Pokebar) MouseScroll(_dir int) {
@@ -203,4 +203,3 @@ func (g *PU_Pokebar) Focusable() bool {
 func (g *PU_Pokebar) KeyDown(_keysym int, _scancode int) {
 
 }
-

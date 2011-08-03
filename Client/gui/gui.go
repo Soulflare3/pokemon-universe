@@ -21,7 +21,7 @@ type PU_Gui struct {
 }
 
 func NewGui() *PU_Gui {
-	return &PU_Gui{elementList : make([]IGuiElement, 0)}
+	return &PU_Gui{elementList: make([]IGuiElement, 0)}
 }
 
 func (g *PU_Gui) AddElement(_element IGuiElement) {
@@ -57,7 +57,7 @@ func (g *PU_Gui) DrawImage(_element IGuiElement, _image *PU_Image, _src *PU_Rect
 			clipRect := parentRect.Intersection(_dst)
 			clipRect.x += parent.GetRect().x
 			clipRect.y += parent.GetRect().y
-			
+
 			g.DrawImage(parent, _image, _src, clipRect)
 		}
 	} else {
@@ -65,7 +65,7 @@ func (g *PU_Gui) DrawImage(_element IGuiElement, _image *PU_Image, _src *PU_Rect
 			_dst.width = WINDOW_WIDTH
 			_dst.height = WINDOW_HEIGHT
 		}
-		
+
 		_image.DrawRectInRect(_src, _dst)
 	}
 }
@@ -165,4 +165,3 @@ func (g *PU_Gui) KeyDown(_keysym int, _scancode int) {
 		e.KeyDown(_keysym, _scancode)
 	}
 }
-

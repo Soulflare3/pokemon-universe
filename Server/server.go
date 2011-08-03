@@ -19,32 +19,32 @@ package main
 import (
 	"net"
 	"time"
-	"fmt" 
+	"fmt"
 	pnet "network" // PU Network package
 )
 
 type Server struct {
-	Port 			string
-	ClientVersion 	int
-	TimeoutCount	int
+	Port          string
+	ClientVersion int
+	TimeoutCount  int
 }
 
 func NewServer() *Server {
-	server := Server { }
-	
+	server := Server{}
+
 	port, err := g_config.GetString("default", "port")
 	if err != nil || len(port) <= 0 {
 		port = "1337"
 	}
 	server.Port = port
-	
+
 	version, err := g_config.GetInt("default", "clientversion")
 	if err != nil {
 		version = 0
 	}
 	server.ClientVersion = version
 	server.TimeoutCount = 0
-	
+
 	return &server
 }
 
@@ -54,7 +54,7 @@ func (s *Server) Start() {
 	go s.timeoutLoop()
 
 	// Open new socket listener
-	g_logger.Println("Opening server socket on port "+s.Port)
+	g_logger.Println("Opening server socket on port " + s.Port)
 	socket, err := net.Listen("tcp", ":"+s.Port)
 	if err != nil {
 		g_logger.Printf("[Error] Could not open socket - %v\n", err)
@@ -62,7 +62,7 @@ func (s *Server) Start() {
 	}
 	defer socket.Close() // Defer the close function so that's get done automatically when this method breaks
 	defer g_logger.Println("[Notice] Server socket closed")
-	
+
 	g_logger.Println("Server ready to accept new connections")
 	for {
 		clientsock, err := socket.Accept()
@@ -70,7 +70,7 @@ func (s *Server) Start() {
 			g_logger.Println("[Warning] Could not accept new connection")
 			continue
 		}
-		
+
 		// Read and execute the first received packet
 		s.parseFirstMessage(clientsock)
 	}
@@ -80,25 +80,25 @@ func (s *Server) Start() {
 // and idle players every 10 seconds
 func (s *Server) timeoutLoop() {
 	s.TimeoutCount++
-	
+
 	// Check connectionless players
 	g_game.mutexDisconnectList.Lock()
 	defer g_game.mutexDisconnectList.Unlock()
-	for guid, value := range(g_game.PlayersDiscon) {
+	for guid, value := range g_game.PlayersDiscon {
 		value.TimeoutCounter++
 		if value.TimeoutCounter >= 30 {
 			g_game.PlayersDiscon[guid] = nil, false
 			go g_game.RemoveCreature(guid)
 		}
 	}
-	
+
 	if s.TimeoutCount == 10 {
 		s.TimeoutCount = 0
-		
+
 		// Check idle players
 		g_game.mutexPlayerList.RLock()
 		defer g_game.mutexPlayerList.RUnlock()
-		for _, player := range(g_game.Players) {
+		for _, player := range g_game.Players {
 			if player.Conn != nil {
 				player.Conn.Send_Ping()
 				if player.GetTimeSinceLastMove() > 9e5 { // (900000sec / 15 min)
@@ -107,7 +107,7 @@ func (s *Server) timeoutLoop() {
 			}
 		}
 	}
-	
+
 	time.Sleep(1e9)
 	go s.timeoutLoop()
 }
@@ -121,18 +121,18 @@ func (s *Server) parseFirstMessage(conn net.Conn) {
 		fmt.Printf("Error receiving first message: %s\n", err)
 		return
 	}
-	
+
 	// Read message header
 	if message.Header != pnet.HEADER_LOGIN {
 		return
 	}
-	
+
 	//Get the login data
 	loginMessage := message.Login
-	
+
 	//Create the login status message
 	statusMessage := pnet.NewData_LoginStatus()
-		
+
 	if g_game.State == GAME_STATE_CLOSING || g_game.State == GAME_STATE_CLOSED {
 		statusMessage.LoginStatus.Status = LOGINSTATUS_SERVERCLOSED
 	} else if loginMessage.Version < s.ClientVersion {
@@ -142,10 +142,10 @@ func (s *Server) parseFirstMessage(conn net.Conn) {
 		ret := CheckAccountInfo(loginMessage.Username, loginMessage.Password)
 		if !ret {
 			statusMessage.LoginStatus.Status = LOGINSTATUS_WRONGACCOUNT
-		} else { 
+		} else {
 			// Account exists and password is correct
 			ret, player := LoadPlayerProfile(loginMessage.Username)
-			
+
 			if !ret || player == nil {
 				statusMessage.LoginStatus.Status = LOGINSTATUS_FAILPROFILELOAD
 				g_logger.Printf("[Login] Failed to load profile for %v", loginMessage.Username)
@@ -160,6 +160,6 @@ func (s *Server) parseFirstMessage(conn net.Conn) {
 			}
 		}
 	}
-	
+
 	connection.SendMessage(statusMessage)
 }

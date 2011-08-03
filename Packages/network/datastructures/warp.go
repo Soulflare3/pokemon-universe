@@ -22,8 +22,8 @@ package network
 
 //Warp (HEADER_WARP)
 type Data_Warp struct {
-	X	int
-	Y	int
+	X int
+	Y int
 }
 
 func NewData_Warp() (msg *Message) {

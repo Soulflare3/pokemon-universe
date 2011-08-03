@@ -21,13 +21,13 @@ import (
 )
 
 type PU_Map struct {
-	tileMap map[int64]*PU_Tile
+	tileMap      map[int64]*PU_Tile
 	creatureList []ICreature
 }
 
 func NewMap() *PU_Map {
-	return &PU_Map{tileMap : make(map[int64]*PU_Tile),
-				   creatureList : make([]ICreature, 0)}
+	return &PU_Map{tileMap: make(map[int64]*PU_Tile),
+		creatureList: make([]ICreature, 0)}
 }
 
 func (m *PU_Map) GetNumTiles() int {
@@ -36,7 +36,7 @@ func (m *PU_Map) GetNumTiles() int {
 
 func (m *PU_Map) AddTile(_x int, _y int) *PU_Tile {
 	var index int64 = pos.Hash(_x, _y, 0)
-	tile, present :=  m.tileMap[index]
+	tile, present := m.tileMap[index]
 	if !present {
 		tile = NewTile(_x, _y)
 		m.tileMap[index] = tile
@@ -58,10 +58,10 @@ func (m *PU_Map) RemoveTileFromPos(_pos *pos.Position) {
 func (m *PU_Map) GetTile(_x int, _y int) *PU_Tile {
 	var index int64 = pos.Hash(_x, _y, 0)
 	tile := m.tileMap[index]
-	return tile;
+	return tile
 }
 
-func (m* PU_Map) AddCreature(_creature ICreature) {
+func (m *PU_Map) AddCreature(_creature ICreature) {
 	m.creatureList = append(m.creatureList, _creature)
 }
 
@@ -74,7 +74,7 @@ func (m *PU_Map) CreatureIndex(_creature ICreature) int {
 	return 0
 }
 
-func (m *PU_Map) RemoveCreature(_creature ICreature) {	
+func (m *PU_Map) RemoveCreature(_creature ICreature) {
 	a := make([]ICreature, len(m.creatureList)-1)
 	i := 0
 	for _, creature := range m.creatureList {
@@ -105,4 +105,3 @@ func (m *PU_Map) GetPlayerByName(_name string) *PU_Player {
 	}
 	return nil
 }
-

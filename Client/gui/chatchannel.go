@@ -17,45 +17,45 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 type PU_ChatChannel struct {
-	id int
+	id   int
 	name string
-	
-	closable bool
-	updated bool
+
+	closable      bool
+	updated       bool
 	notifications bool
-	
+
 	gamechannel bool
-	
+
 	scrollbar *PU_Scrollbar
-	textbox *PU_Textbox
+	textbox   *PU_Textbox
 }
 
 const (
-	CHANNEL_LOG = -2
-	CHANNEL_IRC = -1
-	CHANNEL_LOCAL = 0
-	CHANNEL_WORLD = 1
-	CHANNEL_TRADE = 2
+	CHANNEL_LOG    = -2
+	CHANNEL_IRC    = -1
+	CHANNEL_LOCAL  = 0
+	CHANNEL_WORLD  = 1
+	CHANNEL_TRADE  = 2
 	CHANNEL_BATTLE = 3
 )
 
 const (
 	CHATCHANNEL_NAME_MAXWIDTH = 55
-	
-	CHAT_SCROLLBAR_X = 372
-	CHAT_SCROLLBAR_Y = 594
+
+	CHAT_SCROLLBAR_X      = 372
+	CHAT_SCROLLBAR_Y      = 594
 	CHAT_SCROLLBAR_HEIGHT = 93
-	
-	CHAT_TEXTBOX_X = 0
-	CHAT_TEXTBOX_Y = 591
-	CHAT_TEXTBOX_WIDTH = 375
+
+	CHAT_TEXTBOX_X      = 0
+	CHAT_TEXTBOX_Y      = 591
+	CHAT_TEXTBOX_WIDTH  = 375
 	CHAT_TEXTBOX_HEIGHT = 100
 )
 
 func NewChatChannel(_id int, _name string) *PU_ChatChannel {
 	channel := &PU_ChatChannel{}
 	channel.id = _id
-	
+
 	namefont := g_engine.GetFont(FONT_PURITANBOLD_14)
 	namelen := 0
 	for i := 0; i < len(_name); i++ {
@@ -69,23 +69,23 @@ func NewChatChannel(_id int, _name string) *PU_ChatChannel {
 			break
 		}
 	}
-	
-	channel.closable = true	
+
+	channel.closable = true
 	channel.notifications = true
-	
+
 	channel.scrollbar = NewScrollbar(CHAT_SCROLLBAR_X, CHAT_SCROLLBAR_Y, CHAT_SCROLLBAR_HEIGHT)
 	channel.scrollbar.visible = false
 	channel.scrollbar.maxvalue = 0
-	
+
 	channel.textbox = NewTextbox(NewRect(CHAT_TEXTBOX_X, CHAT_TEXTBOX_Y, CHAT_TEXTBOX_WIDTH, CHAT_TEXTBOX_HEIGHT), FONT_PURITANBOLD_12)
 	channel.textbox.visible = false
 	channel.textbox.scrollbar = channel.scrollbar
-	
+
 	switch _id {
-		case CHANNEL_WORLD, CHANNEL_TRADE, CHANNEL_BATTLE, CHANNEL_IRC, CHANNEL_LOG:
-			channel.gamechannel = true
+	case CHANNEL_WORLD, CHANNEL_TRADE, CHANNEL_BATTLE, CHANNEL_IRC, CHANNEL_LOG:
+		channel.gamechannel = true
 	}
-	
+
 	return channel
 }
 
@@ -111,4 +111,3 @@ func (c *PU_ChatChannel) SetActive(_active bool) {
 		}
 	}
 }
-

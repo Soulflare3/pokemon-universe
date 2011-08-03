@@ -21,27 +21,27 @@ import (
 )
 
 const (
-	SPEAK_NORMAL = 1
-	SPEAK_YELL = 2
+	SPEAK_NORMAL  = 1
+	SPEAK_YELL    = 2
 	SPEAK_WHISPER = 3
 	SPEAK_PRIVATE = 6
 )
 
 type PU_Chat struct {
 	PU_GuiElement
-	
-	activeChannel int 
-	
+
+	activeChannel int
+
 	channels map[int]*PU_ChatChannel
-	
-	listVisible bool
+
+	listVisible   bool
 	listBlinkLast uint32
-	listBlink bool
+	listBlink     bool
 }
 
 func NewChat() *PU_Chat {
-	chat := &PU_Chat{channels : make(map[int]*PU_ChatChannel),
-					 listBlinkLast : sdl.GetTicks()}
+	chat := &PU_Chat{channels: make(map[int]*PU_ChatChannel),
+		listBlinkLast: sdl.GetTicks()}
 	chat.visible = true
 	return chat
 }
@@ -75,7 +75,7 @@ func (c *PU_Chat) CloseChannel(_id int) {
 		if channel.id == c.activeChannel {
 			c.activeChannel = 0
 		}
-		
+
 		channel.Close()
 		c.channels[_id] = channel, false
 	}
@@ -95,18 +95,18 @@ func (c *PU_Chat) DrawChatList() {
 		c.listBlink = !c.listBlink
 		c.listBlinkLast = sdl.GetTicks()
 	}
-	
+
 	hasUpdate := false
 	if c.listVisible {
 		//top of the list
-		y := 688-((len(c.channels)*20)+29)
+		y := 688 - ((len(c.channels) * 20) + 29)
 		g_game.GetGuiImage(IMG_GUI_CHATLISTTOP).Draw(0, y)
-		
+
 		//channels
-		y = 688-(len(c.channels)*20)
+		y = 688 - (len(c.channels) * 20)
 		i := 0
 		for _, channel := range c.channels {
-			if  channel.closable {
+			if channel.closable {
 				g_game.GetGuiImage(IMG_GUI_CHATLISTMIDX).Draw(0, y+(i*20))
 			} else if channel.gamechannel {
 				if channel.notifications {
@@ -117,7 +117,7 @@ func (c *PU_Chat) DrawChatList() {
 			} else {
 				g_game.GetGuiImage(IMG_GUI_CHATLISTMID).Draw(0, y+(i*20))
 			}
-			
+
 			font := g_engine.GetFont(FONT_PURITANBOLD_14)
 			if channel.updated && c.listBlink {
 				hasUpdate = true
@@ -125,12 +125,12 @@ func (c *PU_Chat) DrawChatList() {
 			} else {
 				font.SetColor(255, 255, 255)
 			}
-			
-			font.DrawTextInRect(channel.name, 3, 3+y+(i*20), NewRect(3,y+(i*20),80,19))
+
+			font.DrawTextInRect(channel.name, 3, 3+y+(i*20), NewRect(3, y+(i*20), 80, 19))
 			i++
 		}
 	}
-	
+
 	if c.listBlink && !hasUpdate {
 		for _, channel := range c.channels {
 			if channel.updated {
@@ -138,12 +138,12 @@ func (c *PU_Chat) DrawChatList() {
 			}
 		}
 	}
-	
+
 	font := g_engine.GetFont(FONT_ARIALBLACK_10)
 	if c.listBlink && hasUpdate {
-		font.SetColor(255, 0 , 0)
+		font.SetColor(255, 0, 0)
 	} else {
-		font.SetColor(0, 0 ,0)
+		font.SetColor(0, 0, 0)
 	}
 	font.DrawText(c.channels[c.activeChannel].name, 28, 704)
 }
@@ -173,24 +173,24 @@ func (c *PU_Chat) MouseDown(_x int, _y int) {
 }
 
 func (c *PU_Chat) MouseUp(_x int, _y int) {
-	activeChannel := NewRect(20,694,66,19)
+	activeChannel := NewRect(20, 694, 66, 19)
 	if activeChannel.Contains(_x, _y) {
 		c.listVisible = !c.listVisible
 		return
 	}
-	
+
 	if c.listVisible {
-		h := ((len(c.channels)*20)+29)
-		y := 688-h
-		
-		channelList := NewRect(0,y,116,h)
+		h := ((len(c.channels) * 20) + 29)
+		y := 688 - h
+
+		channelList := NewRect(0, y, 116, h)
 		if channelList.Contains(_x, _y) {
 			y += 29
 			i := 0
 			for id, channel := range c.channels {
-				channelName := NewRect(0,y+(i*20),82,20)
-				channelClose := NewRect(90,3+y+(i*20),13,13)
-				
+				channelName := NewRect(0, y+(i*20), 82, 20)
+				channelClose := NewRect(90, 3+y+(i*20), 13, 13)
+
 				if channelName.Contains(_x, _y) {
 					c.SetActive(id)
 					c.listVisible = false
@@ -228,4 +228,3 @@ func (c *PU_Chat) Focusable() bool {
 func (c *PU_Chat) KeyDown(_keysym int, _scancode int) {
 
 }
-

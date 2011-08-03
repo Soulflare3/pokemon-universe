@@ -18,14 +18,14 @@ package main
 
 type IGuiElement interface {
 	Draw()
-	
+
 	MouseDown(_x int, _y int)
 	MouseUp(_x int, _y int)
 	MouseMove(_x int, _y int)
 	MouseScroll(_dir int)
 	KeyDown(_keysym int, _scancode int)
 	Focusable() bool
-	
+
 	GetRect() *PU_Rect
 	IsVisible() bool
 	SetParent(_parent IGuiElement)
@@ -35,9 +35,9 @@ type IGuiElement interface {
 }
 
 type PU_GuiElement struct {
-	parent IGuiElement
-	focus bool
-	rect *PU_Rect
+	parent  IGuiElement
+	focus   bool
+	rect    *PU_Rect
 	visible bool
 }
 

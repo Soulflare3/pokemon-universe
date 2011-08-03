@@ -20,29 +20,29 @@ import (
 	"os"
 	"time"
 	"sync"
-	
+
 	"mysql"
 )
 
 type ServerInfo struct {
-	Name		string
-	Ip			string
-	Online		uint8
-	LastCheck	int64
+	Name      string
+	Ip        string
+	Online    uint8
+	LastCheck int64
 }
 
 type ServerStore struct {
-	servers			*ServerList
-	DataChangeTime	int64
+	servers        *ServerList
+	DataChangeTime int64
 }
 
 func NewServerStore() *ServerStore {
-	s := &ServerStore{ servers : NewServerList(), DataChangeTime : time.Seconds() }
-	
+	s := &ServerStore{servers: NewServerList(), DataChangeTime: time.Seconds()}
+
 	if err := s.load(); err != nil {
 		g_logger.Printf("ServerStore: %v\n\r", err)
 	}
-	
+
 	// Disabled for now. Just restart the server to reload gameservers
 	//go s.reloadLoop()
 	return s
@@ -51,45 +51,45 @@ func NewServerStore() *ServerStore {
 func (store *ServerStore) load() (err os.Error) {
 	var res *mysql.MySQLResult
 	var row map[string]interface{}
-	
+
 	var queryString string = "SELECT idserver, name, address FROM servers"
 	if res, err = g_db.Query(queryString); err != nil {
 		return err
 	}
-	
+
 	for {
 		if row = res.FetchMap(); row == nil {
 			break
 		}
 
-		idserver	:= row["idserver"].(int)
-		name		:= row["name"].(string)
-		address		:= row["address"].(string)
-		
-		info := ServerInfo { Name: name, Ip: address, Online: 0, LastCheck: 0 }
+		idserver := row["idserver"].(int)
+		name := row["name"].(string)
+		address := row["address"].(string)
+
+		info := ServerInfo{Name: name, Ip: address, Online: 0, LastCheck: 0}
 		store.servers.Set(idserver, info)
 	}
-	
+
 	return nil
 }
 
 func (store *ServerStore) reloadLoop() {
 	for {
-	
+
 		// Check if all the servers are online
 		store.servers.CheckStatus()
-		
+
 		// Sleep for 5 min
 		time.Sleep(30e10)
-		
+
 		// Reload server list from database
 		// ---
 	}
 }
 
 type ServerList struct {
-	mu   	sync.RWMutex
-	servers	map[int]ServerInfo
+	mu      sync.RWMutex
+	servers map[int]ServerInfo
 }
 
 func NewServerList() *ServerList {
@@ -108,7 +108,7 @@ func (list *ServerList) Get(key int) (info ServerInfo, ok bool) {
 	list.mu.RLock()
 	info, ok = list.servers[key]
 	list.mu.RUnlock()
-	
+
 	return
 }
 

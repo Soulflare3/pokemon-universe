@@ -18,11 +18,11 @@ package main
 
 type PU_BattleEvent_ChangeSelection struct {
 	selecttype int
-	value int
+	value      int
 }
 
 func NewBattleEvent_ChangeSelection(_type int, _value int) *PU_BattleEvent_ChangeSelection {
-	return &PU_BattleEvent_ChangeSelection{selecttype : _type, value : _value}
+	return &PU_BattleEvent_ChangeSelection{selecttype: _type, value: _value}
 }
 
 func (e *PU_BattleEvent_ChangeSelection) Execute() {

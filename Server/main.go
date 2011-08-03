@@ -22,11 +22,11 @@ import (
 	"flag"
 	"runtime"
 	"os"
-	
+
 	"conf"
 	"mysql"
-	
-	"logger" // PU.Logger package
+
+	"logger"       // PU.Logger package
 	pos "position" // PU.Position package	
 )
 
@@ -36,44 +36,44 @@ const (
 
 var (
 	configFile *string
-	
+
 	g_config *conf.ConfigFile
 	g_logger *log.Logger
 	g_db     *mysql.Client
 
 	g_game   *Game
 	g_server *Server
-	g_map	 *Map
-	
+	g_map    *Map
+
 	// Client viewport variables. The Z position doesn't matter in this case
-	CLIENT_VIEWPORT pos.Position = pos.Position{28,22,0} 
-	CLIENT_VIEWPORT_CENTER pos.Position = pos.Position{14,11,0}
+	CLIENT_VIEWPORT        pos.Position = pos.Position{28, 22, 0}
+	CLIENT_VIEWPORT_CENTER pos.Position = pos.Position{14, 11, 0}
 )
 
 func initConfig() bool {
-	c, err := conf.ReadConfigFile("data/" + *configFile) 
+	c, err := conf.ReadConfigFile("data/" + *configFile)
 	if err != nil {
 		fmt.Printf("Could not load config file: %v\n\r", err)
 		return false
 	}
-	
+
 	g_config = c
-	
+
 	return true
 }
 
 func initLogger() bool {
 	var flags int
-	
+
 	toConsole, err := g_config.GetBool("log", "console")
 	if err != nil || toConsole {
 		flags = logger.L_CONSOLE
 	}
 	toFile, err := g_config.GetBool("log", "file")
 	if err != nil || toFile {
-		flags = flags|logger.L_FILE
+		flags = flags | logger.L_FILE
 	}
-	
+
 	logFile, err := g_config.GetString("log", "filename")
 	if err != nil || len(logFile) <= 0 {
 		logFile = "log.txt"
@@ -87,17 +87,17 @@ func initLogger() bool {
 	if toFile {
 		fmt.Printf(" - Start logging to file: %v\n\r", logFile)
 	}
-	
+
 	return true
 }
 
 func initDatabase() bool {
 	// Fetch database info from conf file
-	SQLHost, _ 	:= g_config.GetString("database", "host")
-	SQLUser, _ 	:= g_config.GetString("database", "user")
-	SQLPass, _ 	:= g_config.GetString("database", "pass")
-	SQLDB, _ 	:= g_config.GetString("database", "db")
-	
+	SQLHost, _ := g_config.GetString("database", "host")
+	SQLUser, _ := g_config.GetString("database", "user")
+	SQLPass, _ := g_config.GetString("database", "pass")
+	SQLDB, _ := g_config.GetString("database", "db")
+
 	// Enable/Disable intern mysql logging system
 	// g_db.Logging, _ = g_config.GetBool("database", "show_log")
 
@@ -108,7 +108,7 @@ func initDatabase() bool {
 		g_logger.Printf("[Error] Could not connect to database: %v\n\r", err)
 		return false
 	}
-	
+
 	g_db.Reconnect = true
 
 	return true
@@ -136,11 +136,11 @@ func main() {
 	}
 
 	// Setup logger
-	fmt.Println(" - Setting up logging system")	
+	fmt.Println(" - Setting up logging system")
 	if initLogger() == false {
 		return
 	}
-	
+
 	// Connect to database
 	g_logger.Println("Connecting to databeast")
 	if initDatabase() == false {
@@ -161,4 +161,3 @@ func main() {
 	g_server = NewServer()
 	g_server.Start()
 }
-

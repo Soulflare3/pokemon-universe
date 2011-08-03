@@ -21,17 +21,17 @@ import (
 )
 
 type PU_Image struct {
-	w, h uint16
-	alpha uint8
+	w, h      uint16
+	alpha     uint8
 	blendmode int
-	
+
 	surface *sdl.Surface
 	texture *sdl.Texture
 }
 
 func NewImage(_file string) *PU_Image {
-	image := &PU_Image{blendmode : sdl.BLENDMODE_BLEND}
-	
+	image := &PU_Image{blendmode: sdl.BLENDMODE_BLEND}
+
 	image.surface = sdl.LoadImage(GetPath() + _file)
 
 	image.Reload()
@@ -40,7 +40,7 @@ func NewImage(_file string) *PU_Image {
 
 func NewImageFromSurface(_surface *sdl.Surface) *PU_Image {
 	image := &PU_Image{surface: _surface,
-					   blendmode : sdl.BLENDMODE_BLEND}
+		blendmode: sdl.BLENDMODE_BLEND}
 	image.Reload()
 	return image
 }
@@ -93,7 +93,7 @@ func (i *PU_Image) DrawRect(_rect *PU_Rect) {
 
 func (i *PU_Image) DrawClip(_x int, _y int, _clip *PU_Rect) {
 	dst := &sdl.Rect{0, 0, int32(i.w), int32(i.h)}
-	
+
 	i.Render(_clip.ToSDL(), dst)
 }
 
@@ -107,7 +107,7 @@ func (i *PU_Image) DrawInRect(_x int, _y int, _inrect *PU_Rect) {
 	dstRect := NewRect(inRect.x, inRect.y, inRect.width, inRect.height)
 	inRect.x -= _x
 	inRect.y -= _y
-	
+
 	i.Render(inRect.ToSDL(), dstRect.ToSDL())
 }
 
@@ -116,7 +116,6 @@ func (i *PU_Image) DrawRectInRect(_rect *PU_Rect, _inrect *PU_Rect) {
 	dstRect := NewRect(inRect.x, inRect.y, inRect.width, inRect.height)
 	inRect.x -= _rect.x
 	inRect.y -= _rect.y
-	
+
 	i.Render(inRect.ToSDL(), dstRect.ToSDL())
 }
-

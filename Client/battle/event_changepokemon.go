@@ -17,11 +17,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 type PU_BattleEvent_ChangePokemon struct {
-	fighter int 
-	pokeid int 
-	hp int 
-	level int 
-	name string 
+	fighter int
+	pokeid  int
+	hp      int
+	level   int
+	name    string
 }
 
 func NewBattleEvent_ChangePokemon_Self(_pokeid int) *PU_BattleEvent_ChangePokemon {

@@ -26,17 +26,17 @@ const (
 )
 
 const (
-	DIR_NULL = 0
+	DIR_NULL  = 0
 	DIR_SOUTH = 1
-	DIR_WEST = 2
+	DIR_WEST  = 2
 	DIR_NORTH = 3
-	DIR_EAST = 4
+	DIR_EAST  = 4
 )
 
 const (
 	CTYPE_CREATURE = 0
-	CTYPE_NPC = 1
-	CTYPE_PLAYER = 2
+	CTYPE_NPC      = 1
+	CTYPE_PLAYER   = 2
 )
 
 // CreatureList is map which holds a list of ICreature interfaces
@@ -44,30 +44,29 @@ type CreatureList map[uint64]ICreature
 
 // Main interface for all creature objects in the game
 type ICreature interface {
-	GetUID()		uint64
-	GetName()		string
-	GetType()		int
-	
-	GetPosition()	pos.Position
-	GetMovement()	int
-	
+	GetUID() uint64
+	GetName() string
+	GetType() int
+
+	GetPosition() pos.Position
+	GetMovement() int
+
 	SetDirection(_dir int)
-	GetDirection()	int
-	
+	GetDirection() int
+
 	SetTile(_tile *Tile)
 	GetTile() *Tile
-	
-	GetOutfit()		Outfit
+
+	GetOutfit() Outfit
 
 	GetMovementSpeed() int
 	GetTimeSinceLastMove() int
-	
-		
+
 	// Methods for all moving creatures
 	OnCreatureMove(_creature ICreature, _from *Tile, _to *Tile, _teleport bool)
 	OnCreatureTurn(_creature ICreature)
 	OnCreatureAppear(_creature ICreature, _isLogin bool)
-	OnCreatureDisappear(_creature ICreature, _isLogout bool)	
+	OnCreatureDisappear(_creature ICreature, _isLogout bool)
 
 	// Methods for all creatures who need to see other creatures	
 	AddVisibleCreature(_creature ICreature)
@@ -98,23 +97,23 @@ func CreatureCanMove(_creature ICreature) bool {
 
 // Creature struct with generic variables for all creatures
 type Creature struct {
-	uid				uint64 // Unique ID
-	name			string
-	Id				int // Database ID			
-	
-	Position		*Tile
-	Direction		int
-	
-	Movement		int
-	lastStep		int64
-	moveSpeed		int
-	
+	uid  uint64 // Unique ID
+	name string
+	Id   int // Database ID			
+
+	Position  *Tile
+	Direction int
+
+	Movement  int
+	lastStep  int64
+	moveSpeed int
+
 	Outfit
-	
+
 	VisibleCreatures CreatureList
 }
 
-func  (c *Creature) GetUID() uint64 {
+func (c *Creature) GetUID() uint64 {
 	return c.uid
 }
 
@@ -166,4 +165,3 @@ func (c *Creature) KnowsVisibleCreature(_creature ICreature) (found bool) {
 func (c *Creature) GetVisibleCreatures() CreatureList {
 	return c.VisibleCreatures
 }
-

@@ -22,25 +22,25 @@ import (
 
 func (p *PU_GameProtocol) Receive_Tiles(_message *punet.Message) {
 	data := _message.Tiles
-	for _, t := range data.Tiles {	
+	for _, t := range data.Tiles {
 		x := t.X
 		y := t.Y
-		
+
 		tile := g_map.GetTile(x, y)
 		if tile == nil {
 			tile = g_map.AddTile(x, y)
 			tile.movement = t.Blocking
-			
-			for _, l := range t.Layers {			
+
+			for _, l := range t.Layers {
 				tile.AddLayer(l.Index, l.Sprite)
 			}
-			
+
 			continue
 		}
 		//else
 
-		layers := [3]int{-1,-1,-1}
-		for _, l := range t.Layers {			
+		layers := [3]int{-1, -1, -1}
+		for _, l := range t.Layers {
 			layers[l.Index] = l.Sprite
 		}
 		signature := uint64(t.Blocking)
@@ -51,12 +51,12 @@ func (p *PU_GameProtocol) Receive_Tiles(_message *punet.Message) {
 			}
 			shift += 16
 		}
-		
+
 		//we don't want to remove/add all layers of a tile each time we receive it
 		//only when something is different
 		if tile.GetSignature() != signature {
 			tile.movement = t.Blocking
-			for i := 0; i < 3; i ++ {
+			for i := 0; i < 3; i++ {
 				tile.RemoveLayer(i)
 				if layers[i] != -1 {
 					tile.AddLayer(i, layers[i])

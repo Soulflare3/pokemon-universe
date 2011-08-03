@@ -20,28 +20,28 @@ type PlayerList map[uint64]*Player
 
 type Player struct {
 	Creature // Inherit generic creature data
-	
-	Conn			*Connection	
-	
-	Location		*Location
-	LastPokeCenter	*Tile
-	
-	Money			int
-	TimeoutCounter	int
+
+	Conn *Connection
+
+	Location       *Location
+	LastPokeCenter *Tile
+
+	Money          int
+	TimeoutCounter int
 }
 
 func NewPlayer(_name string) *Player {
-	p := Player{ }
-	p.uid 	= GenerateUniqueID()
-	p.Conn 	= nil
+	p := Player{}
+	p.uid = GenerateUniqueID()
+	p.Conn = nil
 	p.Outfit = NewOutfit()
 	p.name = _name
-	
+
 	p.lastStep = PUSYS_TIME()
 	p.moveSpeed = 280
 	p.VisibleCreatures = make(CreatureList)
 	p.TimeoutCounter = 0
-	
+
 	return &p
 }
 
@@ -75,24 +75,24 @@ func (p *Player) OnCreatureMove(_creature ICreature, _from *Tile, _to *Tile, _te
 		p.lastStep = PUSYS_TIME()
 		return
 	}
-	
-	canSeeFromTile	:= CanSeePosition(p.GetPosition(), _from.Position)
-	canSeeToTile	:= CanSeePosition(p.GetPosition(), _to.Position)
 
-	if canSeeFromTile && !canSeeToTile { 		// Leaving viewport
+	canSeeFromTile := CanSeePosition(p.GetPosition(), _from.Position)
+	canSeeToTile := CanSeePosition(p.GetPosition(), _to.Position)
+
+	if canSeeFromTile && !canSeeToTile { // Leaving viewport
 		p.sendCreatureMove(_creature, _from, _to)
-		
+
 		p.RemoveVisibleCreature(_creature)
 		_creature.RemoveVisibleCreature(p)
-	} else if canSeeToTile && !canSeeFromTile {	// Entering viewport
+	} else if canSeeToTile && !canSeeFromTile { // Entering viewport
 		p.AddVisibleCreature(_creature)
 		_creature.RemoveVisibleCreature(p)
-		
+
 		p.sendCreatureMove(_creature, _from, _to)
-	} else {									// Moving inside viewport
+	} else { // Moving inside viewport
 		p.AddVisibleCreature(_creature)
 		_creature.AddVisibleCreature(p)
-		
+
 		p.sendCreatureMove(_creature, _from, _to)
 	}
 }
@@ -108,7 +108,7 @@ func (p *Player) OnCreatureAppear(_creature ICreature, _isLogin bool) {
 	if !canSeeCreature {
 		return
 	}
-	
+
 	// We're checking inside the AddVisibleCreature method so no need to check here
 	p.AddVisibleCreature(_creature)
 	_creature.AddVisibleCreature(p)
@@ -116,7 +116,7 @@ func (p *Player) OnCreatureAppear(_creature ICreature, _isLogin bool) {
 
 func (p *Player) OnCreatureDisappear(_creature ICreature, _isLogout bool) {
 	// TODO: Have to do something here with _isLogout
-	
+
 	p.RemoveVisibleCreature(_creature)
 }
 

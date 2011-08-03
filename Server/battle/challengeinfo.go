@@ -27,14 +27,14 @@ const (
 
 	ChallengeDescLast
 )
-	
+
 type ChallengeInfo struct {
-	description	uint8
-	opponent 	uint32
-	clauses		uint32
-	mode		uint8
+	description uint8
+	opponent    uint32
+	clauses     uint32
+	mode        uint8
 }
 
 func NewChallengeInfo() *ChallengeInfo {
-	return &ChallengeInfo{ }
+	return &ChallengeInfo{}
 }

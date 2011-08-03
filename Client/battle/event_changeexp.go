@@ -18,11 +18,11 @@ package main
 
 type PU_BattleEvent_ChangeExp struct {
 	pokemon int
-	exp int
+	exp     int
 }
 
 func NewBattleEvent_ChangeExp(_pokemon int, _exp int) *PU_BattleEvent_ChangeExp {
-	return &PU_BattleEvent_ChangeExp{pokemon : _pokemon, exp : _exp}
+	return &PU_BattleEvent_ChangeExp{pokemon: _pokemon, exp: _exp}
 }
 
 func (e *PU_BattleEvent_ChangeExp) Execute() {

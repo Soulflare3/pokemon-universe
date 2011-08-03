@@ -22,9 +22,9 @@ import (
 
 const (
 	DIR_SOUTH = 1
-	DIR_WEST = 2
+	DIR_WEST  = 2
 	DIR_NORTH = 3
-	DIR_EAST = 4
+	DIR_EAST  = 4
 )
 
 type ICreature interface {
@@ -43,25 +43,25 @@ type ICreature interface {
 
 type PU_Creature struct {
 	id uint64
-	
+
 	x int
 	y int
-	
-	walking bool
-	walkEnded bool
-	preWalkX int
-	preWalkY int
-	offset int
+
+	walking      bool
+	walkEnded    bool
+	preWalkX     int
+	preWalkY     int
+	offset       int
 	walkProgress float32
-	speed int
-	
+	speed        int
+
 	direction int
-	
-	frame int 
-	frames int 
-	
-	animationRunning bool
-	animationInterval int 
+
+	frame  int
+	frames int
+
+	animationRunning   bool
+	animationInterval  int
 	animationLastTicks uint32
 }
 
@@ -123,15 +123,14 @@ func (c *PU_Creature) StopAnimation() {
 
 func (c *PU_Creature) UpdateAnimation() {
 	if c.animationRunning {
-		passedTicks := sdl.GetTicks()-c.animationLastTicks
+		passedTicks := sdl.GetTicks() - c.animationLastTicks
 		if passedTicks >= uint32(c.animationInterval) {
 			c.frame++
 			if c.frame > c.frames {
 				c.frame = 0
 			}
-			
+
 			c.animationLastTicks = sdl.GetTicks()
 		}
 	}
 }
-

@@ -22,24 +22,24 @@ import (
 
 type PU_Battle struct {
 	battletype int
-	
+
 	eventQueue list.Vector
-	
-	fighters [4]*PU_Fighter
-	self *PU_Fighter
+
+	fighters     [4]*PU_Fighter
+	self         *PU_Fighter
 	changeTarget *PU_Fighter
-	
+
 	numPlayers int
-	
+
 	attackList [4]*PU_Attack
-	
-	state int
-	sleepTime int32
+
+	state       int
+	sleepTime   int32
 	changeValue int
 }
 
 func NewBattle(_battletype int) *PU_Battle {
-	return &PU_Battle{battletype : _battletype}
+	return &PU_Battle{battletype: _battletype}
 }
 
 func (b *PU_Battle) Start() {
@@ -50,7 +50,7 @@ func (b *PU_Battle) Start() {
 func (b *PU_Battle) Stop() {
 	g_game.ShowBattleUI(false)
 	g_game.ShowGameUI(true)
-	
+
 	g_game.battle = nil
 	g_game.state = GAMESTATE_WORLD
 }
@@ -112,13 +112,13 @@ func (b *PU_Battle) Wait(_ticks uint32) {
 func (b *PU_Battle) ChangeHP(_fighter int, _hp int) {
 	b.changeTarget = b.fighters[_fighter]
 	b.changeValue = _hp
-	b.state = BATTLE_CHANGEHP	
+	b.state = BATTLE_CHANGEHP
 }
 
 func (b *PU_Battle) ChangeExp(_fighter int, _exp int) {
 	b.changeTarget = b.fighters[_fighter]
 	b.changeValue = _exp
-	b.state = BATTLE_CHANGEEXP	
+	b.state = BATTLE_CHANGEEXP
 }
 
 func (b *PU_Battle) ProcessEvents() {
@@ -128,7 +128,7 @@ func (b *PU_Battle) ProcessEvents() {
 		if b.sleepTime <= 0 {
 			b.state = BATTLE_RUNNING
 		}
-		
+
 	case BATTLE_CHANGEHP:
 		oldhp := b.changeTarget.GetHP()
 		if oldhp != b.changeValue {
@@ -138,13 +138,13 @@ func (b *PU_Battle) ProcessEvents() {
 			} else {
 				mod = 1
 			}
-			
+
 			oldhp += mod
 			b.changeTarget.SetHP(oldhp)
 		} else {
 			b.state = BATTLE_RUNNING
 		}
-		
+
 	case BATTLE_CHANGEEXP:
 		oldexp := b.changeTarget.GetExp()
 		if oldexp != b.changeValue {
@@ -154,13 +154,13 @@ func (b *PU_Battle) ProcessEvents() {
 			} else {
 				mod = 1
 			}
-			
+
 			oldexp += mod
 			b.changeTarget.SetExp(oldexp)
 		} else {
 			b.state = BATTLE_RUNNING
 		}
-		
+
 	case BATTLE_RUNNING:
 		if b.eventQueue.Len() > 0 {
 			event := b.eventQueue.At(0).(IBattleEvent)
@@ -171,4 +171,3 @@ func (b *PU_Battle) ProcessEvents() {
 		}
 	}
 }
-

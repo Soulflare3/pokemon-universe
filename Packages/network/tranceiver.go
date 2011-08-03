@@ -28,10 +28,10 @@ type Tranceiver struct {
 
 func NewTranceiver(_socket io.ReadWriter) *Tranceiver {
 	tranceiver := &Tranceiver{}
-	
+
 	tranceiver.encoder = gob.NewEncoder(_socket)
 	tranceiver.decoder = gob.NewDecoder(_socket)
-	
+
 	return tranceiver
 }
 

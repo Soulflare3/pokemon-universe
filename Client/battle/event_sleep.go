@@ -21,7 +21,7 @@ type PU_BattleEvent_Sleep struct {
 }
 
 func NewBattleEvent_Sleep(_ticks uint32) *PU_BattleEvent_Sleep {
-	return &PU_BattleEvent_Sleep{ticks : _ticks}
+	return &PU_BattleEvent_Sleep{ticks: _ticks}
 }
 
 func (e *PU_BattleEvent_Sleep) Execute() {

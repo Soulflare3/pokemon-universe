@@ -23,13 +23,13 @@ type TypeInfo struct {
 }
 
 func NewTypeInfo() *TypeInfo {
-	info := &TypeInfo { Names: make(map[int8]string) }
+	info := &TypeInfo{Names: make(map[int8]string)}
 	info.init()
 	return info
 }
 
 func (t *TypeInfo) init() {
-	
+
 }
 
 func (t *TypeInfo) GetTypeName(_id int8) string {
@@ -37,6 +37,6 @@ func (t *TypeInfo) GetTypeName(_id int8) string {
 	if !found {
 		fmt.Printf("Can't find TypeName with ID: %d\n", _id)
 	}
-	
+
 	return value
 }

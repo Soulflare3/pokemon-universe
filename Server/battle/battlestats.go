@@ -23,7 +23,7 @@ type BattleStats struct {
 }
 
 func NewBattleStats() BattleStats {
-	return BattleStats{stats: make([]int16, 5) }
+	return BattleStats{stats: make([]int16, 5)}
 }
 
 func NewBattleStatsFromPacket(_packet *pnet.QTPacket) BattleStats {
@@ -33,6 +33,6 @@ func NewBattleStatsFromPacket(_packet *pnet.QTPacket) BattleStats {
 	battleStats.stats[2] = int16(_packet.ReadUint16())
 	battleStats.stats[3] = int16(_packet.ReadUint16())
 	battleStats.stats[4] = int16(_packet.ReadUint16())
-	
+
 	return battleStats
 }

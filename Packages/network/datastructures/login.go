@@ -24,7 +24,7 @@ package network
 type Data_Login struct {
 	Username string
 	Password string
-	Version int
+	Version  int
 }
 
 func NewData_Login() (msg *Message) {

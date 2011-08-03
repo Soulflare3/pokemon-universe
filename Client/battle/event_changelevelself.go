@@ -18,11 +18,11 @@ package main
 
 type PU_BattleEvent_ChangeLevelSelf struct {
 	pokemon int
-	level int 
+	level   int
 }
 
 func NewBattleEvent_ChangeLevelSelf(_pokemon int, _level int) *PU_BattleEvent_ChangeLevelSelf {
-	return &PU_BattleEvent_ChangeLevelSelf{pokemon : _pokemon, level : _level}
+	return &PU_BattleEvent_ChangeLevelSelf{pokemon: _pokemon, level: _level}
 }
 
 func (e *PU_BattleEvent_ChangeLevelSelf) Execute() {

@@ -22,20 +22,20 @@ import (
 
 type PU_Fighter struct {
 	pokemon *PU_Pokemon
-	player *PU_Player
-	
-	name string
+	player  *PU_Player
+
+	name     string
 	pokename string
-	
-	id int
+
+	id     int
 	pokeid int
-	level int
-	team int
-	hp int
+	level  int
+	team   int
+	hp     int
 }
 
 func NewFighter(_id int) *PU_Fighter {
-	return &PU_Fighter{id : _id}
+	return &PU_Fighter{id: _id}
 }
 
 func (f *PU_Fighter) SetPokemon(_name string, _pokeid int, _level int, _hp int) {
@@ -80,7 +80,7 @@ func (f *PU_Fighter) GetLevel() int {
 
 func (f *PU_Fighter) GetHPPerc() int {
 	if f.pokemon != nil {
-		return int(math.Floor((float64(f.pokemon.hp)/float64(f.pokemon.hpmax))*100.0))
+		return int(math.Floor((float64(f.pokemon.hp) / float64(f.pokemon.hpmax)) * 100.0))
 	}
 	return f.hp
 }
@@ -123,8 +123,7 @@ func (f *PU_Fighter) SetLevel(_level int) {
 }
 
 func (f *PU_Fighter) SetExp(_exp int) {
-	if f.pokemon!= nil {
+	if f.pokemon != nil {
 		f.pokemon.expPerc = int16(_exp)
 	}
 }
-

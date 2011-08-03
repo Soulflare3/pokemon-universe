@@ -22,7 +22,7 @@ var POKEINFO_RECT *PU_Rect = NewRect(331, 354, 631, 257)
 
 type PU_PokeInfo struct {
 	PU_GuiElement
-	
+
 	pokemon int
 }
 
@@ -30,7 +30,7 @@ func NewPokeInfo() *PU_PokeInfo {
 	info := &PU_PokeInfo{}
 	info.visible = true
 	g_gui.AddElement(info)
-	
+
 	return info
 }
 
@@ -38,7 +38,7 @@ func (g *PU_PokeInfo) Draw() {
 	if !g.visible {
 		return
 	}
-	
+
 	if pokemon := g_game.self.pokemon[g.pokemon]; pokemon != nil {
 		img := g_game.GetGuiImage(IMG_GUI_POKEINFOBG)
 		if img != nil {
@@ -46,21 +46,21 @@ func (g *PU_PokeInfo) Draw() {
 		}
 		/*pokemonhp := pokemon.hp
 		pokemonmaxhp := pokemon.hpmax
-	
+
 		if pokemonhp > 0 {
 			var hpbar *PU_Image
 			hpperc := int((float32(pokemonhp)/float32(pokemonmaxhp))*100.0)
 			switch {
 			case hpperc <= 20:
 				hpbar = g_game.GetGuiImage(IMG_GUI_POKEMON_REDHPBAR)
-			
+
 			case hpperc > 20 && hpperc <= 40:
 				hpbar = g_game.GetGuiImage(IMG_GUI_POKEMON_YELLOWHPBAR)
-			
+
 			default:
 				hpbar = g_game.GetGuiImage(IMG_GUI_POKEMON_GREENHPBAR)
 			}
-		
+
 			var temp *PU_Image
 			if i == 0 {
 				temp = g_game.GetGuiImage(IMG_GUI_POKEMON_SELECTED)
@@ -70,18 +70,18 @@ func (g *PU_PokeInfo) Draw() {
 			if temp != nil {
 				temp.Draw(x, y)
 			}
-		
+
 			temp = g_game.GetGuiImage(IMG_GUI_POKEMON_HPBAR)
 			if temp != nil {
 				temp.Draw(x+6, y+27)
 			}
-		
+
 			if hpbar != nil {
 				hpbarwidth := int((float32(hpperc)/100.0)*float32(hpbar.w))
 				hpbar.DrawRectInRect(NewRect(x+6, y+27, int(hpbarwidth)+2, int(hpbar.h)), NewRect(0, 0, hpbarwidth, int(hpbar.h)))
 			}
 		}*/
-	} 
+	}
 }
 
 func (g *PU_PokeInfo) MouseDown(_x int, _y int) {
@@ -107,4 +107,3 @@ func (g *PU_PokeInfo) Focusable() bool {
 func (g *PU_PokeInfo) KeyDown(_keysym int, _scancode int) {
 
 }
-

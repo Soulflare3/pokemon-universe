@@ -26,7 +26,7 @@ func (c *Connection) Send_Tiles(_direction int, _centerPosition pos.Position) {
 	xMax := CLIENT_VIEWPORT.X
 	yMin := 1
 	yMax := CLIENT_VIEWPORT.Y
-	
+
 	if _direction != DIR_NULL {
 		switch _direction {
 		case DIR_NORTH:
@@ -39,34 +39,34 @@ func (c *Connection) Send_Tiles(_direction int, _centerPosition pos.Position) {
 			xMax = 1
 		}
 	}
-	
+
 	// Top-left coordinates
-	positionX 	:= (_centerPosition.X - CLIENT_VIEWPORT_CENTER.X)
-	positionY 	:= (_centerPosition.Y - CLIENT_VIEWPORT_CENTER.Y)
-	z			:= _centerPosition.Z
-	
+	positionX := (_centerPosition.X - CLIENT_VIEWPORT_CENTER.X)
+	positionY := (_centerPosition.Y - CLIENT_VIEWPORT_CENTER.Y)
+	z := _centerPosition.Z
+
 	tilesMessage := pnet.NewData_Tiles()
 	for x := xMin; x <= xMax; x++ {
 		for y := yMin; y <= yMax; y++ {
-			index := pos.Hash(positionX + x, positionY + y, z)
+			index := pos.Hash(positionX+x, positionY+y, z)
 			tile, ok := g_map.GetTile(index)
 			if ok {
 				newTile := pnet.NewTile()
-				newTile.X 			= positionX + x
-				newTile.Y 			= positionY + y
-				newTile.Blocking 	= tile.Blocking
+				newTile.X = positionX + x
+				newTile.Y = positionY + y
+				newTile.Blocking = tile.Blocking
 				for _, layer := range tile.Layers {
 					newTile.AddLayer(layer.Layer, layer.SpriteID)
 				}
 				tilesMessage.Tiles.Tiles = append(tilesMessage.Tiles.Tiles, newTile)
 			}
 		}
-		
+
 		if _direction == DIR_NULL {
 			c.SendMessage(tilesMessage)
 		}
 	}
-	
+
 	if _direction != DIR_NULL {
 		c.SendMessage(tilesMessage)
 	}

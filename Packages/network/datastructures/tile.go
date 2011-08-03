@@ -19,27 +19,27 @@ package network
 
 //Datastructures used to transfer tiles
 type Tile struct {
-	X 			int
-	Y 			int
-	Blocking 	int
-	Layers		[]*Layer
+	X        int
+	Y        int
+	Blocking int
+	Layers   []*Layer
 }
 
 func NewTile() *Tile {
-	return &Tile{Layers : make([]*Layer, 0)}
+	return &Tile{Layers: make([]*Layer, 0)}
 }
 
 func (t *Tile) AddLayer(_index int, _sprite int) {
 	layer := NewLayer()
-	layer.Index 	= _index
-	layer.Sprite 	= _sprite
+	layer.Index = _index
+	layer.Sprite = _sprite
 	t.Layers = append(t.Layers, layer)
 }
 
 type Layer struct {
-	Index		int
-	ID			int
-	Sprite		int
+	Index  int
+	ID     int
+	Sprite int
 }
 
 func NewLayer() *Layer {
@@ -56,15 +56,15 @@ type Data_Tiles struct {
 
 func NewData_Tiles() (msg *Message) {
 	msg = NewMessage(HEADER_TILES)
-	msg.Tiles = &Data_Tiles{Tiles : make([]*Tile, 0)}
+	msg.Tiles = &Data_Tiles{Tiles: make([]*Tile, 0)}
 	return
 }
 
 func (d *Data_Tiles) AddNewTile(_x int, _y int, _blocking int) {
 	tile := NewTile()
-	tile.X 			= _x
-	tile.Y 			= _y
-	tile.Blocking 	= _blocking
+	tile.X = _x
+	tile.Y = _y
+	tile.Blocking = _blocking
 	d.Tiles = append(d.Tiles, tile)
 }
 

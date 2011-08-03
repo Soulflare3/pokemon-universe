@@ -17,16 +17,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 type PU_Attack struct {
-	name string 
-	description string 
-	poketype string 
-	category string 
-	target string 
-	contact string 
-	
-	pp uint16
-	ppmax uint16
-	power uint16
+	name        string
+	description string
+	poketype    string
+	category    string
+	target      string
+	contact     string
+
+	pp       uint16
+	ppmax    uint16
+	power    uint16
 	accuracy uint16
 }
 

@@ -17,9 +17,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 type PU_BattleEvent_Dialogue struct {
-	npc int
+	npc      int
 	question string
-	options map[int]string
+	options  map[int]string
 }
 
 func NewBattleEvent_Dialogue(_question string, _options map[int]string) *PU_BattleEvent_Dialogue {

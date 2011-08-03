@@ -23,7 +23,7 @@ import (
 type PU_LoginControls struct {
 	txtUsername *PU_Textfield
 	txtPassword *PU_Textfield
-	txtStatus *PU_Textfield
+	txtStatus   *PU_Textfield
 }
 
 var g_loginControls *PU_LoginControls = NewLoginControls()
@@ -40,7 +40,7 @@ func (l *PU_LoginControls) Show() {
 		l.txtUsername.readonly = false
 		l.txtUsername.KeyDownCallback = LoginKeydown
 	}
-	
+
 	if l.txtPassword == nil {
 		l.txtPassword = NewTextfield(NewRect(453, 424, 160, 20), FONT_PURITANBOLD_14)
 		l.txtPassword.SetColor(57, 92, 196)
@@ -49,14 +49,14 @@ func (l *PU_LoginControls) Show() {
 		l.txtPassword.password = true
 		l.txtPassword.KeyDownCallback = LoginKeydown
 	}
-	
+
 	if l.txtStatus == nil {
 		l.txtStatus = NewTextfield(NewRect(393, 514, 250, 20), FONT_PURITANBOLD_14)
 		l.txtStatus.SetColor(0, 185, 47)
 		l.txtStatus.SetStyle(true, false, false)
 		l.txtStatus.readonly = true
 	}
-	
+
 	g_gui.SetFocus(l.txtUsername)
 }
 
@@ -65,12 +65,12 @@ func (l *PU_LoginControls) Hide() {
 		g_gui.RemoveElement(l.txtUsername)
 		l.txtUsername = nil
 	}
-	
+
 	if l.txtPassword != nil {
 		g_gui.RemoveElement(l.txtPassword)
 		l.txtPassword = nil
-	} 
-	
+	}
+
 	if l.txtStatus != nil {
 		g_gui.RemoveElement(l.txtStatus)
 		l.txtStatus = nil
@@ -83,12 +83,12 @@ func LoginKeydown(_keysym int, _scancode int) {
 		if g_loginControls.txtUsername != nil {
 			username = g_loginControls.txtUsername.text
 		}
-		
+
 		var password string
 		if g_loginControls.txtPassword != nil {
 			password = g_loginControls.txtPassword.text
 		}
-		
+
 		go StartLogin(username, password)
 	}
 }
@@ -103,14 +103,14 @@ func StartLogin(_username string, _password string) {
 	g_loginControls.txtStatus.SetColor(0, 185, 47)
 	g_loginControls.txtUsername.readonly = true
 	g_loginControls.txtPassword.readonly = true
-	
+
 	if DoLogin(_username, _password) {
 		g_loginControls.Hide()
 	} else {
 		g_loginControls.txtStatus.SetColor(202, 0, 0)
 		g_loginControls.txtUsername.readonly = false
 		g_loginControls.txtPassword.readonly = false
-		
+
 		g_conn.Close()
 	}
 }
@@ -118,80 +118,80 @@ func StartLogin(_username string, _password string) {
 func DoLogin(_username string, _password string) bool {
 	g_loginControls.txtStatus.text = "Connecting to server..."
 	g_conn.loginStatus = LOGINSTATUS_IDLE
-	
+
 	if !g_conn.Connect() {
 		g_loginControls.txtStatus.text = "Could not connect to server."
 		return false
 	}
-	
+
 	g_loginControls.txtStatus.text = "Verifying username and password..."
 	g_conn.protocol.SendLogin(_username, _password)
-	
+
 	timeout := uint16(0)
 	for g_conn.loginStatus == LOGINSTATUS_IDLE {
 		sdl.Delay(500)
 		timeout += 500
-		
+
 		if timeout >= 10000 { //10 sec
 			g_loginControls.txtStatus.text = "Timeout while verifying data. Please retry."
 			return false
 		}
 	}
-	
+
 	switch g_conn.loginStatus {
-		case LOGINSTATUS_WRONGACCOUNT:
-			g_loginControls.txtStatus.text = "Invalid username and/or password."
-			return false
-			
-		case LOGINSTATUS_SERVERERROR:
-			g_loginControls.txtStatus.text = "The server has returned an error. Please retry."
-			return false
-			
-		case LOGINSTATUS_DATABASEERROR:
-			g_loginControls.txtStatus.text = "The database has returned an error. Please retry."
-			return false
-			
-		case LOGINSTATUS_ALREADYLOGGEDIN:
-			g_loginControls.txtStatus.text = "You are already logged in."
-			return false
-			
-		case LOGINSTATUS_CHARBANNED:
-			g_loginControls.txtStatus.text = "This account is banned from the game."
-			return false
-			
-		case LOGINSTATUS_SERVERCLOSED:
-			g_loginControls.txtStatus.text = "The server is currently closed."
-			return false
-			
-		case LOGINSTATUS_WRONGVERSION:
-			g_loginControls.txtStatus.text = "This client version is outdated."
-			return false
-			
-		case LOGINSTATUS_FAILPROFILELOAD:
-			g_loginControls.txtStatus.text = "Your profile could not be loaded. Please retry."
-			return false
+	case LOGINSTATUS_WRONGACCOUNT:
+		g_loginControls.txtStatus.text = "Invalid username and/or password."
+		return false
+
+	case LOGINSTATUS_SERVERERROR:
+		g_loginControls.txtStatus.text = "The server has returned an error. Please retry."
+		return false
+
+	case LOGINSTATUS_DATABASEERROR:
+		g_loginControls.txtStatus.text = "The database has returned an error. Please retry."
+		return false
+
+	case LOGINSTATUS_ALREADYLOGGEDIN:
+		g_loginControls.txtStatus.text = "You are already logged in."
+		return false
+
+	case LOGINSTATUS_CHARBANNED:
+		g_loginControls.txtStatus.text = "This account is banned from the game."
+		return false
+
+	case LOGINSTATUS_SERVERCLOSED:
+		g_loginControls.txtStatus.text = "The server is currently closed."
+		return false
+
+	case LOGINSTATUS_WRONGVERSION:
+		g_loginControls.txtStatus.text = "This client version is outdated."
+		return false
+
+	case LOGINSTATUS_FAILPROFILELOAD:
+		g_loginControls.txtStatus.text = "Your profile could not be loaded. Please retry."
+		return false
 	}
 	g_conn.loginStatus = LOGINSTATUS_IDLE
-	
+
 	//the following part is only temporary until the loginserver is ready to be used
 	g_loginControls.txtStatus.text = "Loading gameworld..."
 	g_conn.Game().Send_RequestLoginPackets()
-	
+
 	timeout = 0
 	for g_conn.loginStatus != LOGINSTATUS_READY {
 		sdl.Delay(500)
 		timeout += 500
-		
+
 		if timeout >= 30000 { //30 sec
 			g_loginControls.txtStatus.text = "Timeout while loading gameworld. Please retry."
 			return false
 		}
 	}
-	
+
 	//g_conn.Game().SendRefreshPokemon()
 	g_game.panel = NewGamePanel()
 	g_game.CreateChat()
 	g_game.state = GAMESTATE_WORLD
-	
+
 	return true
 }

@@ -29,7 +29,7 @@ func (p *PU_GameProtocol) Receive_PlayerData(_message *punet.Message) {
 	player.y = data.Y
 	player.direction = data.Direction
 	player.money = data.Money
-	
+
 	for part := BODY_UPPER; part <= BODY_LOWER; part++ {
 		player.bodyParts[part].id = data.Outfit[part].ID
 		color := data.Outfit[part].Color
@@ -39,8 +39,7 @@ func (p *PU_GameProtocol) Receive_PlayerData(_message *punet.Message) {
 		player.bodyParts[part].SetColor(int(red), int(green), int(blue))
 	}
 	fmt.Printf("%v\n", player)
-	
+
 	g_map.AddCreature(player)
 	g_game.self = player
 }
-

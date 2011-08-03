@@ -51,7 +51,7 @@ const (
 	LadderChange
 	ShowTeamChange
 	VersionControl // PU Obsolete
-	TierSelection // PU Obsolete
+	TierSelection  // PU Obsolete
 	ServMaxChange
 	FindBattle
 	ShowRankings
@@ -60,14 +60,14 @@ const (
 	CPTUnban // 40
 	PlayerTBan
 	GetTBanList
-	BattleList // PU Obsolete
-	ChannelsList // PU Obsolete
+	BattleList     // PU Obsolete
+	ChannelsList   // PU Obsolete
 	ChannelPlayers // PU Obsolete
-	JoinChannel // PU Obsolete
+	JoinChannel    // PU Obsolete
 	LeaveChannel
 	ChannelBattle
 	RemoveChannel
-	AddChannel // 50
+	AddChannel     // 50
 	ChannelMessage // PU Obsolete
 	ChanNameChange
 	HtmlMessage // PU Obsolete
@@ -86,7 +86,7 @@ const (
 	BattleCommand_Effective // to tell how a move is effective
 	BattleCommand_Miss
 	BattleCommand_CriticalHit // 10
-	BattleCommand_Hit // for moves like fury double kick etc. 
+	BattleCommand_Hit         // for moves like fury double kick etc. 
 	BattleCommand_StatChange
 	BattleCommand_StatusChange
 	BattleCommand_StatusMessage
@@ -105,15 +105,15 @@ const (
 	BattleCommand_BattleEnd
 	BattleCommand_BlankMessage
 	BattleCommand_CancelMove
-	BattleCommand_Clause // 30
-	BattleCommand_DynamicInfo // 31
+	BattleCommand_Clause       // 30
+	BattleCommand_DynamicInfo  // 31
 	BattleCommand_DynamicStats // 32
 	BattleCommand_Spectating
 	BattleCommand_SpectatorChat
 	BattleCommand_AlreadyStatusMessage
 	BattleCommand_TempPokeChange
 	BattleCommand_ClockStart // 37
-	BattleCommand_ClockStop // 38
+	BattleCommand_ClockStop  // 38
 	BattleCommand_Rated
 	BattleCommand_TierSection // 40
 	BattleCommand_EndMessage
@@ -137,7 +137,7 @@ const (
 	ChallengeInfo_Triples
 	ChallengeInfo_Rotation
 	ChallengeInfo_ModeFirst = ChallengeInfo_Singles
-	ChallengeInfo_ModeLast = ChallengeInfo_Rotation
+	ChallengeInfo_ModeLast  = ChallengeInfo_Rotation
 )
 
 const (
@@ -792,45 +792,45 @@ const (
 	PokemonName_Meloia
 	PokemonName_Insekuta
 	// Base forms end here.
-	PokemonName_Rotom_C = PokemonName_Rotom + (1 << 16)
-	PokemonName_Rotom_H = PokemonName_Rotom + (2 << 16)
-	PokemonName_Rotom_F = PokemonName_Rotom + (3 << 16)
-	PokemonName_Rotom_W = PokemonName_Rotom + (4 << 16)
-	PokemonName_Rotom_S = PokemonName_Rotom + (5 << 16)
-	PokemonName_Deoxys_A = PokemonName_Deoxys + (1 << 16)
-	PokemonName_Deoxys_D = PokemonName_Deoxys + (2 << 16)
-	PokemonName_Deoxys_S = PokemonName_Deoxys + (3 << 16)
+	PokemonName_Rotom_C    = PokemonName_Rotom + (1 << 16)
+	PokemonName_Rotom_H    = PokemonName_Rotom + (2 << 16)
+	PokemonName_Rotom_F    = PokemonName_Rotom + (3 << 16)
+	PokemonName_Rotom_W    = PokemonName_Rotom + (4 << 16)
+	PokemonName_Rotom_S    = PokemonName_Rotom + (5 << 16)
+	PokemonName_Deoxys_A   = PokemonName_Deoxys + (1 << 16)
+	PokemonName_Deoxys_D   = PokemonName_Deoxys + (2 << 16)
+	PokemonName_Deoxys_S   = PokemonName_Deoxys + (3 << 16)
 	PokemonName_Wormadam_G = PokemonName_Wormadam + (1 << 16)
 	PokemonName_Wormadam_S = PokemonName_Wormadam + (2 << 16)
 	PokemonName_Giratina_O = PokemonName_Giratina + (1 << 16)
-	PokemonName_Shaymin_S = PokemonName_Shaymin + (1 << 16)
-	PokemonName_Meloia_S = PokemonName_Meloia + (1 << 16)
+	PokemonName_Shaymin_S  = PokemonName_Shaymin + (1 << 16)
+	PokemonName_Meloia_S   = PokemonName_Meloia + (1 << 16)
 )
 
 const (
-	PokemonStatus_Fine = 0
-	PokemonStatus_Paralysed = 1
-	PokemonStatus_Asleep = 2
-	PokemonStatus_Frozen = 3
-	PokemonStatus_Burnt = 4
-	PokemonStatus_Poisoned = 5
-	PokemonStatus_Confused = 6
-	PokemonStatus_Attracted = 7
-	PokemonStatus_Wrapped = 8
-	PokemonStatus_Nightmared = 9
-	PokemonStatus_Tormented = 12
-	PokemonStatus_Disabled = 13
-	PokemonStatus_Drowsy = 14
+	PokemonStatus_Fine        = 0
+	PokemonStatus_Paralysed   = 1
+	PokemonStatus_Asleep      = 2
+	PokemonStatus_Frozen      = 3
+	PokemonStatus_Burnt       = 4
+	PokemonStatus_Poisoned    = 5
+	PokemonStatus_Confused    = 6
+	PokemonStatus_Attracted   = 7
+	PokemonStatus_Wrapped     = 8
+	PokemonStatus_Nightmared  = 9
+	PokemonStatus_Tormented   = 12
+	PokemonStatus_Disabled    = 13
+	PokemonStatus_Drowsy      = 14
 	PokemonStatus_HealBlocked = 15
-	PokemonStatus_Sleuthed = 17
-	PokemonStatus_Seeded = 18
-	PokemonStatus_Embargoed = 19
-	PokemonStatus_Requiemed = 20
-	PokemonStatus_Rooted = 21
-	PokemonStatus_Koed = 31
+	PokemonStatus_Sleuthed    = 17
+	PokemonStatus_Seeded      = 18
+	PokemonStatus_Embargoed   = 19
+	PokemonStatus_Requiemed   = 20
+	PokemonStatus_Rooted      = 21
+	PokemonStatus_Koed        = 31
 )
 
-const ( 
+const (
 	StatusFeeling_FeelConfusion int8 = iota
 	StatusFeeling_HurtConfusion
 	StatusFeeling_FreeConfusion

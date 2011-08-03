@@ -19,13 +19,15 @@ package main
 import "time"
 
 type ReturnValue int
+
 const (
-	RET_NOERROR	ReturnValue = iota
+	RET_NOERROR ReturnValue = iota
 	RET_NOTPOSSIBLE
 	RET_PLAYERISTELEPORTED
 )
 
 const NANOSECONDS_TO_MILLISECONDS = 0.000001
+
 func PUSYS_TIME() int64 {
 	timeNano := float64(time.Nanoseconds())
 	return int64(timeNano * NANOSECONDS_TO_MILLISECONDS)

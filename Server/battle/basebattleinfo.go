@@ -22,29 +22,29 @@ import (
 
 type BaseBattleInfo struct {
 	// name [0] = mine, name[1] = other //
-	pInfo					[]*PlayerInfo
-	sub						vector.Vector
-	specialSprite			vector.Vector
-	lastSeenSpecialSprite	vector.Vector
-	
-	time			[]uint16
-	ticking			[]bool
-	startingTime	[]int64
-	
-	mode			uint8
-	numberOfSlots	int
-	
-	myself			int8
-	opponent		int8
-	
-	gen				uint8
-	
-	pokemons		[][]*PokeBattle
-	pokeAlive		vector.Vector
-	
-	statChanges		vector.Vector
-	
-	usePokemonNames	bool
+	pInfo                 []*PlayerInfo
+	sub                   vector.Vector
+	specialSprite         vector.Vector
+	lastSeenSpecialSprite vector.Vector
+
+	time         []uint16
+	ticking      []bool
+	startingTime []int64
+
+	mode          uint8
+	numberOfSlots int
+
+	myself   int8
+	opponent int8
+
+	gen uint8
+
+	pokemons  [][]*PokeBattle
+	pokeAlive vector.Vector
+
+	statChanges vector.Vector
+
+	usePokemonNames bool
 }
 
 func (b *BaseBattleInfo) Init(_me *PlayerInfo, _opp *PlayerInfo, _mode uint8, _myself int32, _opponent int32) {
@@ -56,12 +56,12 @@ func (b *BaseBattleInfo) Init(_me *PlayerInfo, _opp *PlayerInfo, _mode uint8, _m
 	b.myself = int8(_myself)
 	b.opponent = int8(_opponent)
 	b.usePokemonNames = true
-	
+
 	b.pokemons = make([]([]*PokeBattle), 2)
 	for i := 0; i < 2; i++ {
 		b.pokemons[i] = make([]*PokeBattle, 6)
 	}
-							
+
 	if _mode == ChallengeInfo_Doubles {
 		b.numberOfSlots = 4
 	} else if _mode == ChallengeInfo_Triples {
@@ -69,7 +69,7 @@ func (b *BaseBattleInfo) Init(_me *PlayerInfo, _opp *PlayerInfo, _mode uint8, _m
 	} else {
 		b.numberOfSlots = 2
 	}
-	
+
 	for i := 0; i < b.numberOfSlots; i++ {
 		b.sub.Push(false)
 		b.pokeAlive.Push(false)
@@ -77,7 +77,7 @@ func (b *BaseBattleInfo) Init(_me *PlayerInfo, _opp *PlayerInfo, _mode uint8, _m
 		b.lastSeenSpecialSprite.Push(0)
 		b.statChanges.Push(NewBattleDynamicInfo())
 	}
-	
+
 	b.pInfo[_myself] = _me
 	b.pInfo[_opponent] = _opp
 	b.time[_myself] = 5 * 60
@@ -87,7 +87,7 @@ func (b *BaseBattleInfo) Init(_me *PlayerInfo, _opp *PlayerInfo, _mode uint8, _m
 }
 
 func NewBaseBattleInfo() *BaseBattleInfo {
-	return &BaseBattleInfo{ }
+	return &BaseBattleInfo{}
 }
 
 func NewBaseBattleInfoDefault(_me *PlayerInfo, _opp *PlayerInfo, _mode uint8) *BaseBattleInfo {
@@ -98,7 +98,7 @@ func NewBaseBattleInfoDefault(_me *PlayerInfo, _opp *PlayerInfo, _mode uint8) *B
 
 func (i *BaseBattleInfo) SwitchPoke(spot, poke int8) {
 	i.pokemons[i.Player(spot)][i.Number(poke)], i.pokemons[i.Player(spot)][i.Number(spot)] = i.CurrentShallow(spot), i.pokemons[i.Player(spot)][i.Number(poke)]
-	i.pokeAlive[spot] = true;
+	i.pokeAlive[spot] = true
 }
 
 func (i *BaseBattleInfo) CurrentShallow(spot int8) *PokeBattle {
@@ -109,7 +109,7 @@ func (i *BaseBattleInfo) SetCurrentShallow(spot int8, shallow *PokeBattle) {
 	i.pokemons[i.Player(spot)][i.Number(spot)] = shallow
 }
 
-func (i *BaseBattleInfo) Number( _spot int8) int8 {
+func (i *BaseBattleInfo) Number(_spot int8) int8 {
 	return (_spot / 2)
 }
 
@@ -126,7 +126,7 @@ func (i *BaseBattleInfo) Slot(_player int8, _poke int8) int8 {
 }
 
 func (i *BaseBattleInfo) IsOut(_poke int8) bool {
-	return (_poke < int8(i.numberOfSlots / 2))
+	return (_poke < int8(i.numberOfSlots/2))
 }
 
 func (i *BaseBattleInfo) Multiples() bool {

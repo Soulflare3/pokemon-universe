@@ -21,5 +21,5 @@ type BasicInfo struct {
 }
 
 func NewBasicInfo() *BasicInfo {
-	return &BasicInfo{ }
+	return &BasicInfo{}
 }

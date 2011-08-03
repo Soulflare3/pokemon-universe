@@ -22,8 +22,8 @@ import (
 
 func (c *Connection) Send_CreatureTurn(_creature ICreature, _dir int) {
 	msg := pnet.NewData_CreatureTurn()
-	msg.CreatureTurn.UID		= _creature.GetUID()
-	msg.CreatureTurn.Direction	= _dir
+	msg.CreatureTurn.UID = _creature.GetUID()
+	msg.CreatureTurn.Direction = _dir
 	c.SendMessage(msg)
 }
 
@@ -31,4 +31,3 @@ func (c *Connection) Receive_Turn(_message *pnet.Message) {
 	data := _message.Turn
 	g_game.OnPlayerTurn(c.Owner, data.Direction)
 }
-

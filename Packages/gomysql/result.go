@@ -101,17 +101,17 @@ func (r *Result) FetchRow() Row {
 
 // Fetch a map
 func (r *Result) FetchMap() Map {
-  // Fetch row
-  row := r.FetchRow()
-  if row != nil {
-    rowMap := make(Map)
-    rowMapPtr := &rowMap
-    for key, val := range row {
-      (*rowMapPtr)[r.fields[key].Name] = val
-    }
-    return *rowMapPtr 
-  }
-  return nil
+	// Fetch row
+	row := r.FetchRow()
+	if row != nil {
+		rowMap := make(Map)
+		rowMapPtr := &rowMap
+		for key, val := range row {
+			(*rowMapPtr)[r.fields[key].Name] = val
+		}
+		return *rowMapPtr
+	}
+	return nil
 }
 /*
 func (r *Result) FetchMap() Map {

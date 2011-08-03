@@ -21,22 +21,22 @@ package network
 // Server -> Client
 
 type BodyPart struct {
-	ID int
+	ID    int
 	Color uint32
 }
 
 func NewBodyPart(_id int, _color uint32) *BodyPart {
-	return &BodyPart{ID : _id, Color : _color}
+	return &BodyPart{ID: _id, Color: _color}
 }
 
 //Add creature (HEADER_ADDCREATURE)
 type Data_AddCreature struct {
-	UID 		uint64
-	Name 		string
-	X			int
-	Y			int
-	Direction	int
-	Outfit		[6]*BodyPart
+	UID       uint64
+	Name      string
+	X         int
+	Y         int
+	Direction int
+	Outfit    [6]*BodyPart
 }
 
 func NewData_AddCreature() (msg *Message) {
@@ -47,7 +47,7 @@ func NewData_AddCreature() (msg *Message) {
 
 //Remove creature (HEADER_REMOVECREATURE)
 type Data_RemoveCreature struct {
-	UID 	uint64
+	UID uint64
 }
 
 func NewData_RemoveCreature() (msg *Message) {

@@ -22,9 +22,9 @@ type PU_GamePanel struct {
 	PU_GuiElement
 
 	chatInput *PU_Textfield
-	
-	pokebar *PU_Pokebar
-	gameUI *PU_GameUI
+
+	pokebar  *PU_Pokebar
+	gameUI   *PU_GameUI
 	battleUI *PU_BattleUI
 }
 
@@ -32,20 +32,20 @@ func NewGamePanel() *PU_GamePanel {
 	panel := &PU_GamePanel{}
 	panel.visible = true
 	g_gui.AddElement(panel)
-	
+
 	panel.gameUI = NewGameUI()
 	panel.gameUI.visible = true
-	
+
 	panel.battleUI = NewBattleUI()
 	panel.battleUI.visible = false
-	
-	panel.chatInput = NewTextfield(NewRect(2,690,375,17), FONT_PURITANBOLD_12)
-	panel.chatInput.SetColor(255,255,255)
+
+	panel.chatInput = NewTextfield(NewRect(2, 690, 375, 17), FONT_PURITANBOLD_12)
+	panel.chatInput.SetColor(255, 255, 255)
 	panel.chatInput.KeyDownCallback = ChatKeydown
 	g_gui.SetFocus(panel.chatInput)
-	
+
 	panel.pokebar = NewPokebar()
-	
+
 	return panel
 }
 
@@ -77,8 +77,7 @@ func (g *PU_GamePanel) Draw() {
 	if img != nil {
 		img.Draw(0, 277)
 	}
-	
-	
+
 }
 
 func (g *PU_GamePanel) MouseDown(_x int, _y int) {
@@ -104,4 +103,3 @@ func (g *PU_GamePanel) Focusable() bool {
 func (g *PU_GamePanel) KeyDown(_keysym int, _scancode int) {
 
 }
-

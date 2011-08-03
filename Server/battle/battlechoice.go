@@ -29,11 +29,12 @@ const (
 )
 
 type CancelChoice struct {
+
 }
 
 type AttackChoice struct {
-	attackSlot int8
-    attackTarget int8
+	attackSlot   int8
+	attackTarget int8
 }
 
 type SwitchChoice struct {
@@ -41,36 +42,37 @@ type SwitchChoice struct {
 }
 
 type RearrangeChoice struct {
-	pokeIndexes[6] int8
-};
+	pokeIndexes [6]int8
+}
 
 type MoveToCenterChoice struct {
+
 }
 
 type ChoiceUnion struct {
-	cancel CancelChoice
-    attack AttackChoice
-    switching SwitchChoice
-    rearrange RearrangeChoice
-    move MoveToCenterChoice
+	cancel    CancelChoice
+	attack    AttackChoice
+	switching SwitchChoice
+	rearrange RearrangeChoice
+	move      MoveToCenterChoice
 }
 
 type BattleChoices struct {
-	switchAllowed	bool
-	attacksAllowed	bool
-	attackAllowed	[]bool
-	
-	numSlot			uint8
+	switchAllowed  bool
+	attacksAllowed bool
+	attackAllowed  []bool
+
+	numSlot uint8
 }
 
 func NewBattleChoices() BattleChoices {
-	battleChoices := BattleChoices{ switchAllowed: true,
-									attacksAllowed: true,
-									attackAllowed: make([]bool, 4) }
+	battleChoices := BattleChoices{switchAllowed: true,
+		attacksAllowed: true,
+		attackAllowed:  make([]bool, 4)}
 	for i := 0; i < 4; i++ {
 		battleChoices.attackAllowed[i] = true
 	}
-	
+
 	return battleChoices
 }
 
@@ -91,18 +93,18 @@ func (b *BattleChoices) Struggle() bool {
 			count++
 		}
 	}
-	
+
 	return (count == 0)
 }
 
 type BattleChoice struct {
-	choiceType	uint8
-	playerSlot	uint8
-	choice		ChoiceUnion
+	choiceType uint8
+	playerSlot uint8
+	choice     ChoiceUnion
 }
 
 func NewBattleChoice() *BattleChoice {
-	return &BattleChoice{choice: ChoiceUnion{} }
+	return &BattleChoice{choice: ChoiceUnion{}}
 }
 
 func NewBattleChoiceCancel(_slot uint8, _choice CancelChoice) *BattleChoice {
@@ -110,7 +112,7 @@ func NewBattleChoiceCancel(_slot uint8, _choice CancelChoice) *BattleChoice {
 	bc.choice.cancel = _choice
 	bc.playerSlot = _slot
 	bc.choiceType = ChoiceType_Cancel
-	
+
 	return bc
 }
 
@@ -119,7 +121,7 @@ func NewBattleChoiceAttack(_slot uint8, _choice AttackChoice) *BattleChoice {
 	bc.choice.attack = _choice
 	bc.playerSlot = _slot
 	bc.choiceType = ChoiceType_Attack
-	
+
 	return bc
 }
 
@@ -128,7 +130,7 @@ func NewBattleChoiceSwitch(_slot uint8, _choice SwitchChoice) *BattleChoice {
 	bc.choice.switching = _choice
 	bc.playerSlot = _slot
 	bc.choiceType = ChoiceType_Switch
-	
+
 	return bc
 }
 
@@ -137,7 +139,7 @@ func NewBattleChoiceRearrange(_slot uint8, _choice RearrangeChoice) *BattleChoic
 	bc.choice.rearrange = _choice
 	bc.playerSlot = _slot
 	bc.choiceType = ChoiceType_Rearrange
-	
+
 	return bc
 }
 
@@ -146,7 +148,7 @@ func NewBattleChoiceMoveToCenter(_slot uint8, _choice MoveToCenterChoice) *Battl
 	bc.choice.move = _choice
 	bc.playerSlot = _slot
 	bc.choiceType = ChoiceType_CenterMove
-	
+
 	return bc
 }
 

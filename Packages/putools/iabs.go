@@ -29,6 +29,6 @@ func Iabs(x int) int {
 	case x == 0:
 		return 0
 	}
-	
+
 	return x
 }

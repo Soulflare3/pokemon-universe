@@ -30,7 +30,7 @@ const (
 	POKEIMAGE_ICON
 )
 
-func (g *PU_Game) LoadFonts () {
+func (g *PU_Game) LoadFonts() {
 	g_engine.LoadFont(FONT_PURITANBOLD_48, GetPath()+"data/font/Puritan2Bold.otf", 48)
 	g_engine.LoadFont(FONT_PURITANBOLD_34, GetPath()+"data/font/Puritan2Bold.otf", 34)
 	g_engine.LoadFont(FONT_PURITANBOLD_18, GetPath()+"data/font/Puritan2Bold.otf", 18)
@@ -46,11 +46,11 @@ func (g *PU_Game) LoadFonts () {
 	g_engine.LoadFont(FONT_ARIALBLACK_48, GetPath()+"data/font/ariblk.ttf", 48)
 }
 
-func (g* PU_Game) LoadTileImages() {
+func (g *PU_Game) LoadTileImages() {
 	g.LoadGameImages(GetPath()+"data/tiles/", g.tileImageMap)
 }
 
-func (g* PU_Game) LoadGuiImages() {
+func (g *PU_Game) LoadGuiImages() {
 	g.LoadGameImages(GetPath()+"data/gui/", g.guiImageMap)
 }
 
@@ -76,13 +76,13 @@ func (g *PU_Game) GetCreatureImage(_bodypart int, _id int, _dir int, _frame int)
 	return nil
 }
 
-func (g *PU_Game) LoadGameImages(_dir string, _map map[uint16]*PU_Image) {	
+func (g *PU_Game) LoadGameImages(_dir string, _map map[uint16]*PU_Image) {
 	files, err := ioutil.ReadDir(_dir)
 	if err != nil {
 		fmt.Printf("Couldn't open directory: %v. Error: %v\n", _dir, err.String())
 		return
 	}
-	
+
 	for i := 0; i < len(files); i++ {
 		img, id := g.LoadGameImage(files[i].Name, _dir)
 		if img != nil {
@@ -93,62 +93,62 @@ func (g *PU_Game) LoadGameImages(_dir string, _map map[uint16]*PU_Image) {
 
 func (g *PU_Game) LoadGameImage(_file string, _dir string) (*PU_Image, int) {
 	name := strings.Replace(_file, ".png", "", -1)
-	id, err := strconv.Atoi(name) 
+	id, err := strconv.Atoi(name)
 	if err != nil {
 		return nil, 0
 	}
-	
-	surface := sdl.LoadImage(_dir+_file)
+
+	surface := sdl.LoadImage(_dir + _file)
 	if surface == nil {
 		return nil, 0
 	}
-	
+
 	image := NewImageFromSurface(surface)
 	g_engine.AddResource(image)
-	
-	return image, id	
+
+	return image, id
 }
 
 func (g *PU_Game) LoadCreatureImages() {
-	dir := GetPath()+"data/creatures/"
+	dir := GetPath() + "data/creatures/"
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		fmt.Printf("Couldn't open directory: %v. Error: %v\n", dir, err.String())
 		return
 	}
-	
+
 	for i := 0; i < len(files); i++ {
-		surface := sdl.LoadImage(dir+files[i].Name)
+		surface := sdl.LoadImage(dir + files[i].Name)
 		if surface == nil {
 			continue
 		}
-	
+
 		image := NewImageFromSurface(surface)
 		g_engine.AddResource(image)
 		if image != nil {
 			file := strings.Replace(files[i].Name, ".png", "", -1)
 			parts := strings.Split(file, "_", -1)
-		
+
 			bodypart, err := strconv.Atoi(parts[0])
 			if err != nil {
 				continue
 			}
-			
+
 			id, err := strconv.Atoi(parts[1])
 			if err != nil {
 				continue
 			}
-			
+
 			dir, err := strconv.Atoi(parts[2])
 			if err != nil {
 				continue
 			}
-			
+
 			frame, err := strconv.Atoi(parts[3])
 			if err != nil {
 				continue
 			}
-		
+
 			key := (uint32(bodypart) | (uint32(id) << 8) | (uint32(dir) << 16) | (uint32(frame) << 24))
 			g.creatureImageMap[key] = image
 		}
@@ -158,60 +158,60 @@ func (g *PU_Game) LoadCreatureImages() {
 func (g *PU_Game) LoadPokeImage(_id int, _type int) *PU_Image {
 	var imagemap map[uint16]*PU_Image
 	var location string
-	
+
 	switch _type {
 	case POKEIMAGE_FRONT:
 		imagemap = g.pokeImageMap_Front
 		location = "data/pokemon/front/"
-		
+
 	case POKEIMAGE_BACK:
 		imagemap = g.pokeImageMap_Back
 		location = "data/pokemon/back/"
-		
+
 	case POKEIMAGE_ICON:
 		imagemap = g.pokeImageMap_Icon
 		location = "data/pokemon/icon/"
 	}
-	
+
 	if imagemap != nil {
 		idfile := fmt.Sprintf("%d.png", _id)
-		
+
 		if _id < 10 {
-			idfile = "00"+idfile
+			idfile = "00" + idfile
 		} else if _id < 100 {
-			idfile = "0"+idfile 
+			idfile = "0" + idfile
 		}
-		
-		surface := sdl.LoadImage(location+idfile)
+
+		surface := sdl.LoadImage(location + idfile)
 		if surface == nil {
 			surface = sdl.LoadImage(fmt.Sprintf("%s%d.png", location, _id))
 			if surface == nil {
 				return nil
 			}
 		}
-	
+
 		image := NewImageFromSurface(surface)
 		g_engine.AddResource(image)
 		imagemap[uint16(_id)] = image
-		return image	
+		return image
 	}
 	return nil
 }
 
 func (g *PU_Game) GetPokeImage(_id int, _type int) *PU_Image {
 	var imagemap map[uint16]*PU_Image
-	
+
 	switch _type {
 	case POKEIMAGE_FRONT:
 		imagemap = g.pokeImageMap_Front
-		
+
 	case POKEIMAGE_BACK:
 		imagemap = g.pokeImageMap_Back
-		
+
 	case POKEIMAGE_ICON:
 		imagemap = g.pokeImageMap_Icon
 	}
-	
+
 	if imagemap != nil {
 		if image, present := imagemap[uint16(_id)]; present {
 			return image
@@ -221,4 +221,3 @@ func (g *PU_Game) GetPokeImage(_id int, _type int) *PU_Image {
 	}
 	return nil
 }
-

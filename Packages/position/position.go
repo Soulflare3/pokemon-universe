@@ -29,12 +29,12 @@ var ZP Position
 
 // NewPosition returns a new empty Position
 func NewPosition() Position {
-	return Position{ }
+	return Position{}
 }
 
 // NewPositionFrom returns a new position with the given coordinates
 func NewPositionFrom(_x int, _y int, _z int) Position {
-	return Position{X : _x, Y : _y, Z : _z}
+	return Position{X: _x, Y: _y, Z: _z}
 }
 
 // NewPositionFromHash generates a new Position struct with 
@@ -44,21 +44,21 @@ func NewPositionFromHash(_hash int64) Position {
 
 	y64 := (_hash >> 1) & 0xFFFF
 	yabs := (_hash >> 17) & 0x01
-	
+
 	x64 := (_hash >> 18) & 0xFFFF
 	xabs := (_hash >> 34) & 0x01
-	
+
 	var y int = int(y64)
 	if yabs == 1 {
 		y = 0 - y
 	}
-	
+
 	var x int = int(x64)
 	if xabs == 1 {
 		x = 0 - x
 	}
-	
-	return Position { X : x, Y : y, Z : z }
+
+	return Position{X: x, Y: y, Z: z}
 }
 
 // String returns a string represntation of p like "3,9,1"
@@ -68,12 +68,12 @@ func (p Position) String() string {
 
 // Add returns the position p+q.
 func (p Position) Add(q Position) Position {
-    return Position{p.X + q.X, p.Y + q.Y, p.Z + q.Z}
+	return Position{p.X + q.X, p.Y + q.Y, p.Z + q.Z}
 }
 
 // Sub returns the position p-q.
 func (p Position) Sub(q Position) Position {
-    return Position{p.X - q.X, p.Y - q.Y, p.Z - q.Z}
+	return Position{p.X - q.X, p.Y - q.Y, p.Z - q.Z}
 }
 
 // Eq returns true if Position p and q are the same
@@ -95,20 +95,20 @@ func (p Position) Hash() int64 {
 func Hash(_x int, _y int, _z int) int64 {
 	var x64 int64
 	if _x < 0 {
-		x64 = (int64(1) << 34)  | ((^(int64(_x)-1)) << 18)
+		x64 = (int64(1) << 34) | ((^(int64(_x) - 1)) << 18)
 	} else {
 		x64 = (int64(_x) << 18)
 	}
-	
+
 	var y64 int64
 	if _y < 0 {
-		y64 = (int64(1) << 17)  | ((^(int64(_y)-1)) << 1)
+		y64 = (int64(1) << 17) | ((^(int64(_y) - 1)) << 1)
 	} else {
 		y64 = (int64(_y) << 1)
 	}
 
 	z64 := int64(_z)
 	var index int64 = int64(x64 | y64 | z64)
-	
-	return index;
+
+	return index
 }

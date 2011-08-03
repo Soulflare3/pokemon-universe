@@ -22,31 +22,31 @@ import (
 )
 
 const (
-	LOGINSTATUS_IDLE = 0
-	LOGINSTATUS_WRONGACCOUNT = 1
-	LOGINSTATUS_SERVERERROR = 2
-	LOGINSTATUS_DATABASEERROR = 3
+	LOGINSTATUS_IDLE            = 0
+	LOGINSTATUS_WRONGACCOUNT    = 1
+	LOGINSTATUS_SERVERERROR     = 2
+	LOGINSTATUS_DATABASEERROR   = 3
 	LOGINSTATUS_ALREADYLOGGEDIN = 4
-	LOGINSTATUS_READY = 5
-	LOGINSTATUS_CHARBANNED = 6
-	LOGINSTATUS_SERVERCLOSED = 7
-	LOGINSTATUS_WRONGVERSION = 8
+	LOGINSTATUS_READY           = 5
+	LOGINSTATUS_CHARBANNED      = 6
+	LOGINSTATUS_SERVERCLOSED    = 7
+	LOGINSTATUS_WRONGVERSION    = 8
 	LOGINSTATUS_FAILPROFILELOAD = 9
 )
 
 type LoginMessage struct {
 	// Receive
-	Username 		string
-	Password 		string
-	ClientVersion 	uint16
-	
+	Username      string
+	Password      string
+	ClientVersion uint16
+
 	// Send
-	Status			uint32
-	Servers			map[string]ServerInfo
+	Status  uint32
+	Servers map[string]ServerInfo
 }
 
 func NewLoginMessage() *LoginMessage {
-	return &LoginMessage { Servers : make(map[string]ServerInfo) }
+	return &LoginMessage{Servers: make(map[string]ServerInfo)}
 }
 
 // GetHeader returns the header value of this message
@@ -59,7 +59,7 @@ func (m *LoginMessage) ReadPacket(_packet *pnet.Packet) os.Error {
 	m.Username = _packet.ReadString()
 	m.Password = _packet.ReadString()
 	m.ClientVersion = _packet.ReadUint16()
-	
+
 	return nil
 }
 
@@ -67,10 +67,10 @@ func (m *LoginMessage) ReadPacket(_packet *pnet.Packet) os.Error {
 func (m *LoginMessage) WritePacket() (*pnet.Packet, os.Error) {
 	packet := pnet.NewPacketExt(m.GetHeader())
 	packet.AddUint32(m.Status)
-	
+
 	if m.Status == LOGINSTATUS_READY {
-		packet.AddUint32(uint32(len(m.Servers)) )
-		
+		packet.AddUint32(uint32(len(m.Servers)))
+
 		for name, server := range m.Servers {
 			packet.AddString(name)
 			packet.AddString(server.Name)
@@ -78,6 +78,6 @@ func (m *LoginMessage) WritePacket() (*pnet.Packet, os.Error) {
 			packet.AddUint8(server.Online)
 		}
 	}
-	
+
 	return packet, nil
 }

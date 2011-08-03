@@ -25,25 +25,25 @@ const (
 )
 
 type PU_Pokemon struct {
-	uid uint32
-	id int16
+	uid   uint32
+	id    int16
 	level int16
-	hp int16
+	hp    int16
 	hpmax int16
-	sex int16
-	
-	expPerc int16
+	sex   int16
+
+	expPerc    int16
 	expCurrent int32
-	expTnl int32
-	
-	name string
-	flavor string 
-	
+	expTnl     int32
+
+	name   string
+	flavor string
+
 	type1 string
-	type2 string 
-	
+	type2 string
+
 	stats [5]int16
-	
+
 	attacks [4]*PU_Attack
 }
 
@@ -55,7 +55,7 @@ func (p *PU_Pokemon) SetAttack(_num int, _name string, _description string, _typ
 	if p.attacks[_num] == nil {
 		p.attacks[_num] = NewAttack()
 	}
-	
+
 	attack := p.attacks[_num]
 	attack.name = _name
 	attack.description = _description
@@ -77,52 +77,52 @@ func GetTypeByName(_type string) uint16 {
 	switch _type {
 	case "ground":
 		return 100
-		
+
 	case "water":
 		return 101
-		
+
 	case "ghost":
 		return 102
-		
+
 	case "bug":
 		return 103
-		
+
 	case "fighting":
 		return 104
-		
+
 	case "psychic":
 		return 105
-		
+
 	case "grass":
 		return 106
-		
+
 	case "dark":
 		return 107
-		
+
 	case "normal":
 		return 108
-		
+
 	case "poison":
 		return 109
-		
+
 	case "electric":
 		return 110
-		
+
 	case "unknown":
 		return 111
-		
+
 	case "steel":
 		return 112
-		
+
 	case "rock":
 		return 113
-		
+
 	case "dragon":
 		return 114
-		
+
 	case "flying":
 		return 115
-		
+
 	case "fire":
 		return 116
 

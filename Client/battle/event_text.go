@@ -21,7 +21,7 @@ type PU_BattleEvent_Text struct {
 }
 
 func NewBattleEvent_Text(_text *PU_Text) *PU_BattleEvent_Text {
-	return &PU_BattleEvent_Text{text : _text}
+	return &PU_BattleEvent_Text{text: _text}
 }
 
 func (e *PU_BattleEvent_Text) Execute() {

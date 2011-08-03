@@ -28,11 +28,11 @@ type IMapLoader interface {
 
 type TilesMap map[int64]*Tile
 type Map struct {
-	tiles    TilesMap
+	tiles TilesMap
 }
 
 func NewMap() *Map {
-	return &Map{ tiles: make(TilesMap) }
+	return &Map{tiles: make(TilesMap)}
 }
 
 func (m *Map) Load() os.Error {
@@ -73,4 +73,3 @@ func (m *Map) GetTileFromPosition(_position pos.Position) (tile *Tile, ok bool) 
 	tile, ok = m.GetTile(_position.Hash())
 	return
 }
-

@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 type PU_Layer struct {
-	id uint16
+	id    uint16
 	image *PU_Image
 }
 

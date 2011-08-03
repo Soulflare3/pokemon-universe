@@ -18,11 +18,11 @@ package main
 
 type PU_BattleEvent_ChangeLevel struct {
 	fighter int
-	level int
+	level   int
 }
 
 func NewBattleEvent_ChangeLevel(_fighter int, _level int) *PU_BattleEvent_ChangeLevel {
-	return &PU_BattleEvent_ChangeLevel{fighter : _fighter, level : _level}
+	return &PU_BattleEvent_ChangeLevel{fighter: _fighter, level: _level}
 }
 
 func (e *PU_BattleEvent_ChangeLevel) Execute() {

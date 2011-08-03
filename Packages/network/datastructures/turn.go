@@ -22,7 +22,7 @@ package network
 
 //Send turn action to server (HEADER_TURN)
 type Data_Turn struct {
-	Direction	int
+	Direction int
 }
 
 func NewData_Turn() (msg *Message) {
@@ -36,8 +36,8 @@ func NewData_Turn() (msg *Message) {
 
 //Notify client of a turning creature (HEADER_TURN)
 type Data_CreatureTurn struct {
-	UID			uint64
-	Direction	int
+	UID       uint64
+	Direction int
 }
 
 func NewData_CreatureTurn() (msg *Message) {

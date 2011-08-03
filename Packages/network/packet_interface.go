@@ -14,7 +14,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
-package network 
+package network
 
 import "os"
 
@@ -30,16 +30,16 @@ type INetMessageReader interface {
 type IPacket interface {
 	Reset()
 	CanAdd(_size uint16) bool
-	
+
 	GetHeader() uint16
 	SetHeader()
-	
+
 	ReadUint8() uint8
 	ReadUint16() uint16
 	ReadUint32() uint32
 	ReadUint64() uint64
 	ReadString() string
-	
+
 	AddUint8(_value uint8) bool
 	AddUint16(_value uint16) bool
 	AddUint32(_value uint32) bool

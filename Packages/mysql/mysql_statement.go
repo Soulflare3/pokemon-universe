@@ -325,7 +325,7 @@ func (stmt *MySQLStatement) getResetResult() (err os.Error) {
 		_, err = io.ReadFull(mysql.reader, bytes)
 		// Set error response
 		if err != nil {
-			err = os.NewError("An unknown packet was received from MySQL, in addition an error occurred when attempting to read the packet from the buffer: " + err.String());
+			err = os.NewError("An unknown packet was received from MySQL, in addition an error occurred when attempting to read the packet from the buffer: " + err.String())
 		} else {
 			err = os.NewError("An unknown packet was received from MySQL")
 		}
@@ -390,7 +390,7 @@ func (stmt *MySQLStatement) getPrepareResult() (err os.Error) {
 		_, err = io.ReadFull(mysql.reader, bytes)
 		// Set error response
 		if err != nil {
-			err = os.NewError("An unknown packet was received from MySQL, in addition an error occurred when attempting to read the packet from the buffer: " + err.String());
+			err = os.NewError("An unknown packet was received from MySQL, in addition an error occurred when attempting to read the packet from the buffer: " + err.String())
 		} else {
 			err = os.NewError("An unknown packet was received from MySQL")
 		}
@@ -543,7 +543,7 @@ func (stmt *MySQLStatement) getExecuteResult() (err os.Error) {
 		_, err = io.ReadFull(mysql.reader, bytes)
 		// Set error response
 		if err != nil {
-			err = os.NewError("An unknown packet was received from MySQL, in addition an error occurred when attempting to read the packet from the buffer: " + err.String());
+			err = os.NewError("An unknown packet was received from MySQL, in addition an error occurred when attempting to read the packet from the buffer: " + err.String())
 		} else {
 			err = os.NewError("An unknown packet was received from MySQL")
 		}

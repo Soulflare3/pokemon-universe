@@ -34,12 +34,12 @@ func (p *PU_GameProtocol) Receive_Warp(_message *punet.Message) {
 	data := _message.Warp
 	g_game.state = GAMESTATE_LOADING
 	sdl.Delay(10)
-	
+
 	if g_game.self != nil {
 		g_game.self.CancelWalk()
 		g_game.self.SetPosition(data.X, data.Y)
 	}
-	
+
 	//request the tiles of the new area we just arrived at 
 	p.Send_RequestTileRefresh()
 }

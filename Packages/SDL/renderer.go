@@ -26,27 +26,27 @@ import "C"
 import "unsafe"
 
 type Texture struct {
-	Magic *[0]byte
-    Format uint32
-    Access int32
-    W int32
-    H int32
-   	ModMode int32
-	BlendMode *C.SDL_BlendMode
-    R, G, B, A uint8
-	
+	Magic      *[0]byte
+	Format     uint32
+	Access     int32
+	W          int32
+	H          int32
+	ModMode    int32
+	BlendMode  *C.SDL_BlendMode
+	R, G, B, A uint8
+
 	Native *Texture
-    Yuv *[0]byte
-	
+	Yuv    *[0]byte
+
 	Pixels *[0]byte
 
-    Pitch int32
+	Pitch       int32
 	Locked_rect Rect
 
-    Driverdata *[0]byte
+	Driverdata *[0]byte
 
-    Prev *Texture
-    Next *Texture
+	Prev *Texture
+	Next *Texture
 }
 
 func (t *Texture) Get() *C.SDL_Texture {
@@ -80,33 +80,33 @@ func GetNumRenderDrivers() int {
 }
 
 type RendererInfo struct {
-    name *byte
-    flags uint32
-    mod_modes uint32
-    blend_modes uint32
-    scale_modes uint32
-    num_texture_formats uint32
-    texture_formats [50]uint32
-    max_texture_width int32
-    max_texture_height int32
+	name                *byte
+	flags               uint32
+	mod_modes           uint32
+	blend_modes         uint32
+	scale_modes         uint32
+	num_texture_formats uint32
+	texture_formats     [50]uint32
+	max_texture_width   int32
+	max_texture_height  int32
 }
 
 func GetRenderDriverInfo(_index int) *RendererInfo {
 	var rendererInfo *RendererInfo = &RendererInfo{}
-	C.SDL_GetRenderDriverInfo(C.int(_index), (*C.SDL_RendererInfo)(cast(rendererInfo)));
+	C.SDL_GetRenderDriverInfo(C.int(_index), (*C.SDL_RendererInfo)(cast(rendererInfo)))
 	return rendererInfo
 }
 
 func GetRenderDriverName(_index int) string {
 	info := GetRenderDriverInfo(_index)
 	strname := ""
-	for c := 0;; c++ { 
-		var name = uintptr(unsafe.Pointer(info.name))+uintptr(c)
+	for c := 0; ; c++ {
+		var name = uintptr(unsafe.Pointer(info.name)) + uintptr(c)
 		ch := (*uint8)(cast(name))
 		if *ch == uint8(0) {
 			break
 		}
-		strname += string(*ch)	
+		strname += string(*ch)
 	}
 	return strname
 }
@@ -122,11 +122,11 @@ func (r *Renderer) Release() {
 }
 
 func CreateRenderer(_window *Window, _index int) (renderer *Renderer, error string) {
-	raw := C.SDL_CreateRenderer(_window.window, C.int(_index), C.SDL_RENDERER_PRESENTVSYNC | C.SDL_RENDERER_ACCELERATED)
-    if raw == nil {
+	raw := C.SDL_CreateRenderer(_window.window, C.int(_index), C.SDL_RENDERER_PRESENTVSYNC|C.SDL_RENDERER_ACCELERATED)
+	if raw == nil {
 		error = GetError()
-        return
-    }
+		return
+	}
 	renderer = (*Renderer)(cast(raw))
 	return
 }
@@ -139,7 +139,7 @@ func RenderPresent(_renderer *Renderer) {
 	C.SDL_RenderPresent(_renderer.Get())
 }
 
-func RenderFillRect(_renderer *Renderer, _rect Rect)  {
+func RenderFillRect(_renderer *Renderer, _rect Rect) {
 	C.SDL_RenderFillRect(_renderer.Get(), (*C.SDL_Rect)(cast(&_rect)))
 }
 

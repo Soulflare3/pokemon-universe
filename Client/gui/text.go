@@ -20,33 +20,33 @@ package main
 //This is mainly for use in the chatbox
 
 type PU_Textpart struct {
-	text string
+	text  string
 	color uint32
 }
 
 func NewTextpart(_text string, _color uint32) *PU_Textpart {
-	return &PU_Textpart{text : _text, color : _color}
+	return &PU_Textpart{text: _text, color: _color}
 }
 
 type PU_Text struct {
-	font *PU_Font
+	font  *PU_Font
 	parts map[int]*PU_Textpart
 	count int
 }
 
-func NewText(_font int) *PU_Text{
+func NewText(_font int) *PU_Text {
 	text := &PU_Text{}
 	text.font = g_engine.GetFont(_font)
 	text.parts = make(map[int]*PU_Textpart)
 	return text
-} 
+}
 
-func NewTextWithFont(_font *PU_Font) *PU_Text{
+func NewTextWithFont(_font *PU_Font) *PU_Text {
 	text := &PU_Text{}
 	text.font = _font
 	text.parts = make(map[int]*PU_Textpart)
 	return text
-} 
+}
 
 func (t *PU_Text) Add(_text string, _color uint32) {
 	t.parts[t.count] = NewTextpart(_text, _color)

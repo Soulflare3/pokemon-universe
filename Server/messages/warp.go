@@ -23,8 +23,8 @@ import (
 
 func (c *Connection) Send_PlayerWarp(_position pos.Position) {
 	msg := pnet.NewData_Warp()
-	msg.Warp.X 	= _position.X
-	msg.Warp.Y	= _position.Y
+	msg.Warp.X = _position.X
+	msg.Warp.Y = _position.Y
 	c.SendMessage(msg)
 }
 
@@ -36,6 +36,6 @@ func (c *Connection) Send_RefreshComplete() {
 func (c *Connection) Receive_RefreshWorld() {
 	// Send whole screen
 	c.Send_Tiles(DIR_NULL, c.Owner.GetPosition())
-	
+
 	c.Send_RefreshComplete()
 }

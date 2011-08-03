@@ -17,12 +17,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 type OutfitPart int
+
 const (
 	OUTFIT_BASE OutfitPart = iota
 	OUTFIT_UPPER
 	OUTFIT_NEK
-	OUTFIT_HEAD 
-	OUTFIT_FEET 
+	OUTFIT_HEAD
+	OUTFIT_FEET
 	OUTFIT_LOWER
 )
 
@@ -31,7 +32,7 @@ type Outfit struct {
 }
 
 func NewOutfit() Outfit {
-	return Outfit { data: make([]int, 6) }
+	return Outfit{data: make([]int, 6)}
 }
 
 func NewOutfitExt(_head, _nek, _upper, _lower, _feet int) Outfit {
@@ -41,7 +42,7 @@ func NewOutfitExt(_head, _nek, _upper, _lower, _feet int) Outfit {
 	outfit.data[OUTFIT_UPPER] = _upper
 	outfit.data[OUTFIT_LOWER] = _lower
 	outfit.data[OUTFIT_FEET] = _feet
-	
+
 	return outfit
 }
 

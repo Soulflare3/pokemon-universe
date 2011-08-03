@@ -17,8 +17,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 type PokemonUniqueId struct {
-	pokenum	uint16
-	subnum	uint8
+	pokenum uint16
+	subnum  uint8
 }
 
 func NewPokemonUniqueId() PokemonUniqueId {
@@ -26,11 +26,11 @@ func NewPokemonUniqueId() PokemonUniqueId {
 }
 
 func NewPokemonUniqueIdFromNum(_pokenum uint16, _subnum uint8) PokemonUniqueId {
-	return PokemonUniqueId{pokenum: _pokenum, subnum: _subnum }
+	return PokemonUniqueId{pokenum: _pokenum, subnum: _subnum}
 }
 
 func NewPokemonUniqueIdFromRef(pokeRef uint32) PokemonUniqueId {
-	unique := PokemonUniqueId{ }
+	unique := PokemonUniqueId{}
 	unique.subnum = uint8(pokeRef >> 16)
 	unique.pokenum = uint16(pokeRef & 0xFFFF)
 

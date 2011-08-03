@@ -23,18 +23,18 @@ import (
 
 type PU_OnscreenChat struct {
 	PU_GuiElement
-	
+
 	lastTicks uint32
-	messages list.Vector
+	messages  list.Vector
 }
 
 func NewOnscreenChat() *PU_OnscreenChat {
 	chat := &PU_OnscreenChat{}
 	chat.visible = true
 	g_gui.AddElement(chat)
-	
+
 	chat.lastTicks = sdl.GetTicks()
-	
+
 	return chat
 }
 
@@ -42,14 +42,14 @@ func (g *PU_OnscreenChat) Draw() {
 	if !g.visible {
 		return
 	}
-	
+
 	if g_game.self == nil {
 		return
 	}
-	
-	ticks := int(sdl.GetTicks()-g.lastTicks)
+
+	ticks := int(sdl.GetTicks() - g.lastTicks)
 	g.lastTicks = sdl.GetTicks()
-	
+
 	for i := 0; i < g.messages.Len(); {
 		msg, ok := g.messages.At(i).(*PU_OnscreenChatMessage)
 		if ok {
@@ -67,11 +67,11 @@ func (g *PU_OnscreenChat) Add(_name string, _text string) {
 	if sender == nil {
 		return
 	}
-	
+
 	if g == nil {
 		return
 	}
-	
+
 	for i := 0; i < g.messages.Len(); i++ {
 		msg, ok := g.messages.At(i).(*PU_OnscreenChatMessage)
 		if ok {
@@ -81,7 +81,7 @@ func (g *PU_OnscreenChat) Add(_name string, _text string) {
 			}
 		}
 	}
-	
+
 	g.messages.Push(NewOnscreenChatMessageExt(_name, int(sender.GetX()), int(sender.GetY()), _text))
 }
 
@@ -106,6 +106,5 @@ func (g *PU_OnscreenChat) Focusable() bool {
 }
 
 func (g *PU_OnscreenChat) KeyDown(_keysym int, _scancode int) {
-	
-}
 
+}

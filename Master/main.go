@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"flag"
 	"log"
-	
+
 	"mysql"
 	"conf"
 	"logger" // PU.Logger package	
@@ -29,17 +29,17 @@ import (
 
 var (
 	configFile = flag.String("config", "server.conf", "Name of the config file to load")
-	
+
 	g_config *conf.ConfigFile
 	g_logger *log.Logger
 	g_db     *mysql.MySQL
-	g_store	 *ServerStore
+	g_store  *ServerStore
 )
 
 func main() {
 	// Use all cpu cores
 	runtime.GOMAXPROCS(4)
-	
+
 	fmt.Println("***********************************************")
 	fmt.Println("**          Pokemon Universe Master          **")
 	fmt.Println("**                                           **")
@@ -54,17 +54,17 @@ func main() {
 	}
 
 	// Setup logger
-	fmt.Println(" - Setting up logging system")	
+	fmt.Println(" - Setting up logging system")
 	if initLogger() == false {
 		return
 	}
-	
+
 	// Connect to database
 	g_logger.Println("Connecting to databeast")
 	if initDatabase() == false {
 		return
 	}
-	
+
 	server := NewServer()
 	server.Run()
 }
@@ -75,24 +75,24 @@ func initConfig() bool {
 		fmt.Printf("Could not load config file: %v\n\r", err)
 		return false
 	}
-	
+
 	g_config = c
-	
+
 	return true
 }
 
 func initLogger() bool {
 	var flags int
-	
+
 	toConsole, err := g_config.GetBool("log", "console")
 	if err != nil || toConsole {
 		flags = logger.L_CONSOLE
 	}
 	toFile, err := g_config.GetBool("log", "file")
 	if err != nil || toFile {
-		flags = flags|logger.L_FILE
+		flags = flags | logger.L_FILE
 	}
-	
+
 	logFile, err := g_config.GetString("log", "filename")
 	if err != nil || len(logFile) <= 0 {
 		logFile = "log.txt"
@@ -106,7 +106,7 @@ func initLogger() bool {
 	if toFile {
 		fmt.Printf(" - Start logging to file: %v\n\r", logFile)
 	}
-	
+
 	return true
 }
 
@@ -116,7 +116,7 @@ func initDatabase() bool {
 
 	// Enable logging
 	g_db.Logging = true
-	
+
 	// Fetch database info from conf file
 	dbHost, _ := g_config.GetString("database", "host")
 	dbUser, _ := g_config.GetString("database", "user")

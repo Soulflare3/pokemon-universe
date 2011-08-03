@@ -18,12 +18,12 @@ package main
 
 type PU_BattleEvent_Animation struct {
 	animation int
-	x int 
-	y int
+	x         int
+	y         int
 }
 
 func NewBattleEvent_Animation(_x int, _y int, _animation int) *PU_BattleEvent_Animation {
-	return &PU_BattleEvent_Animation{x : _x, y : _y, animation : _animation}
+	return &PU_BattleEvent_Animation{x: _x, y: _y, animation: _animation}
 }
 
 func (e *PU_BattleEvent_Animation) Execute() {

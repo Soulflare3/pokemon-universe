@@ -22,6 +22,7 @@ import (
 )
 
 type GameState int
+
 const (
 	GAME_STATE_STARTUP GameState = iota
 	GAME_STATE_INIT
@@ -31,16 +32,16 @@ const (
 )
 
 type Game struct {
-	State			GameState
-	Creatures		CreatureList
-	Players			PlayerList
-	PlayersDiscon	PlayerList
-	
-	Locations	*LocationStore
-	
-	mutexCreatureList	*sync.RWMutex
-	mutexPlayerList		*sync.RWMutex
-	mutexDisconnectList	*sync.RWMutex
+	State         GameState
+	Creatures     CreatureList
+	Players       PlayerList
+	PlayersDiscon PlayerList
+
+	Locations *LocationStore
+
+	mutexCreatureList   *sync.RWMutex
+	mutexPlayerList     *sync.RWMutex
+	mutexDisconnectList *sync.RWMutex
 }
 
 func NewGame() *Game {
@@ -50,12 +51,12 @@ func NewGame() *Game {
 	game.Creatures = make(CreatureList)
 	game.Players = make(PlayerList)
 	game.PlayersDiscon = make(PlayerList)
-	
+
 	// Mutexes
 	game.mutexCreatureList = new(sync.RWMutex)
 	game.mutexPlayerList = new(sync.RWMutex)
 	game.mutexDisconnectList = new(sync.RWMutex)
-	
+
 	return &game
 }
 
@@ -63,14 +64,14 @@ func (the *Game) Load() (LostIt bool) {
 	LostIt = true // fuck >:(
 	g_map = NewMap()
 	the.Locations = NewLocationStore()
-	
+
 	g_logger.Println(" - Loading locations")
 	// Load locations
 	if err := the.Locations.Load(); err != nil {
 		g_logger.Println(err)
 		LostIt = false
 	}
-	
+
 	// Load worldmap
 	g_logger.Println(" - Loading worldmap")
 	start := time.Nanoseconds()
@@ -78,9 +79,9 @@ func (the *Game) Load() (LostIt bool) {
 		g_logger.Println(err)
 		LostIt = false
 	} else {
-	    g_logger.Printf(" - Map loaded in %dms\n", (time.Nanoseconds() - start) / 1e6)
+		g_logger.Printf(" - Map loaded in %dms\n", (time.Nanoseconds()-start)/1e6)
 	}
-	
+
 	return
 }
 
@@ -90,7 +91,7 @@ func (g *Game) GetPlayerByName(_name string) (ICreature, bool) {
 			return value, true
 		}
 	}
-	
+
 	return nil, false
 }
 
@@ -109,9 +110,9 @@ func (g *Game) AddCreature(_creature ICreature) {
 	}
 
 	g.mutexCreatureList.Lock()
-	defer g.mutexCreatureList.Unlock()	
+	defer g.mutexCreatureList.Unlock()
 	g.Creatures[_creature.GetUID()] = _creature
-	
+
 	if _creature.GetType() == CTYPE_PLAYER {
 		g.mutexPlayerList.Lock()
 		defer g.mutexPlayerList.Unlock()
@@ -124,9 +125,9 @@ func (g *Game) RemoveCreature(_guid uint64) {
 	if exists {
 		g.mutexCreatureList.Lock()
 		defer g.mutexCreatureList.Unlock()
-		
+
 		g.Creatures[_guid] = nil, false
-		
+
 		if object.GetType() == CTYPE_PLAYER {
 			g.mutexPlayerList.Lock()
 			defer g.mutexPlayerList.Unlock()
@@ -138,10 +139,10 @@ func (g *Game) RemoveCreature(_guid uint64) {
 
 func (g *Game) OnPlayerMove(_creature ICreature, _direction int, _sendMap bool) {
 	ret := g.OnCreatureMove(_creature, _direction)
-	
+
 	player := _creature.(*Player)
 	if ret == RET_NOTPOSSIBLE {
-		player.sendCreatureMove(_creature, _creature.GetTile(), _creature.GetTile())		
+		player.sendCreatureMove(_creature, _creature.GetTile(), _creature.GetTile())
 	} else if ret == RET_PLAYERISTELEPORTED {
 		player.sendPlayerWarp()
 		player.sendMapData(DIR_NULL)
@@ -158,31 +159,31 @@ func (g *Game) OnPlayerTurn(_creature ICreature, _direction int) {
 
 func (g *Game) OnCreatureMove(_creature ICreature, _direction int) (ret ReturnValue) {
 	ret = RET_NOTPOSSIBLE
-	
+
 	if !CreatureCanMove(_creature) {
 		return
 	}
-	
+
 	currentTile := _creature.GetTile()
 	destinationPosition := currentTile.Position
-	
-	switch(_direction) {
-		case DIR_NORTH:
-			destinationPosition.Y -= 1
-		case DIR_SOUTH:
-			destinationPosition.Y += 1
-		case DIR_WEST:
-			destinationPosition.X -= 1
-		case DIR_EAST:
-			destinationPosition.X += 1
+
+	switch _direction {
+	case DIR_NORTH:
+		destinationPosition.Y -= 1
+	case DIR_SOUTH:
+		destinationPosition.Y += 1
+	case DIR_WEST:
+		destinationPosition.X -= 1
+	case DIR_EAST:
+		destinationPosition.X += 1
 	}
-	
+
 	// Check if destination tile exists
 	destinationTile, ok := g_map.GetTileFromPosition(destinationPosition)
 	if !ok {
-		return		
+		return
 	}
-	
+
 	// Check if we can move to the destination tile
 	if ret = destinationTile.CheckMovement(_creature, _direction); ret == RET_NOTPOSSIBLE {
 		return
@@ -190,7 +191,7 @@ func (g *Game) OnCreatureMove(_creature ICreature, _direction int) (ret ReturnVa
 
 	// Update position
 	_creature.SetTile(destinationTile)
-			
+
 	// Tell creatures this creature has moved
 	g.mutexCreatureList.RLock()
 	defer g.mutexCreatureList.RUnlock()
@@ -198,8 +199,8 @@ func (g *Game) OnCreatureMove(_creature ICreature, _direction int) (ret ReturnVa
 		if value != nil {
 			value.OnCreatureMove(_creature, currentTile, destinationTile, false)
 		}
-	}		
-	
+	}
+
 	// Move creature object to destination tile
 	if ret = currentTile.RemoveCreature(_creature, true); ret == RET_NOTPOSSIBLE {
 		return
@@ -211,16 +212,16 @@ func (g *Game) OnCreatureMove(_creature ICreature, _direction int) (ret ReturnVa
 
 	// If ICreature is a player type we can check for wild encounter
 	g.checkForWildEncounter(_creature)
-	
+
 	return
 }
 
 func (g *Game) OnCreatureTurn(_creature ICreature, _direction int) {
 	if _creature.GetDirection() != _direction {
 		_creature.SetDirection(_direction)
-		
+
 		visibleCreatures := _creature.GetVisibleCreatures()
-		for _, value := range(visibleCreatures) {
+		for _, value := range visibleCreatures {
 			value.OnCreatureTurn(_creature)
 		}
 	}
@@ -228,7 +229,7 @@ func (g *Game) OnCreatureTurn(_creature ICreature, _direction int) {
 
 func (g *Game) internalCreatureTeleport(_creature ICreature, _from *Tile, _to *Tile) (ret ReturnValue) {
 	ret = RET_PLAYERISTELEPORTED
-	
+
 	if _from == nil || _to == nil {
 		ret = RET_NOTPOSSIBLE
 	} else {
@@ -240,9 +241,9 @@ func (g *Game) internalCreatureTeleport(_creature ICreature, _from *Tile, _to *T
 			_from.AddCreature(_creature, false) // Something went wrong, put creature back on old tile
 			return
 		}
-		
+
 		_creature.SetTile(_to)
-		
+
 		// Tell creatures this creature has been teleported
 		g.mutexCreatureList.RLock()
 		defer g.mutexCreatureList.RUnlock()
@@ -250,9 +251,9 @@ func (g *Game) internalCreatureTeleport(_creature ICreature, _from *Tile, _to *T
 			if value != nil {
 				value.OnCreatureMove(_creature, _from, _to, true)
 			}
-		}		
+		}
 	}
-	
+
 	return
 }
 

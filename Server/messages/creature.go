@@ -24,14 +24,14 @@ func (c *Connection) Send_CreatureAdd(_creature ICreature) {
 	if _creature.GetUID() == c.Owner.GetUID() {
 		return
 	}
-	
+
 	creatureData := pnet.NewData_AddCreature()
-	creatureData.AddCreature.UID 		= _creature.GetUID()
-	creatureData.AddCreature.Name 		= _creature.GetName()
-	creatureData.AddCreature.X			= _creature.GetPosition().X
-	creatureData.AddCreature.Y			= _creature.GetPosition().Y
-	creatureData.AddCreature.Direction	= _creature.GetDirection()
-	
+	creatureData.AddCreature.UID = _creature.GetUID()
+	creatureData.AddCreature.Name = _creature.GetName()
+	creatureData.AddCreature.X = _creature.GetPosition().X
+	creatureData.AddCreature.Y = _creature.GetPosition().Y
+	creatureData.AddCreature.Direction = _creature.GetDirection()
+
 	if player, is_player := _creature.(*Player); is_player {
 		for i := 0; i < 6; i++ {
 			outfit := pnet.NewBodyPart(player.GetOutfitStyle(OutfitPart(i)), uint32(player.GetOutfitColour(OutfitPart(i))))

@@ -42,7 +42,7 @@ var g_FPS int = 0
 func main() {
 	//Make sure that resources get released
 	defer g_engine.Exit()
-	
+
 	//Permission to run on 2 CPU cores
 	runtime.GOMAXPROCS(2)
 
@@ -51,23 +51,23 @@ func main() {
 	if err != "" {
 		fmt.Printf("Error in Init: %v", err)
 		return
-	} 
+	}
 
 	//Initialize the engine
 	g_engine.Init()
-	
+
 	//Load data
 	g_game.LoadFonts()
 	Draw() //Draw the "please wait" text after loading the fonts
 	g_game.LoadGuiImages()
 	g_game.LoadTileImages()
 	g_game.LoadCreatureImages()
-	g_game.SetState(GAMESTATE_LOGIN)	
+	g_game.SetState(GAMESTATE_LOGIN)
 
-	g_loginControls.Show() 
-	
+	g_loginControls.Show()
+
 	lastTime := sdl.GetTicks()
-	
+
 	frameTime := sdl.GetTicks()
 	frameCount := 0
 
@@ -84,22 +84,22 @@ func main() {
 
 		//Render everything on screen
 		Draw()
-		
+
 		//Give the CPU some time to do other stuff
 		sdl.Delay(1)
-		
+
 		//Handle a network message
 		g_conn.HandleMessage()
-		
+
 		//Handle a battle event
 		if g_game.state == GAMESTATE_BATTLE {
 			g_game.battle.ProcessEvents()
 		}
-		
+
 		//Update frame time 
-		g_frameTime = sdl.GetTicks()-lastTime
+		g_frameTime = sdl.GetTicks() - lastTime
 		lastTime = sdl.GetTicks()
-		
+
 		//Update FPS
 		frameCount++
 		if sdl.GetTicks()-frameTime >= 1000 {
@@ -114,12 +114,12 @@ func main() {
 func Draw() {
 	sdl.RenderClear(g_engine.renderer)
 	g_game.Draw()
-	
+
 	if font := g_engine.GetFont(FONT_PURITANBOLD_14); font != nil {
 		font.SetColor(255, 242, 0)
 		font.DrawBorderedText(fmt.Sprintf("FPS: %v", g_FPS), 760, 5)
 	}
-	
+
 	sdl.RenderPresent(g_engine.renderer)
 }
 
@@ -128,23 +128,23 @@ func GetPath() string {
 	dir, _ := path.Split(file)
 	os.Chdir(dir)
 	path, _ := os.Getwd()
-	return path+"/"
+	return path + "/"
 }
 
 func EventHandler(_event *sdl.SDLEvent) {
 	switch _event.Evtype {
 	case sdl.SDL_WINDOWEVENT:
 		HandleWindowEvent(_event.Window())
-		
+
 	case sdl.SDL_KEYDOWN, sdl.SDL_TEXTINPUT:
 		HandleKeyboardEvent(_event.Keyboard())
-		
+
 	case sdl.SDL_MOUSEBUTTONUP, sdl.SDL_MOUSEBUTTONDOWN:
 		HandleMouseButtonEvent(_event.MouseButton())
-		
+
 	case sdl.SDL_MOUSEMOTION:
 		HandleMouseMotionEvent(_event.MouseMotion())
-		
+
 	case sdl.SDL_MOUSEWHEEL:
 		HandleMouseWheelEvent(_event.MouseWheel())
 	}
@@ -159,23 +159,23 @@ func HandleWindowEvent(_event *sdl.WindowEvent) {
 
 func HandleKeyboardEvent(_event *sdl.KeyboardEvent) {
 	switch _event.Evtype {
-		case sdl.SDL_KEYDOWN:
-			g_gui.KeyDown(0, int(_event.Keysym().Sym))
-			g_game.KeyDown(0, int(_event.Keysym().Scancode))
-			
-		case sdl.SDL_TEXTINPUT:
-			g_gui.KeyDown(int(_event.State), int(_event.Keysym().Scancode));
-			g_game.KeyDown(int(_event.State), int(_event.Keysym().Scancode));
+	case sdl.SDL_KEYDOWN:
+		g_gui.KeyDown(0, int(_event.Keysym().Sym))
+		g_game.KeyDown(0, int(_event.Keysym().Scancode))
+
+	case sdl.SDL_TEXTINPUT:
+		g_gui.KeyDown(int(_event.State), int(_event.Keysym().Scancode))
+		g_game.KeyDown(int(_event.State), int(_event.Keysym().Scancode))
 	}
 }
 
 func HandleMouseButtonEvent(_event *sdl.MouseButtonEvent) {
 	switch _event.Evtype {
-		case sdl.SDL_MOUSEBUTTONUP:
-			g_gui.MouseUp(int(_event.X), int(_event.Y))
-			
-		case sdl.SDL_MOUSEBUTTONDOWN:
-			g_gui.MouseDown(int(_event.X), int(_event.Y))
+	case sdl.SDL_MOUSEBUTTONUP:
+		g_gui.MouseUp(int(_event.X), int(_event.Y))
+
+	case sdl.SDL_MOUSEBUTTONDOWN:
+		g_gui.MouseDown(int(_event.X), int(_event.Y))
 	}
 }
 
@@ -186,7 +186,7 @@ func HandleMouseMotionEvent(_event *sdl.MouseMotionEvent) {
 func HandleMouseWheelEvent(_event *sdl.MouseWheelEvent) {
 	if 0-_event.Y < 0 {
 		g_gui.MouseScroll(sdl.SCROLL_UP)
-	} else if ((0-_event.Y) > 0) {
+	} else if (0 - _event.Y) > 0 {
 		g_gui.MouseScroll(sdl.SCROLL_DOWN)
 	}
 }

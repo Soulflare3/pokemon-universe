@@ -417,11 +417,16 @@ func (pkt *packetCommand) write(writer *bufio.Writer) (err os.Error) {
 		switch v := pkt.args[i].(type) {
 		default:
 			return os.ErrorString("Unsupported type")
-		case string: pkt.header.length += uint32(len(v))
-		case uint8: pkt.header.length += 1
-		case uint16: pkt.header.length += 2
-		case uint32: pkt.header.length += 4
-		case uint64: pkt.header.length += 8
+		case string:
+			pkt.header.length += uint32(len(v))
+		case uint8:
+			pkt.header.length += 1
+		case uint16:
+			pkt.header.length += 2
+		case uint32:
+			pkt.header.length += 4
+		case uint64:
+			pkt.header.length += 8
 		}
 	}
 	pkt.header.sequence = 0
@@ -437,11 +442,16 @@ func (pkt *packetCommand) write(writer *bufio.Writer) (err os.Error) {
 	// Write params
 	for i := 0; i < len(pkt.args); i++ {
 		switch v := pkt.args[i].(type) {
-		case string: _, err = writer.WriteString(v)
-		case uint8: err = pkt.writeNumber(writer, uint64(v), 1)
-		case uint16: err = pkt.writeNumber(writer, uint64(v), 2)
-		case uint32: err = pkt.writeNumber(writer, uint64(v), 4)
-		case uint64: err = pkt.writeNumber(writer, v, 8)
+		case string:
+			_, err = writer.WriteString(v)
+		case uint8:
+			err = pkt.writeNumber(writer, uint64(v), 1)
+		case uint16:
+			err = pkt.writeNumber(writer, uint64(v), 2)
+		case uint32:
+			err = pkt.writeNumber(writer, uint64(v), 4)
+		case uint64:
+			err = pkt.writeNumber(writer, v, 8)
 		}
 		if err != nil {
 			return
@@ -942,7 +952,7 @@ func (pkt *packetExecute) write(writer *bufio.Writer) (err os.Error) {
 	pkt.header = new(packetHeader)
 	pkt.header.length = 11 + uint32(len(pkt.nullBitMap)) + pkt.paramLength
 	if pkt.newParamBound == 1 {
-		pkt.header.length += uint32(len(pkt.paramType)*2)
+		pkt.header.length += uint32(len(pkt.paramType) * 2)
 	}
 	pkt.header.sequence = 0
 	err = pkt.header.write(writer)

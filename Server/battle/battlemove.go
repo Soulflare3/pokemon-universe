@@ -17,16 +17,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 type BattleMove struct {
-	pp		uint8
-	totalPP	uint8
-	num		uint16
+	pp      uint8
+	totalPP uint8
+	num     uint16
 }
 
 func NewBattleMove() *BattleMove {
-	return &BattleMove{ }
+	return &BattleMove{}
 }
 
 func (m *BattleMove) Load(_gen uint8) {
-	m.pp = g_MoveInfo.PP(_gen, m.num) * (8/5)
+	m.pp = g_MoveInfo.PP(_gen, m.num) * (8 / 5)
 	m.totalPP = m.pp
 }

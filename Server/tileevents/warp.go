@@ -31,13 +31,13 @@ func NewWarp(_destination pos.Position) *Warp {
 func (e *Warp) OnCreatureEnter(_creature ICreature, _prevRet ReturnValue) (ret ReturnValue) {
 	currentTile := _creature.GetTile()
 	destinationTile, found := g_map.GetTileFromPosition(e.destination)
-	
+
 	if found {
 		ret = g_game.internalCreatureTeleport(_creature, currentTile, destinationTile)
 	} else {
 		ret = RET_NOTPOSSIBLE
 	}
-	
+
 	return
 }
 

@@ -17,13 +17,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 type PU_BattleEvent_ChangePP struct {
-	pokemon int 
-	attack int 
-	value int 
+	pokemon int
+	attack  int
+	value   int
 }
 
 func NewBattleEvent_ChangePP(_pokemon int, _attack int, _value int) *PU_BattleEvent_ChangePP {
-	return &PU_BattleEvent_ChangePP{pokemon : _pokemon, attack : _attack, value : _value}
+	return &PU_BattleEvent_ChangePP{pokemon: _pokemon, attack: _attack, value: _value}
 }
 
 func (e *PU_BattleEvent_ChangePP) Execute() {
@@ -33,5 +33,5 @@ func (e *PU_BattleEvent_ChangePP) Execute() {
 		if attack != nil {
 			attack.pp = uint16(e.value)
 		}
-	}	
+	}
 }

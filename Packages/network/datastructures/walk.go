@@ -22,8 +22,8 @@ package network
 
 //Send walk action to server (HEADER_WALK)
 type Data_Walk struct {
-	Direction		int
-	RequestTiles	bool
+	Direction    int
+	RequestTiles bool
 }
 
 func NewData_Walk() (msg *Message) {
@@ -37,11 +37,11 @@ func NewData_Walk() (msg *Message) {
 
 //Notify client of a walking creature (HEADER_WALK)
 type Data_CreatureWalk struct {
-	UID			uint64
-	FromX		int
-	FromY		int
-	ToX			int
-	ToY			int
+	UID   uint64
+	FromX int
+	FromY int
+	ToX   int
+	ToY   int
 }
 
 func NewData_CreatureWalk() (msg *Message) {

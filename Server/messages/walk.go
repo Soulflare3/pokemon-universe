@@ -22,11 +22,11 @@ import (
 
 func (c *Connection) Send_CreatureWalk(_creature ICreature, _from *Tile, _to *Tile) {
 	msg := pnet.NewData_CreatureWalk()
-	msg.CreatureWalk.UID	= _creature.GetUID()
-	msg.CreatureWalk.FromX 	= _from.Position.X
-	msg.CreatureWalk.FromY 	= _from.Position.Y
-	msg.CreatureWalk.ToX 	= _to.Position.X
-	msg.CreatureWalk.ToY	= _to.Position.Y
+	msg.CreatureWalk.UID = _creature.GetUID()
+	msg.CreatureWalk.FromX = _from.Position.X
+	msg.CreatureWalk.FromY = _from.Position.Y
+	msg.CreatureWalk.ToX = _to.Position.X
+	msg.CreatureWalk.ToY = _to.Position.Y
 	c.SendMessage(msg)
 }
 
@@ -39,4 +39,3 @@ func (c *Connection) Receive_Walk(_message *pnet.Message) {
 	data := _message.Walk
 	g_game.OnPlayerMove(c.Owner, data.Direction, data.RequestTiles)
 }
-

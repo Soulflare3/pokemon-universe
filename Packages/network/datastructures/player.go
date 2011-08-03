@@ -22,13 +22,13 @@ package network
 
 //The data of the player that this message is sent to (HEADER_IDENTITY)
 type Data_PlayerData struct {
-	UID			uint64
-	Name		string
-	X			int
-	Y			int
-	Direction	int
-	Money		int
-	Outfit		[6]*BodyPart
+	UID       uint64
+	Name      string
+	X         int
+	Y         int
+	Direction int
+	Money     int
+	Outfit    [6]*BodyPart
 }
 
 func NewData_PlayerData() (msg *Message) {

@@ -26,10 +26,10 @@ type PU_Rect struct {
 }
 
 func NewRect(_x int, _y int, _width int, _height int) *PU_Rect {
-	return &PU_Rect{x : _x,
-					y : _y,
-					width : _width,
-					height : _height}
+	return &PU_Rect{x: _x,
+		y:      _y,
+		width:  _width,
+		height: _height}
 }
 
 func NewRectFrom(_rect *PU_Rect) *PU_Rect {
@@ -37,8 +37,8 @@ func NewRectFrom(_rect *PU_Rect) *PU_Rect {
 }
 
 func (r *PU_Rect) Equals(_rect *PU_Rect) bool {
-	return ((r.x == _rect.x) && (r.y == _rect.y) && 
-			(r.width == _rect.width) && (r.height == _rect.height))
+	return ((r.x == _rect.x) && (r.y == _rect.y) &&
+		(r.width == _rect.width) && (r.height == _rect.height))
 }
 
 func (r *PU_Rect) Contains(_x int, _y int) bool {
@@ -46,15 +46,15 @@ func (r *PU_Rect) Contains(_x int, _y int) bool {
 }
 
 func (r *PU_Rect) ContainsRect(_rect *PU_Rect) bool {
-	return (r.Contains(_rect.x,_rect.y) && 
-			r.Contains(_rect.x+_rect.width,_rect.y) && 
-			r.Contains(_rect.x,_rect.y+_rect.height) && 
-			r.Contains(_rect.x+_rect.width,_rect.y+_rect.height))
+	return (r.Contains(_rect.x, _rect.y) &&
+		r.Contains(_rect.x+_rect.width, _rect.y) &&
+		r.Contains(_rect.x, _rect.y+_rect.height) &&
+		r.Contains(_rect.x+_rect.width, _rect.y+_rect.height))
 }
 
 func (r *PU_Rect) Intersects(_rect *PU_Rect) bool {
 	return !(r.x > _rect.x+_rect.width || _rect.x > r.x+r.width ||
-			 r.y > _rect.y+_rect.height || _rect.y > r.y+r.height)
+		r.y > _rect.y+_rect.height || _rect.y > r.y+r.height)
 }
 
 func (r *PU_Rect) Intersection(_rect *PU_Rect) *PU_Rect {
@@ -63,29 +63,29 @@ func (r *PU_Rect) Intersection(_rect *PU_Rect) *PU_Rect {
 		if r.x > _rect.x {
 			tempX = r.x
 		}
-		
+
 		tempY := _rect.y
 		if r.y > _rect.y {
 			tempY = r.y
 		}
-		
-		tempW := _rect.x+_rect.width
+
+		tempW := _rect.x + _rect.width
 		if r.x+r.width < _rect.x+_rect.width {
-			tempW = r.x+r.width
+			tempW = r.x + r.width
 		}
-		
-		tempH := _rect.y+_rect.height
+
+		tempH := _rect.y + _rect.height
 		if r.y+r.height < _rect.y+_rect.height {
-			tempH = r.y+r.height
+			tempH = r.y + r.height
 		}
-		
+
 		tempW -= tempX
 		tempH -= tempY
-		
-		return &PU_Rect{x : tempX,
-						y : tempY,
-						width : tempW,
-						height : tempH}
+
+		return &PU_Rect{x: tempX,
+			y:      tempY,
+			width:  tempW,
+			height: tempH}
 	}
 	return NewRect(0, 0, 0, 0)
 }
@@ -95,6 +95,5 @@ func (r *PU_Rect) ToSDL() *sdl.Rect {
 }
 
 func (r *PU_Rect) ToString() string {
-	return fmt.Sprintf("PU_Rect(%v,%v,%v,%v)",r.x, r.y, r.width, r.height)
+	return fmt.Sprintf("PU_Rect(%v,%v,%v,%v)", r.x, r.y, r.width, r.height)
 }
-

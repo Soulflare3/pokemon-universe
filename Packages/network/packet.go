@@ -14,7 +14,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
-package network 
+package network
 
 const (
 	PACKET_MAXSIZE = 16384
@@ -22,8 +22,8 @@ const (
 
 type Packet struct {
 	readPos uint16
-	MsgSize uint16	
-	
+	MsgSize uint16
+
 	Buffer [PACKET_MAXSIZE]uint8
 }
 
@@ -31,7 +31,7 @@ type Packet struct {
 func NewPacket() *Packet {
 	packet := &Packet{}
 	packet.Reset()
-	
+
 	return packet
 }
 
@@ -39,7 +39,7 @@ func NewPacket() *Packet {
 func NewPacketExt(_header uint8) *Packet {
 	packet := NewPacket()
 	packet.AddUint8(_header)
-	
+
 	return packet
 }
 
@@ -49,7 +49,7 @@ func (p *Packet) Reset() {
 }
 
 func (p *Packet) CanAdd(_size uint16) bool {
-	return (_size+p.readPos < PACKET_MAXSIZE - 16)
+	return (_size+p.readPos < PACKET_MAXSIZE-16)
 }
 
 func (p *Packet) GetHeader() uint16 {
@@ -77,27 +77,27 @@ func (p *Packet) ReadUint16() uint16 {
 
 func (p *Packet) ReadUint32() uint32 {
 	v := uint32((uint32(p.Buffer[p.readPos]) | (uint32(p.Buffer[p.readPos+1]) << 8) |
-				 (uint32(p.Buffer[p.readPos+2]) << 16) | (uint32(p.Buffer[p.readPos+3]) << 24)))
+		(uint32(p.Buffer[p.readPos+2]) << 16) | (uint32(p.Buffer[p.readPos+3]) << 24)))
 	p.readPos += 4
 	return v
 }
 
 func (p *Packet) ReadUint64() uint64 {
 	v := uint64((uint64(p.Buffer[p.readPos]) | (uint64(p.Buffer[p.readPos+1]) << 8) |
-				 (uint64(p.Buffer[p.readPos+2]) << 16) | (uint64(p.Buffer[p.readPos+3]) << 24) |
-				 (uint64(p.Buffer[p.readPos+4]) << 32) | (uint64(p.Buffer[p.readPos+5]) << 40) |
-				 (uint64(p.Buffer[p.readPos+6]) << 48) | (uint64(p.Buffer[p.readPos+7]) << 56)))
+		(uint64(p.Buffer[p.readPos+2]) << 16) | (uint64(p.Buffer[p.readPos+3]) << 24) |
+		(uint64(p.Buffer[p.readPos+4]) << 32) | (uint64(p.Buffer[p.readPos+5]) << 40) |
+		(uint64(p.Buffer[p.readPos+6]) << 48) | (uint64(p.Buffer[p.readPos+7]) << 56)))
 	p.readPos += 8
 	return v
 }
 
 func (p *Packet) ReadString() string {
 	stringlen := p.ReadUint16()
-	if uint16(stringlen) >= (PACKET_MAXSIZE+p.readPos) {
+	if uint16(stringlen) >= (PACKET_MAXSIZE + p.readPos) {
 		return ""
 	}
-	
-	v := string(p.Buffer[p.readPos:p.readPos+uint16(stringlen)])
+
+	v := string(p.Buffer[p.readPos : p.readPos+uint16(stringlen)])
 	p.readPos += uint16(stringlen)
 	return v
 }
@@ -106,11 +106,11 @@ func (p *Packet) AddUint8(_value uint8) bool {
 	if !p.CanAdd(1) {
 		return false
 	}
-	
+
 	p.Buffer[p.readPos] = _value
 	p.readPos += 1
 	p.MsgSize += 1
-	
+
 	return true
 }
 
@@ -118,14 +118,14 @@ func (p *Packet) AddUint16(_value uint16) bool {
 	if !p.CanAdd(2) {
 		return false
 	}
-	
+
 	p.Buffer[p.readPos] = uint8(_value)
 	p.readPos += 1
 	p.Buffer[p.readPos] = uint8(_value >> 8)
 	p.readPos += 1
-	
+
 	p.MsgSize += 2
-	
+
 	return true
 }
 
@@ -133,7 +133,7 @@ func (p *Packet) AddUint32(_value uint32) bool {
 	if !p.CanAdd(4) {
 		return false
 	}
-	
+
 	p.Buffer[p.readPos] = uint8(_value)
 	p.readPos += 1
 	p.Buffer[p.readPos] = uint8(_value >> 8)
@@ -142,9 +142,9 @@ func (p *Packet) AddUint32(_value uint32) bool {
 	p.readPos += 1
 	p.Buffer[p.readPos] = uint8(_value >> 24)
 	p.readPos += 1
-	
+
 	p.MsgSize += 4
-	
+
 	return true
 }
 
@@ -152,7 +152,7 @@ func (p *Packet) AddUint64(_value uint64) bool {
 	if !p.CanAdd(8) {
 		return false
 	}
-	
+
 	p.Buffer[p.readPos] = uint8(_value)
 	p.readPos += 1
 	p.Buffer[p.readPos] = uint8(_value >> 8)
@@ -164,14 +164,14 @@ func (p *Packet) AddUint64(_value uint64) bool {
 	p.Buffer[p.readPos] = uint8(_value >> 32)
 	p.readPos += 1
 	p.Buffer[p.readPos] = uint8(_value >> 40)
-	p.readPos += 1		
+	p.readPos += 1
 	p.Buffer[p.readPos] = uint8(_value >> 48)
 	p.readPos += 1
 	p.Buffer[p.readPos] = uint8(_value >> 56)
 	p.readPos += 1
-		
+
 	p.MsgSize += 8
-	
+
 	return true
 }
 func (p *Packet) AddString(_value string) bool {
@@ -179,14 +179,14 @@ func (p *Packet) AddString(_value string) bool {
 	if !p.CanAdd(stringlen) {
 		return false
 	}
-	
+
 	p.AddUint16(uint16(stringlen))
-	for i, _ := range _value { 
+	for i, _ := range _value {
 		p.Buffer[p.readPos+uint16(i)] = _value[i]
 	}
-	
+
 	p.readPos += stringlen
 	p.MsgSize += uint16(stringlen)
-	
+
 	return true
 }

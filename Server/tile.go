@@ -22,44 +22,44 @@ import (
 )
 
 const (
-	TILEBLOCK_BLOCK int = 1
-	TILEBLOCK_WALK = 2
-	TILEBLOCK_SURF = 3
-	TILEBLOCK_TOP = 4
-	TILEBLOCK_BOTTOM = 5
-	TILEBLOCK_RIGHT = 6
-	TILEBLOCK_LEFT = 7
-	TILEBLOCK_TOPRIGHT = 8
-	TILEBLOCK_BOTTOMRIGHT = 9
-	TILEBLOCK_BOTTOMLEFT = 10
-	TILEBLOCK_TOPLEFT = 11
+	TILEBLOCK_BLOCK       int = 1
+	TILEBLOCK_WALK            = 2
+	TILEBLOCK_SURF            = 3
+	TILEBLOCK_TOP             = 4
+	TILEBLOCK_BOTTOM          = 5
+	TILEBLOCK_RIGHT           = 6
+	TILEBLOCK_LEFT            = 7
+	TILEBLOCK_TOPRIGHT        = 8
+	TILEBLOCK_BOTTOMRIGHT     = 9
+	TILEBLOCK_BOTTOMLEFT      = 10
+	TILEBLOCK_TOPLEFT         = 11
 )
 
 type TileLayer struct {
-	Layer		int
-	SpriteID	int
+	Layer    int
+	SpriteID int
 }
 
 type LayerMap map[int]*TileLayer
 type Tile struct {
-	Position	pos.Position
-	Blocking	int
-	Location	*Location
-	
-	Layers		LayerMap
-	Creatures	CreatureList // List of creatures who are active on this tile
-	Events		*list.List
+	Position pos.Position
+	Blocking int
+	Location *Location
+
+	Layers    LayerMap
+	Creatures CreatureList // List of creatures who are active on this tile
+	Events    *list.List
 }
 
 // NewTile creates a Tile object with Position as parameter
 func NewTile(_pos pos.Position) *Tile {
-	t := &Tile { Position: _pos }
+	t := &Tile{Position: _pos}
 	t.Blocking = TILEBLOCK_WALK
 	t.Layers = make(LayerMap)
 	t.Creatures = make(CreatureList)
 	t.Location = nil
 	t.Events = list.New()
-	
+
 	return t
 }
 
@@ -76,7 +76,7 @@ func (t *Tile) AddLayer(_layer int, _sprite int) (layer *TileLayer) {
 		layer = &TileLayer{Layer: _layer, SpriteID: _sprite}
 		t.Layers[_layer] = layer
 	}
-	
+
 	return
 }
 
@@ -89,7 +89,7 @@ func (t *Tile) GetLayer(_layer int) *TileLayer {
 	if layer, ok := t.Layers[_layer]; !ok {
 		return layer
 	}
-	
+
 	return nil
 }
 
@@ -97,47 +97,47 @@ func (t *Tile) GetLayer(_layer int) *TileLayer {
 func (t *Tile) CheckMovement(_creature ICreature, _dir int) ReturnValue {
 	movement := _creature.GetMovement()
 	blocking := t.Blocking
-	
+
 	if blocking != TILEBLOCK_WALK {
 		if blocking == TILEBLOCK_BLOCK ||
-			(blocking == TILEBLOCK_SURF		&& movement != MOVEMENT_SURF) ||
-			(blocking == TILEBLOCK_TOP		&& _dir == DIR_SOUTH) ||
-			(blocking == TILEBLOCK_BOTTOM	&& _dir == DIR_NORTH) ||
-			(blocking == TILEBLOCK_LEFT		&& _dir == DIR_EAST) ||
-			(blocking == TILEBLOCK_RIGHT	&& _dir == DIR_WEST) ||
-			(blocking == TILEBLOCK_TOPLEFT	&& (_dir == DIR_EAST || _dir == DIR_SOUTH)) ||
+			(blocking == TILEBLOCK_SURF && movement != MOVEMENT_SURF) ||
+			(blocking == TILEBLOCK_TOP && _dir == DIR_SOUTH) ||
+			(blocking == TILEBLOCK_BOTTOM && _dir == DIR_NORTH) ||
+			(blocking == TILEBLOCK_LEFT && _dir == DIR_EAST) ||
+			(blocking == TILEBLOCK_RIGHT && _dir == DIR_WEST) ||
+			(blocking == TILEBLOCK_TOPLEFT && (_dir == DIR_EAST || _dir == DIR_SOUTH)) ||
 			(blocking == TILEBLOCK_TOPRIGHT && (_dir == DIR_WEST || _dir == DIR_SOUTH)) ||
-			(blocking == TILEBLOCK_BOTTOMLEFT  && (_dir == DIR_EAST || _dir == DIR_NORTH)) ||
+			(blocking == TILEBLOCK_BOTTOMLEFT && (_dir == DIR_EAST || _dir == DIR_NORTH)) ||
 			(blocking == TILEBLOCK_BOTTOMRIGHT && (_dir == DIR_WEST || _dir == DIR_NORTH)) {
 			return RET_NOTPOSSIBLE
 		}
 	}
-	
+
 	return RET_NOERROR
 }
 
 // AddCreature adds a new active creature to this tile
 func (t *Tile) AddCreature(_creature ICreature, _checkEvents bool) (ret ReturnValue) {
 	ret = RET_NOERROR
-	
+
 	if t.Events.Len() > 0 {
 		for e := t.Events.Front(); e != nil; e = e.Next() {
 			event, valid := e.Value.(ITileEvent)
 			if valid {
 				ret = event.OnCreatureEnter(_creature, ret)
 			}
-		
+
 			if ret == RET_NOTPOSSIBLE {
 				return
 			}
 		}
 	}
-		
+
 	_, found := t.Creatures[_creature.GetUID()]
 	if !found {
 		t.Creatures[_creature.GetUID()] = _creature
 	}
-	
+
 	return
 }
 
@@ -151,14 +151,14 @@ func (t *Tile) RemoveCreature(_creature ICreature, _checkEvents bool) (ret Retur
 			if valid {
 				ret = event.OnCreatureLeave(_creature, ret)
 			}
-		
+
 			if ret == RET_NOTPOSSIBLE {
 				return
 			}
 		}
 	}
-	
+
 	t.Creatures[_creature.GetUID()] = nil, false
-		
+
 	return
 }

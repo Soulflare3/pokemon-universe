@@ -24,14 +24,14 @@ import (
 )
 
 type POClient struct {
-	connection		*PONetwork
-	battleId		uint32
-	mid				int32
-	myNick			string
-	
-	myNames			map[string]int32
-	myPlayersInfo	map[int32]*PlayerInfo // List of all players on the server
-	myBattles		map[int32]*Battle
+	connection *PONetwork
+	battleId   uint32
+	mid        int32
+	myNick     string
+
+	myNames       map[string]int32
+	myPlayersInfo map[int32]*PlayerInfo // List of all players on the server
+	myBattles     map[int32]*Battle
 }
 
 func NewPOClient() (*POClient, os.Error) {
@@ -44,38 +44,38 @@ func NewPOClient() (*POClient, os.Error) {
 	client.myPlayersInfo = make(map[int32]*PlayerInfo)
 	client.myNames = make(map[string]int32)
 	client.myBattles = make(map[int32]*Battle)
-	
+
 	connection.owner = client
 	return client, nil
 }
 
 func (c *POClient) SendLoginInfo() {
 	packet := pnet.NewQTPacketExt(Login)
-	packet.AddString("HerpDerp") // Name
-	packet.AddString("Dark Info") // Info
-	packet.AddString("Dark Lose") // Lose text
+	packet.AddString("HerpDerp")    // Name
+	packet.AddString("Dark Info")   // Info
+	packet.AddString("Dark Lose")   // Lose text
 	packet.AddString("Dark Winrar") // Win text
-	packet.AddUint16(0) // Avatar
-	packet.AddString("1") // Default Tier
-	packet.AddUint8(5) // Generation
-	
+	packet.AddUint16(0)             // Avatar
+	packet.AddString("1")           // Default Tier
+	packet.AddUint8(5)              // Generation
+
 	// TEAM - Loop Pokemon
-	packet.AddUint16(16) // pokemon number
-	packet.AddUint8(0) // sub number (alt-forms)
+	packet.AddUint16(16)       // pokemon number
+	packet.AddUint8(0)         // sub number (alt-forms)
 	packet.AddString("Pidgey") // nickname
-	packet.AddUint16(0) // item
-	packet.AddUint16(65) // ability
-	packet.AddUint8(0) // nature
-	packet.AddUint8(1) // gender
-	packet.AddUint8(0) // shiny	
-	packet.AddUint8(0) // happiness
-	packet.AddUint8(100) // level
+	packet.AddUint16(0)        // item
+	packet.AddUint16(65)       // ability
+	packet.AddUint8(0)         // nature
+	packet.AddUint8(1)         // gender
+	packet.AddUint8(0)         // shiny	
+	packet.AddUint8(0)         // happiness
+	packet.AddUint8(100)       // level
 
 	// Team - Loop Pokemon - Loop Moves
 	packet.AddUint32(16) // moveid
-	packet.AddUint32(0) // moveid
-	packet.AddUint32(0) // moveid
-	packet.AddUint32(0) // moveid
+	packet.AddUint32(0)  // moveid
+	packet.AddUint32(0)  // moveid
+	packet.AddUint32(0)  // moveid
 	// Team - Loop Pokemon - End Loop Moves
 	// Team - Loop Pokemon - Loop DV
 	packet.AddUint8(15) // hp
@@ -93,20 +93,20 @@ func (c *POClient) SendLoginInfo() {
 	packet.AddUint8(64)
 	packet.AddUint8(76)
 	// Team - Loop Pokemon - End Loop EV
-	
+
 	// Loop 5 more empty pokemon
 	for i := 0; i < 5; i++ {
-		packet.AddUint16(0) // pokemon number
-		packet.AddUint8(0) // sub number (alt-forms)
+		packet.AddUint16(0)  // pokemon number
+		packet.AddUint8(0)   // sub number (alt-forms)
 		packet.AddString("") // nickname
-		packet.AddUint16(0) // item
-		packet.AddUint16(0) // ability
-		packet.AddUint8(0) // nature
-		packet.AddUint8(0) // gender
-		packet.AddUint8(0) // shiny
-		packet.AddUint8(0) // happiness
-		packet.AddUint8(0) // level	
-		
+		packet.AddUint16(0)  // item
+		packet.AddUint16(0)  // ability
+		packet.AddUint8(0)   // nature
+		packet.AddUint8(0)   // gender
+		packet.AddUint8(0)   // shiny
+		packet.AddUint8(0)   // happiness
+		packet.AddUint8(0)   // level	
+
 		packet.AddUint32(0) // moveid
 		packet.AddUint32(0) // moveid
 		packet.AddUint32(0) // moveid
@@ -118,7 +118,7 @@ func (c *POClient) SendLoginInfo() {
 		packet.AddUint8(0) // SpAttack
 		packet.AddUint8(0) // SpDefence
 		packet.AddUint8(0) // Speed
-		
+
 		packet.AddUint8(0)
 		packet.AddUint8(0)
 		packet.AddUint8(0)
@@ -126,12 +126,12 @@ func (c *POClient) SendLoginInfo() {
 		packet.AddUint8(0)
 		packet.AddUint8(0)
 	}
-	
+
 	// Team - End Loop Pokemon
-	packet.AddUint8(1) // Ladder
-	packet.AddUint8(1) // Show team
+	packet.AddUint8(1)  // Ladder
+	packet.AddUint8(1)  // Show team
 	packet.AddUint32(1) // Colour
-	
+
 	c.connection.SendMessage(packet)
 }
 
@@ -150,7 +150,7 @@ func (c *POClient) PlayerReceived(_p *PlayerInfo) {
 			return
 		}
 	}
-	
+
 	fmt.Printf("Received player %v (%d)\n", _p.team.name, _p.id)
 	c.myPlayersInfo[_p.id] = _p
 	c.myNames[_p.team.name] = _p.id
@@ -162,9 +162,9 @@ func (c *POClient) GetPlayer(_id int32) (value *PlayerInfo, found bool) {
 }
 
 func (c *POClient) ChallengeStuff(_info *ChallengeInfo) {
-	if(_info.description == ChallengeDesc_Sent) { // We are being challenged
+	if _info.description == ChallengeDesc_Sent { // We are being challenged
 		_info.description = ChallengeDesc_Accepted // Auto accept	
-		c.connection.SendChallengeStuff(_info )
+		c.connection.SendChallengeStuff(_info)
 	} else { // We challenged someone else (reply)
 		// TODO: Handle accepted challenge
 	}
@@ -177,7 +177,7 @@ func (c *POClient) StartBattleSelf(_battleId int32, _id int32, _team *TeamBattle
 func (c *POClient) myBattleStarted(_battleId int32, _id1, _id2 int32, _team *TeamBattle, _conf *BattleConfiguration) {
 	c.myPlayersInfo[_id1].flags |= PlayerInfo_Battling
 	c.myPlayersInfo[_id2].flags |= PlayerInfo_Battling
-	
+
 	p1, _ := c.GetPlayer(_id1)
 	p2, _ := c.GetPlayer(_id2)
 	c.myBattles[_battleId] = NewBattle(c, _battleId, p1, p2, _team, _conf)
@@ -198,9 +198,9 @@ func (c *POClient) BattleFinished(_battleId int32, _res int8, _winner, _loser in
 	if (_res == BattleResult_Close || _res == BattleResult_Forfeit) && (_battleId != 0 || (_winner == c.mid || _loser == c.mid)) {
 		// Close battle window
 	}
-	
+
 	c.myBattles[_battleId] = nil, false
-	
+
 	if value, found := c.myPlayersInfo[_winner]; found {
 		value.flags &= 0xFF ^ PlayerInfo_Battling
 	}

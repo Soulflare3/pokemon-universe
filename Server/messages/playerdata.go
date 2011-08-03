@@ -22,27 +22,27 @@ import (
 
 func (c *Connection) Send_PlayerData() {
 	playerData := pnet.NewData_PlayerData()
-	playerData.PlayerData.UID			= c.Owner.GetUID()
-	playerData.PlayerData.Name			= c.Owner.GetName()
-	playerData.PlayerData.X				= c.Owner.GetPosition().X
-	playerData.PlayerData.Y				= c.Owner.GetPosition().Y
-	playerData.PlayerData.Direction 	= c.Owner.Direction
-	playerData.PlayerData.Money			= c.Owner.Money
-	
+	playerData.PlayerData.UID = c.Owner.GetUID()
+	playerData.PlayerData.Name = c.Owner.GetName()
+	playerData.PlayerData.X = c.Owner.GetPosition().X
+	playerData.PlayerData.Y = c.Owner.GetPosition().Y
+	playerData.PlayerData.Direction = c.Owner.Direction
+	playerData.PlayerData.Money = c.Owner.Money
+
 	for i := 0; i < 6; i++ {
 		outfit := pnet.NewBodyPart(c.Owner.GetOutfitStyle(OutfitPart(i)), uint32(c.Owner.GetOutfitColour(OutfitPart(i))))
 		playerData.PlayerData.Outfit[i] = outfit
 	}
-	
+
 	c.SendMessage(playerData)
-	
+
 	//ToDo: Send PkMn
-	
+
 	//ToDo: Send items
-	
+
 	// Send map
 	c.Send_Tiles(DIR_NULL, c.Owner.GetPosition())
-	
+
 	// ready
 	readyMessage := pnet.NewData_LoginStatus()
 	readyMessage.LoginStatus.Status = LOGINSTATUS_READY

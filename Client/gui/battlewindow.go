@@ -17,9 +17,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 const (
-	BATTLEWINDOW_NONE = -1
-	BATTLEWINDOW_ATTACK = 0
-	BATTLEWINDOW_ITEMS = 1
+	BATTLEWINDOW_NONE    = -1
+	BATTLEWINDOW_ATTACK  = 0
+	BATTLEWINDOW_ITEMS   = 1
 	BATTLEWINDOW_POKEMON = 2
 )
 
@@ -32,7 +32,7 @@ type IBattleWindow interface {
 
 type PU_BattleWindow struct {
 	windowtype int
-	value int
+	value      int
 }
 
 func (g *PU_BattleWindow) SetValue(_value int) {

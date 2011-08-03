@@ -23,8 +23,8 @@ import (
 )
 
 const (
-    WINDOW_WIDTH = 964
-    WINDOW_HEIGHT = 720
+	WINDOW_WIDTH  = 964
+	WINDOW_HEIGHT = 720
 )
 
 type IResource interface {
@@ -33,38 +33,38 @@ type IResource interface {
 
 type PU_Engine struct {
 	resourceList *list.List
-	fonts map[int]*PU_Font
-	window *sdl.Window
-	renderer *sdl.Renderer
+	fonts        map[int]*PU_Font
+	window       *sdl.Window
+	renderer     *sdl.Renderer
 }
 
 func NewEngine() *PU_Engine {
-	return &PU_Engine{resourceList : list.New(),
-					  fonts : make(map[int]*PU_Font)}
+	return &PU_Engine{resourceList: list.New(),
+		fonts: make(map[int]*PU_Font)}
 }
 
 func (e *PU_Engine) Init() {
 	//Create the window
 	var err string
-   	e.window, err = sdl.CreateWindow("Pokemon Universe", WINDOW_WIDTH, WINDOW_HEIGHT)
-    if err != "" {
-        fmt.Printf("Error in CreateWindow: %v", err) 
-        return
-    }
+	e.window, err = sdl.CreateWindow("Pokemon Universe", WINDOW_WIDTH, WINDOW_HEIGHT)
+	if err != "" {
+		fmt.Printf("Error in CreateWindow: %v", err)
+		return
+	}
 
 	//Find our available renderers
 	openglIndex := -1
 	d3dIndex := -1
 	numRenderers := sdl.GetNumRenderDrivers()
 	for i := 0; i < numRenderers; i++ {
-		rendererName := sdl.GetRenderDriverName(i)	
+		rendererName := sdl.GetRenderDriverName(i)
 		if rendererName == "opengl" {
-			openglIndex = i		
+			openglIndex = i
 		} else if rendererName == "direct3d" {
 			d3dIndex = i
 		}
 	}
-	
+
 	rendererIndex := 0
 	if openglIndex == -1 && d3dIndex == -1 {
 		println("No OpenGL or D3D found! Using software renderer.")
@@ -72,26 +72,26 @@ func (e *PU_Engine) Init() {
 		//Default renderer is OpenGL
 		rendererIndex = openglIndex
 	}
-	
+
 	//If we found DirectX (on Windows), use that
 	if d3dIndex != -1 {
 		rendererIndex = d3dIndex
 		if !e.TryD3D(rendererIndex) {
 			e.renderer, err = sdl.CreateRenderer(e.window, rendererIndex)
 			if err != "" {
-				fmt.Printf("Error in CreateRenderer (tried D3D): %v", err) 
+				fmt.Printf("Error in CreateRenderer (tried D3D): %v", err)
 				return
 			}
 		}
 	} else {
 		e.renderer, err = sdl.CreateRenderer(e.window, rendererIndex)
 		if err != "" {
-			fmt.Printf("Error in CreateRenderer: %v", err) 
+			fmt.Printf("Error in CreateRenderer: %v", err)
 			return
 		}
 	}
-	
-	sdl.InitTTF();
+
+	sdl.InitTTF()
 }
 
 func (e *PU_Engine) TryD3D(_index int) bool {
@@ -111,16 +111,16 @@ func (e *PU_Engine) Exit() {
 			res.Release()
 		}
 	}
-	
+
 	//Destroy the renderer
 	e.renderer.Release()
 
 	//Destroy the window
 	sdl.DestroyWindow(e.window)
-	
+
 	//Quit SDL ttf
 	sdl.QuitTTF()
-} 
+}
 
 func (e *PU_Engine) DrawFillRect(_rect *PU_Rect, _color *sdl.Color, _alpha uint8) {
 	sdl.SetRenderDrawColor(e.renderer, _color.R, _color.G, _color.B, _alpha)
@@ -153,4 +153,3 @@ func (e *PU_Engine) GetFont(_id int) *PU_Font {
 	}
 	return nil
 }
-

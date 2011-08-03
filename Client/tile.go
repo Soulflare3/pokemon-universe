@@ -21,18 +21,18 @@ import (
 )
 
 const (
-	TILE_WIDTH = 48
+	TILE_WIDTH  = 48
 	TILE_HEIGHT = 48
 )
 
 const (
-	TILE_BLOCKING = 1
-	TILE_WALK = 2
-	TILE_SURF = 3
-	TILE_BLOCKTOP = 4
-	TILE_BLOCKBOTTOM = 5
-	TILE_BLOCKRIGHT = 6
-	TILE_BLOCKLEFT = 7
+	TILE_BLOCKING       = 1
+	TILE_WALK           = 2
+	TILE_SURF           = 3
+	TILE_BLOCKTOP       = 4
+	TILE_BLOCKBOTTOM    = 5
+	TILE_BLOCKRIGHT     = 6
+	TILE_BLOCKLEFT      = 7
 	TILE_BLOCKCORNER_TR = 8
 	TILE_BLOCKCORNER_BR = 9
 	TILE_BLOCKCORNER_BL = 10
@@ -56,8 +56,8 @@ func (t *PU_Tile) DrawLayer(_layer int, _x int, _y int) {
 		return
 	}
 
-	drawX := (_x*TILE_WIDTH)-TILE_WIDTH-22+g_game.screenOffsetX
-	drawY := (_y*TILE_HEIGHT)-TILE_HEIGHT+g_game.screenOffsetY
+	drawX := (_x * TILE_WIDTH) - TILE_WIDTH - 22 + g_game.screenOffsetX
+	drawY := (_y * TILE_HEIGHT) - TILE_HEIGHT + g_game.screenOffsetY
 
 	t.layers[_layer].Draw(drawX, drawY)
 }

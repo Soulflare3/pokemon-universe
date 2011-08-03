@@ -23,14 +23,14 @@ import (
 )
 
 type Connection struct {
-	Socket net.Conn
+	Socket     net.Conn
 	Tranceiver *pnet.Tranceiver
-	IsOpen bool
-	Owner  *Player
+	IsOpen     bool
+	Owner      *Player
 }
 
 func NewConnection(_socket net.Conn) *Connection {
-	return &Connection{Socket: _socket, Tranceiver : pnet.NewTranceiver(_socket)}
+	return &Connection{Socket: _socket, Tranceiver: pnet.NewTranceiver(_socket)}
 }
 
 func (c *Connection) HandleConnection() {
@@ -53,13 +53,13 @@ func (c *Connection) ProcessMessage(_message *pnet.Message) {
 	switch _message.Header {
 	case pnet.HEADER_LOGIN:
 		c.Send_PlayerData()
-		
+
 	case pnet.HEADER_WALK:
 		c.Receive_Walk(_message)
-		
+
 	case pnet.HEADER_TURN:
 		c.Receive_Turn(_message)
-		
+
 	case pnet.HEADER_REFRESHWORLD:
 		c.Receive_RefreshWorld()
 	}

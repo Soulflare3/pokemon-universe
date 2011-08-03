@@ -51,19 +51,24 @@ func (s *Surface) DisplayFormatAlpha() *Surface {
 }
 
 func (s *Surface) SaveBMP(_file string) {
-	cfile := C.CString(_file); defer C.free(unsafe.Pointer(cfile))
-	cparams := C.CString("wb"); defer C.free(unsafe.Pointer(cparams))
-	C.SDL_SaveBMP_RW(s.Get(), C.SDL_RWFromFile(cfile, cparams), C.int(1))  
+	cfile := C.CString(_file)
+	defer C.free(unsafe.Pointer(cfile))
+	cparams := C.CString("wb")
+	defer C.free(unsafe.Pointer(cparams))
+	C.SDL_SaveBMP_RW(s.Get(), C.SDL_RWFromFile(cfile, cparams), C.int(1))
 }
 
 func LoadBMP(_file string) *Surface {
-	cfile := C.CString(_file); defer C.free(unsafe.Pointer(cfile))
-	cparams := C.CString("rb"); defer C.free(unsafe.Pointer(cparams))
+	cfile := C.CString(_file)
+	defer C.free(unsafe.Pointer(cfile))
+	cparams := C.CString("rb")
+	defer C.free(unsafe.Pointer(cparams))
 	return (*Surface)(C.SDL_LoadBMP_RW(C.SDL_RWFromFile(cfile, cparams), C.int(1)))
 }
 
 func LoadImage(_file string) *Surface {
-	cfile := C.CString(_file); defer C.free(unsafe.Pointer(cfile))
+	cfile := C.CString(_file)
+	defer C.free(unsafe.Pointer(cfile))
 	img := C.IMG_Load(cfile)
 	if img == nil {
 		fmt.Printf("Image load error: %v", C.GoString(C.IMG_GetError()))
@@ -72,7 +77,7 @@ func LoadImage(_file string) *Surface {
 }
 
 func LoadImageRW(_data *[]byte, _size int) *Surface {
-	rawImage := C.SDL_RWFromMem(unsafe.Pointer(&((*_data)[0])), C.int(_size));
+	rawImage := C.SDL_RWFromMem(unsafe.Pointer(&((*_data)[0])), C.int(_size))
 	img := C.IMG_Load_RW(rawImage, C.int(0))
 	if img == nil {
 		fmt.Printf("ImageRW load error: %v", C.GoString(C.IMG_GetError()))
@@ -88,8 +93,8 @@ type Rect struct {
 }
 
 type Color struct {
-	R uint8
-	G uint8
-	B uint8
+	R      uint8
+	G      uint8
+	B      uint8
 	Unused uint8
 }

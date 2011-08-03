@@ -21,6 +21,7 @@ import (
 )
 
 type PU_GameProtocol struct {
+
 }
 
 func NewGameProtocol() *PU_GameProtocol {
@@ -29,35 +30,35 @@ func NewGameProtocol() *PU_GameProtocol {
 
 func (p *PU_GameProtocol) ProcessMessage(_message *punet.Message) {
 	switch _message.Header {
-		case punet.HEADER_PING:
-			p.Receive_Ping()
-			
-		case punet.HEADER_LOGIN:
-			p.Receive_LoginStatus(_message)
-			
-		case punet.HEADER_IDENTITY:
-			p.Receive_PlayerData(_message)
-			
-		case punet.HEADER_TILES:
-			p.Receive_Tiles(_message)
-			
-		case punet.HEADER_ADDCREATURE:
-			p.Receive_AddCreature(_message)
-			
-		case punet.HEADER_REMOVECREATURE:
-			p.Receive_RemoveCreature(_message)
-			
-		case punet.HEADER_WALK:
-			p.Receive_CreatureWalk(_message)
-			
-		case punet.HEADER_TURN:
-			p.Receive_CreatureTurn(_message)
-			
-		case punet.HEADER_WARP:
-			p.Receive_Warp(_message)
-			
-		case punet.HEADER_REFRESHCOMPLETE:
-			p.Receive_TilesRefreshed()
+	case punet.HEADER_PING:
+		p.Receive_Ping()
+
+	case punet.HEADER_LOGIN:
+		p.Receive_LoginStatus(_message)
+
+	case punet.HEADER_IDENTITY:
+		p.Receive_PlayerData(_message)
+
+	case punet.HEADER_TILES:
+		p.Receive_Tiles(_message)
+
+	case punet.HEADER_ADDCREATURE:
+		p.Receive_AddCreature(_message)
+
+	case punet.HEADER_REMOVECREATURE:
+		p.Receive_RemoveCreature(_message)
+
+	case punet.HEADER_WALK:
+		p.Receive_CreatureWalk(_message)
+
+	case punet.HEADER_TURN:
+		p.Receive_CreatureTurn(_message)
+
+	case punet.HEADER_WARP:
+		p.Receive_Warp(_message)
+
+	case punet.HEADER_REFRESHCOMPLETE:
+		p.Receive_TilesRefreshed()
 	}
 }
 

@@ -18,11 +18,11 @@ package main
 
 type PU_BattleEvent_ChangeHP struct {
 	fighter int
-	hp int
+	hp      int
 }
 
 func NewBattleEvent_ChangeHP(_fighter int, _hp int) *PU_BattleEvent_ChangeHP {
-	return &PU_BattleEvent_ChangeHP{fighter : _fighter, hp : _hp}
+	return &PU_BattleEvent_ChangeHP{fighter: _fighter, hp: _hp}
 }
 
 func (e *PU_BattleEvent_ChangeHP) Execute() {

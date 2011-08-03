@@ -23,19 +23,19 @@ import (
 )
 
 type Location struct {
-	ID				int
-	Name			string
-	Music			int
-	PokeCenter		pos.Position
+	ID         int
+	Name       string
+	Music      int
+	PokeCenter pos.Position
 }
 
 type LocationMap map[int]*Location
 type LocationStore struct {
-	Locations	LocationMap
+	Locations LocationMap
 }
 
 func NewLocationStore() *LocationStore {
-	return &LocationStore{ Locations: make(LocationMap) }
+	return &LocationStore{Locations: make(LocationMap)}
 }
 
 func (store *LocationStore) Load() (err os.Error) {
@@ -49,27 +49,27 @@ func (store *LocationStore) Load() (err os.Error) {
 	if err != nil {
 		return
 	}
-	
+
 	defer result.Free()
 	for {
 		row := result.FetchMap()
 		if row == nil {
 			break
-		}	
-		
-		idlocation 		:= row["idlocation"].(int)
-		name			:= row["name"].(string)
-		music			:= row["idmusic"].(int)
-		pokecenter, _	:= row["position"].(int64) // Hash
-		pcposition	:= pos.NewPositionFromHash(pokecenter)
-		
-		location := &Location { ID: idlocation,
-								Name: name,
-								Music: music,
-								PokeCenter: pcposition }
+		}
+
+		idlocation := row["idlocation"].(int)
+		name := row["name"].(string)
+		music := row["idmusic"].(int)
+		pokecenter, _ := row["position"].(int64) // Hash
+		pcposition := pos.NewPositionFromHash(pokecenter)
+
+		location := &Location{ID: idlocation,
+			Name:       name,
+			Music:      music,
+			PokeCenter: pcposition}
 		store.addLocation(location)
 	}
-	
+
 	return
 }
 

@@ -21,27 +21,27 @@ import (
 )
 
 type ClientInfo struct {
-	SQLHost	string
-	SQLUser	string
-	SQLPass	string
-	SQLDB	string
+	SQLHost string
+	SQLUser string
+	SQLPass string
+	SQLDB   string
 }
 
 type Database interface {
 	// Connect to a database
 	Connect(_client ClientInfo) (err os.Error)
-	
+
 	// Close connection
 	Close()
-	
+
 	// Execute a query without storing the result
 	// Will return an error when failed
 	ExecuteQuery(_query string) (err os.Error)
-	
+
 	// Execute a query and store the output in a resultset
 	// Will return an error when failed
 	StoreQuery(_query string) (res ResultSet, err os.Error)
-	
+
 	// Free allocated memory
 	// Calls the Free() function in IResultSet
 	FreeResult(_result ResultSet)
@@ -51,13 +51,13 @@ type ResultSet interface {
 	GetDataInt(_s string) int32
 	GetDataLong(_s string) int64
 	GetDataString(_s string) string
-	
+
 	// Next row
 	Next() bool
-	
+
 	// Total rows
 	Count() uint64
-	
+
 	// Clear resultset
 	Free()
 }

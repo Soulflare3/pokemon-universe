@@ -17,15 +17,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 const (
-	ICON_FRIENDS = 0
-	ICON_PARTY = 1
-	ICON_POKEDEX = 2
-	ICON_BACKPACK = 3
-	ICON_POKEMON = 4
+	ICON_FRIENDS   = 0
+	ICON_PARTY     = 1
+	ICON_POKEDEX   = 2
+	ICON_BACKPACK  = 3
+	ICON_POKEMON   = 4
 	ICON_CHARACTER = 5
-	ICON_MENU = 6
-	ICON_OPTIONS = 7
-	ICON_POKEGEAR = 8
+	ICON_MENU      = 6
+	ICON_OPTIONS   = 7
+	ICON_POKEGEAR  = 8
 )
 
 type PU_GameUI struct {
@@ -36,7 +36,7 @@ func NewGameUI() *PU_GameUI {
 	ui := &PU_GameUI{}
 	ui.visible = false
 	g_gui.AddElement(ui)
-	
+
 	return ui
 }
 
@@ -44,45 +44,45 @@ func (g *PU_GameUI) Draw() {
 	if !g.visible {
 		return
 	}
-	
+
 	dockx, docky := 546, 608
 	img := g_game.GetGuiImage(IMG_GUI_ICONDOCK)
 	if img != nil {
 		img.Draw(dockx, docky)
 	}
-	
+
 	img = g_game.GetGuiImage(IMG_GUI_ICON_POKEBALL)
 	if img != nil {
 		iconFont := g_engine.GetFont(FONT_PURITANBOLD_10)
-		iconFont.SetColor(255,255,255)
-		
+		iconFont.SetColor(255, 255, 255)
+
 		for i := 0; i < 9; i++ {
 			img.Draw(dockx+10+(i*46), docky+8)
 			switch i {
 			case ICON_FRIENDS:
 				iconFont.DrawTextCentered("Friends", dockx+(i*46), 50, docky+37)
-				
+
 			case ICON_PARTY:
 				iconFont.DrawTextCentered("Party", dockx+(i*46), 50, docky+37)
-				
+
 			case ICON_POKEDEX:
 				iconFont.DrawTextCentered("Pokedex", dockx+(i*46), 50, docky+37)
-				
+
 			case ICON_BACKPACK:
 				iconFont.DrawTextCentered("Backpack", dockx+(i*46), 50, docky+37)
-				
+
 			case ICON_POKEMON:
 				iconFont.DrawTextCentered("Pokemon", dockx+(i*46), 50, docky+37)
-				
+
 			case ICON_CHARACTER:
 				iconFont.DrawTextCentered("Character", dockx+(i*46), 50, docky+37)
-				
+
 			case ICON_MENU:
 				iconFont.DrawTextCentered("Menu", dockx+(i*46), 50, docky+37)
 
 			case ICON_OPTIONS:
 				iconFont.DrawTextCentered("Options", dockx+(i*46), 50, docky+37)
-				
+
 			case ICON_POKEGEAR:
 				iconFont.DrawTextCentered("Pokegear", dockx+(i*46), 50, docky+37)
 			}
@@ -113,4 +113,3 @@ func (g *PU_GameUI) Focusable() bool {
 func (g *PU_GameUI) KeyDown(_keysym int, _scancode int) {
 
 }
-

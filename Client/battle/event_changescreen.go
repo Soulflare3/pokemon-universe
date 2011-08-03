@@ -21,7 +21,7 @@ type PU_BattleEvent_ChangeScreen struct {
 }
 
 func NewBattleEvent_ChangeScreen(_screen int) *PU_BattleEvent_ChangeScreen {
-	return &PU_BattleEvent_ChangeScreen{screen : _screen}
+	return &PU_BattleEvent_ChangeScreen{screen: _screen}
 }
 
 func (e *PU_BattleEvent_ChangeScreen) Execute() {

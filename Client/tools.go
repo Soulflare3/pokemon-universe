@@ -21,11 +21,11 @@ func ClipText(_text string, _font int, _maxwidth int) []string {
 	if font == nil {
 		return nil
 	}
-	
+
 	curSize := 2
 	curText := ""
 	maxWidth := _maxwidth
-	textWidth := font.GetStringWidth(_text)+2
+	textWidth := font.GetStringWidth(_text) + 2
 	ret := make([]string, 0)
 
 	if textWidth > maxWidth {
@@ -34,14 +34,14 @@ func ClipText(_text string, _font int, _maxwidth int) []string {
 		for curPos < len(text) {
 			word := NextWord(text, curPos)
 			wordSize := font.GetStringWidth(word)
-			if curSize + wordSize < maxWidth {
+			if curSize+wordSize < maxWidth {
 				curText += word
 				curSize += wordSize
 				curPos += len(word)
 			} else {
 				if curText != "" {
 					ret = append(ret, curText)
-					
+
 					curText = ""
 					curSize = 2
 				} else {
@@ -49,14 +49,14 @@ func ClipText(_text string, _font int, _maxwidth int) []string {
 						charWidth := font.GetStringWidth(string(word[i]))
 						if curSize+charWidth > maxWidth {
 							curText += "-"
-							
+
 							ret = append(ret, curText)
-							
+
 							curText = ""
 							curSize = 2
-							
+
 							curPos += i
-							
+
 							break
 						}
 						curText += string(word[i])
@@ -77,7 +77,7 @@ func ClipText(_text string, _font int, _maxwidth int) []string {
 func NextWord(_text string, _start int) string {
 	for i := _start; i < len(_text); i++ {
 		if _text[i] == ' ' {
-			return string(_text[_start:i+1])
+			return string(_text[_start : i+1])
 		}
 	}
 	return string(_text[_start:])
@@ -132,4 +132,3 @@ func DrawType(_type string, _x int, _y int) {
 
 	img.Draw(_x, _y)
 }
-

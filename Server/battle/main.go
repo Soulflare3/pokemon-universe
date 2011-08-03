@@ -40,7 +40,7 @@ func createTempData() {
 func main() {
 	// Use all cpu cores
 	runtime.GOMAXPROCS(2)
-	
+
 	g_PokemonInfo = NewPokemonInfo()
 	g_MoveInfo = NewMoveInfo()
 	g_ItemInfo = NewItemInfo()
@@ -54,7 +54,7 @@ func main() {
 	fmt.Println("** http://code.google.com/p/pokemon-universe **")
 	fmt.Println("**      GNU General Public License V2.1      **")
 	fmt.Println("***********************************************")
-	
+
 	client, err := NewPOClient()
 	if err != nil {
 		println("Error creating client: " + err.String())
@@ -62,8 +62,8 @@ func main() {
 	}
 	println("Created client and connected to battle server")
 	client.SendLoginInfo()
-	
-	for ; ; {
+
+	for {
 		time.Sleep(5e9)
 	}
 }

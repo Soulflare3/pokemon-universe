@@ -17,19 +17,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 type PU_BattleEvent_ChangeAttack struct {
-	pokemon int 
-	slot int
-	pp int
-	ppmax int
-	power int
+	pokemon  int
+	slot     int
+	pp       int
+	ppmax    int
+	power    int
 	accuracy int
-	
-	name string
+
+	name        string
 	description string
-	poketype string
-	contact string
-	category string
-	target string
+	poketype    string
+	contact     string
+	category    string
+	target      string
 }
 
 func NewBattleEvent_ChangeAttack(_pokemon int, _slot int, _name string, _description string, _poketype string, _pp int, _ppmax int, _power int, _accuracy int, _category string, _target string, _contact string) *PU_BattleEvent_ChangeAttack {
