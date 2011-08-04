@@ -113,7 +113,7 @@ func (s *Server) timeoutLoop() {
 }
 
 func (s *Server) parseFirstMessage(conn net.Conn) {
-	// Make new Connection object to hold net.Conn
+	// Make new Connection object to handle net.Conn
 	connection := NewConnection(conn)
 	var message *pnet.Message
 	var err string
