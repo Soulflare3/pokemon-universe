@@ -16,23 +16,19 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package network
 
-//Main message holding pointers to all possible datastructures
-type Message struct {
-	Header         int
-	Login          *Data_Login
-	LoginStatus    *Data_LoginStatus
-	PlayerData     *Data_PlayerData
-	AddCreature    *Data_AddCreature
-	RemoveCreature *Data_RemoveCreature
-	Tiles          *Data_Tiles
-	Walk           *Data_Walk
-	CreatureWalk   *Data_CreatureWalk
-	Turn           *Data_Turn
-	CreatureTurn   *Data_CreatureTurn
-	Warp           *Data_Warp
-	Chat		   *Data_Chat
+//===============================================
+// Client <-> Server
+
+//Send walk action to server (HEADER_CHAT)
+type Data_Chat struct {
+	SpeakType	int
+	ChannelId	int
+	Message		string
+	Receiver	string
 }
 
-func NewMessage(_header int) *Message {
-	return &Message{Header: _header}
+func NewData_Chat() (msg *Message) {
+	msg = NewMessage(HEADER_CHAT)
+	msg.Chat = &Data_Chat{}
+	return
 }
