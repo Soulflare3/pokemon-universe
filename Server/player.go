@@ -168,3 +168,9 @@ func (p *Player) sendPlayerWarp() {
 		p.Conn.Send_PlayerWarp(p.GetPosition())
 	}
 }
+
+func (p *Player) sendCreatureSay(_creature ICreature, _speakType int, _message string, _channelId int) {
+	if p.Conn != nil {
+		p.Conn.Send_CreatureChat(_creature, _channelId, _speakType, _message)
+	}
+}

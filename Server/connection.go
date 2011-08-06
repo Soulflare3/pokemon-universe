@@ -62,7 +62,10 @@ func (c *Connection) ProcessMessage(_message *pnet.Message) {
 
 	case pnet.HEADER_REFRESHWORLD:
 		c.Receive_RefreshWorld()
-	}
+		
+	case pnet.HEADER_CHAT:
+		c.Receive_Chat(_message)
+	}	
 }
 
 func (c *Connection) SendMessage(_message *pnet.Message) {

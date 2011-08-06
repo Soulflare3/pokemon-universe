@@ -19,6 +19,8 @@ package main
 import (
 	"sync"
 	"time"
+	pnet "network" // PU Network package
+	pos "position" // Position package
 )
 
 type GameState int
@@ -157,6 +159,25 @@ func (g *Game) OnPlayerTurn(_creature ICreature, _direction int) {
 	}
 }
 
+func (g *Game) OnPlayerSay(_creature ICreature, _channelId int, _speakType int, _receiver string, _message string) {
+	if _channelId == pnet.CHANNEL_LOCAL {
+		switch _speakType {
+			case pnet.SPEAK_SAY:
+				g.internalCreatureSay(_creature, pnet.SPEAK_SAY, _message, _channelId)
+			case pnet.SPEAK_YELL:
+				// Do something
+			case pnet.SPEAK_WHISPER:
+				// Do something
+		}
+	} else if _channelId == pnet.CHANNEL_BATTLE {
+		// Battle chat
+	} else if _speakType == pnet.SPEAK_PRIVATE {
+		// Private
+	} else {
+		// Global
+	}
+}
+
 func (g *Game) OnCreatureMove(_creature ICreature, _direction int) (ret ReturnValue) {
 	ret = RET_NOTPOSSIBLE
 
@@ -255,6 +276,33 @@ func (g *Game) internalCreatureTeleport(_creature ICreature, _from *Tile, _to *T
 	}
 
 	return
+}
+
+func (g *Game) internalCreatureSay(_creature ICreature, _speakType int, _message string, _channelId int) {
+	list := make(CreatureList)
+	if _speakType == pnet.SPEAK_YELL {
+		// Get position of speaker
+		position := _creature.GetPosition()
+		
+		g.mutexPlayerList.RLock()
+		defer g.mutexPlayerList.RUnlock()
+		for _, player := range g.Players {
+			if player != nil {
+				if pos.IsInRange3p(position, player.GetPosition()) {
+					list[player.GetUID()] = player
+				}
+			}
+		}
+	} else if _speakType == pnet.SPEAK_SAY {
+		list = _creature.GetVisibleCreatures()
+	}
+	
+	// Send chat message to all visible players
+	for _, player := range list {
+		player.sendCreatureSay(_creature, _speakType, _message, _channelId)
+	}
+	
+	// TODO: Add logic so message is handled by NPCs LUA mechanism
 }
 
 func (g *Game) checkForWildEncounter(_creature ICreature) {
