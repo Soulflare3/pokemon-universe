@@ -22,10 +22,10 @@ import (
 
 func (c *Connection) Send_CreatureChat(_creature ICreature, _channelId int, _speakType int, _message string) {
 	msg := pnet.NewData_Chat()
-	msg.ChannelId = _channelId
-	msg.SpeakType = _speakType
-	msg.Receiver = _creature.GetName()
-	msg.Message = _message
+	msg.Chat.ChannelId = _channelId
+	msg.Chat.SpeakType = _speakType
+	msg.Chat.Receiver = _creature.GetName()
+	msg.Chat.Message = _message
 	c.SendMessage(msg)
 }
 

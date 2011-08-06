@@ -162,8 +162,8 @@ func (g *Game) OnPlayerTurn(_creature ICreature, _direction int) {
 func (g *Game) OnPlayerSay(_creature ICreature, _channelId int, _speakType int, _receiver string, _message string) {
 	if _channelId == pnet.CHANNEL_LOCAL {
 		switch _speakType {
-			case pnet.SPEAK_SAY:
-				g.internalCreatureSay(_creature, pnet.SPEAK_SAY, _message, _channelId)
+			case pnet.SPEAK_NORMAL:
+				g.internalCreatureSay(_creature, pnet.SPEAK_NORMAL, _message, _channelId)
 			case pnet.SPEAK_YELL:
 				// Do something
 			case pnet.SPEAK_WHISPER:
@@ -288,17 +288,18 @@ func (g *Game) internalCreatureSay(_creature ICreature, _speakType int, _message
 		defer g.mutexPlayerList.RUnlock()
 		for _, player := range g.Players {
 			if player != nil {
-				if pos.IsInRange3p(position, player.GetPosition()) {
+				if position.IsInRange3p(player.GetPosition(), pos.NewPositionFrom(27, 21, position.Z)) {
 					list[player.GetUID()] = player
 				}
 			}
 		}
-	} else if _speakType == pnet.SPEAK_SAY {
+	} else if _speakType == pnet.SPEAK_NORMAL {
 		list = _creature.GetVisibleCreatures()
 	}
 	
 	// Send chat message to all visible players
-	for _, player := range list {
+	for _, creature := range list {
+		player := creature.(*Player)
 		player.sendCreatureSay(_creature, _speakType, _message, _channelId)
 	}
 	
