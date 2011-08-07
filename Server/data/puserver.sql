@@ -2,15 +2,12 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';
 
-DROP SCHEMA IF EXISTS `puserver` ;
 CREATE SCHEMA IF NOT EXISTS `puserver` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci ;
 USE `puserver` ;
 
 -- -----------------------------------------------------
 -- Table `puserver`.`pokecenter`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`pokecenter` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`pokecenter` (
   `idpokecenter` INT NOT NULL AUTO_INCREMENT ,
   `position` VARCHAR(15) NOT NULL ,
@@ -22,8 +19,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`music`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`music` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`music` (
   `idmusic` INT NOT NULL AUTO_INCREMENT ,
   `title` VARCHAR(45) NULL ,
@@ -35,8 +30,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`location`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`location` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`location` (
   `idlocation` INT NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR(45) NULL ,
@@ -61,8 +54,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`player`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`player` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`player` (
   `idplayer` INT NOT NULL AUTO_INCREMENT ,
   `idaccount` INT NULL ,
@@ -72,7 +63,7 @@ CREATE  TABLE IF NOT EXISTS `puserver`.`player` (
   `position` VARCHAR(15) NULL COMMENT 'x;y;z' ,
   `movement` SMALLINT NULL ,
   `idpokecenter` INT NULL ,
-  `money` INT UNSIGNED NULL ,
+  `money` INT NULL ,
   `idlocation` INT NOT NULL ,
   PRIMARY KEY (`idplayer`) ,
   INDEX `fk_player_location1` (`idlocation` ASC) ,
@@ -87,8 +78,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`pokemon`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`pokemon` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`pokemon` (
   `idpokemon` INT NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR(45) NULL ,
@@ -100,22 +89,20 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`player_pokemon`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`player_pokemon` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`player_pokemon` (
   `idplayer_pokemon` INT NOT NULL AUTO_INCREMENT ,
   `idpokemon` INT NOT NULL ,
   `idplayer` INT NOT NULL ,
   `nickname` VARCHAR(45) NULL ,
   `bound` TINYINT NULL DEFAULT 0 COMMENT '1 if pokemon is bound to player' ,
-  `experience` INT UNSIGNED NULL ,
-  `iv_hp` TINYINT UNSIGNED NULL ,
-  `iv_attack` TINYINT UNSIGNED NULL ,
-  `iv_attack_spec` TINYINT UNSIGNED NULL ,
-  `iv_defence` TINYINT UNSIGNED NULL ,
-  `iv_defence_spec` TINYINT UNSIGNED NULL ,
-  `iv_speed` TINYINT UNSIGNED NULL ,
-  `happiness` TINYINT UNSIGNED NULL ,
+  `experience` INT NULL ,
+  `iv_hp` TINYINT NULL ,
+  `iv_attack` TINYINT NULL ,
+  `iv_attack_spec` TINYINT NULL ,
+  `iv_defence` TINYINT NULL ,
+  `iv_defence_spec` TINYINT NULL ,
+  `iv_speed` TINYINT NULL ,
+  `happiness` TINYINT NULL ,
   `gender` TINYINT NULL COMMENT '-1 None\n0 Male\n1 Female' ,
   PRIMARY KEY (`idplayer_pokemon`) ,
   INDEX `fk_player_pokemon_player` (`idplayer` ASC) ,
@@ -136,8 +123,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`location_section`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`location_section` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`location_section` (
   `idlocation_section` INT NOT NULL AUTO_INCREMENT ,
   `idlocation` INT NOT NULL ,
@@ -155,8 +140,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`move`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`move` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`move` (
   `idmove` INT NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR(45) NULL ,
@@ -167,8 +150,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`move_method`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`move_method` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`move_method` (
   `idmove_method` INT NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR(45) NULL ,
@@ -180,8 +161,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`pokemon_move`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`pokemon_move` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`pokemon_move` (
   `idpokemon_move` INT NOT NULL AUTO_INCREMENT ,
   `idpokemon` INT NOT NULL ,
@@ -214,8 +193,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`player_pokemon_move`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`player_pokemon_move` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`player_pokemon_move` (
   `idplayer_pokemon_move` INT NOT NULL ,
   `idplayer_pokemon` INT NOT NULL ,
@@ -239,8 +216,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`encounter_condition`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`encounter_condition` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`encounter_condition` (
   `idencounter_condition` INT NOT NULL ,
   `name` VARCHAR(250) NULL ,
@@ -252,8 +227,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`encounter`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`encounter` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`encounter` (
   `idencounter` INT NOT NULL AUTO_INCREMENT ,
   `idlocation_section` INT NOT NULL ,
@@ -272,8 +245,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`encounter_slot`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`encounter_slot` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`encounter_slot` (
   `idencounter_slot` INT NOT NULL ,
   `idencounter` INT NOT NULL ,
@@ -298,26 +269,19 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`location_encounter`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`location_encounter` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`location_encounter` (
   `idencounter` INT NOT NULL ,
-  `idlocation` INT NOT NULL ,
-  PRIMARY KEY (`idencounter`, `idlocation`) ,
-  INDEX `fk_location_encounter` (`idlocation` ASC) ,
+  `idlocation_section` INT NOT NULL ,
+  PRIMARY KEY (`idencounter`, `idlocation_section`) ,
+  INDEX `fk_location_encounter_section` (`idlocation_section` ASC) ,
   CONSTRAINT `fk_location_encounter_encounter`
     FOREIGN KEY (`idencounter` )
     REFERENCES `puserver`.`encounter` (`idencounter` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_location_encounter_section`
-    FOREIGN KEY (`idlocation` )
+    FOREIGN KEY (`idlocation_section` )
     REFERENCES `puserver`.`location_section` (`idlocation_section` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_location_encounter_location1`
-    FOREIGN KEY (`idlocation` )
-    REFERENCES `puserver`.`location` (`idlocation` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -326,8 +290,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`player_outfit`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`player_outfit` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`player_outfit` (
   `idplayer` INT NOT NULL ,
   `head` INT NULL ,
@@ -348,8 +310,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`group`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`group` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`group` (
   `idgroup` INT NOT NULL ,
   `name` VARCHAR(45) NULL ,
@@ -362,8 +322,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`player_group`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`player_group` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`player_group` (
   `player_idplayer` INT NOT NULL ,
   `group_idgroup` INT NOT NULL ,
@@ -385,8 +343,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`map`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`map` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`map` (
   `idmap` INT NOT NULL ,
   `name` VARCHAR(128) NULL ,
@@ -397,8 +353,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`teleport`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`teleport` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`teleport` (
   `idteleport` INT NOT NULL ,
   `x` INT NULL ,
@@ -411,8 +365,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`tile`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`tile` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`tile` (
   `idtile` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
   `x` INT NOT NULL ,
@@ -449,13 +401,10 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `puserver`.`tile_layer`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `puserver`.`tile_layer` ;
-
 CREATE  TABLE IF NOT EXISTS `puserver`.`tile_layer` (
   `idtile_layer` INT NOT NULL ,
-  `idtile` INT UNSIGNED NOT NULL ,
-  `sprite` INT UNSIGNED NULL ,
-  `layer` INT NULL ,
+  `idtile` INT NOT NULL ,
+  `sprite` INT NULL ,
   PRIMARY KEY (`idtile_layer`, `idtile`) ,
   INDEX `fk_tile_layer_tile1` (`idtile` ASC) ,
   CONSTRAINT `fk_tile_layer_tile1`

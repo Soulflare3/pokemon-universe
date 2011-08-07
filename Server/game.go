@@ -19,6 +19,8 @@ package main
 import (
 	"sync"
 	"time"
+	"strings"
+	
 	pnet "network" // PU Network package
 	pos "position" // Position package
 )
@@ -165,16 +167,16 @@ func (g *Game) OnPlayerSay(_creature ICreature, _channelId int, _speakType int, 
 			case pnet.SPEAK_NORMAL:
 				g.internalCreatureSay(_creature, pnet.SPEAK_NORMAL, _message, _channelId)
 			case pnet.SPEAK_YELL:
-				// Do something
+				g.internalCreatureSay(_creature, pnet.SPEAK_YELL, _message, _channelId)
 			case pnet.SPEAK_WHISPER:
-				// Do something
+				g.internalCreatureWhisper(_creature, _message, _channelId)
 		}
 	} else if _channelId == pnet.CHANNEL_BATTLE {
 		// Battle chat
-	} else if _speakType == pnet.SPEAK_PRIVATE {
-		// Private
+	} else if _channelId == pnet.CHANNEL_PRIVATE {
+		g.internalPlayerPrivateMessage(_creature, _receiver, _message)
 	} else {
-		// Global
+		g.internalBroadcastMessage(_creature, _message)
 	}
 }
 
@@ -281,29 +283,64 @@ func (g *Game) internalCreatureTeleport(_creature ICreature, _from *Tile, _to *T
 func (g *Game) internalCreatureSay(_creature ICreature, _speakType int, _message string, _channelId int) {
 	list := make(CreatureList)
 	if _speakType == pnet.SPEAK_YELL {
-		// Get position of speaker
-		position := _creature.GetPosition()
+		_message = strings.ToUpper(_message) // ALL CAPS
+		position := _creature.GetPosition() // Get position of speaker
 		
 		g.mutexPlayerList.RLock()
 		defer g.mutexPlayerList.RUnlock()
 		for _, player := range g.Players {
 			if player != nil {
-				if position.IsInRange3p(player.GetPosition(), pos.NewPositionFrom(27, 21, position.Z)) {
+				if position.IsInRange3p(player.GetPosition(), pos.NewPositionFrom(27, 21, 0)) {
 					list[player.GetUID()] = player
 				}
 			}
 		}
-	} else if _speakType == pnet.SPEAK_NORMAL {
+	} else {
 		list = _creature.GetVisibleCreatures()
 	}
 	
 	// Send chat message to all visible players
 	for _, creature := range list {
-		player := creature.(*Player)
-		player.sendCreatureSay(_creature, _speakType, _message, _channelId)
+		if creature.GetType() == CTYPE_PLAYER {
+			player := creature.(*Player)
+			player.sendCreatureSay(_creature, _speakType, _message, _channelId)
+		}
 	}
 	
 	// TODO: Add logic so message is handled by NPCs LUA mechanism
+}
+
+func (g *Game) internalCreatureWhisper(_creature ICreature, _message string, _channelId int) {
+	list := _creature.GetVisibleCreatures()
+	for _, creature := range list {
+		if creature.GetType() == CTYPE_PLAYER {
+			player := creature.(*Player)
+			
+			if player.GetPosition().IsInRange3p(_creature.GetPosition(), pos.NewPositionFrom(1,1,0)) {
+				player.sendCreatureSay(_creature, pnet.SPEAK_WHISPER, _message, _channelId)
+			} else {
+				player.sendCreatureSay(_creature, pnet.SPEAK_WHISPER, "pspspspsps", _channelId)
+			}
+		}
+	}
+	
+	// TODO: Add logic so message is handled by NPCs LUA mechanism
+}
+
+func (g *Game) internalPlayerPrivateMessage(_creature ICreature, _receiver string, _message string) {
+	if player, found := g.GetPlayerByName(_receiver); found {
+		player.(*Player).sendCreatureSay(_creature, pnet.SPEAK_PRIVATE, _message, pnet.CHANNEL_PRIVATE)
+	}
+}
+
+func (g *Game) internalBroadcastMessage(_creature ICreature, _message string) {
+	// TOOD: Check if _creature is CanBroadcast player flag
+	
+	g.mutexPlayerList.RLock()
+	defer g.mutexPlayerList.RUnlock()
+	for _, player := range g.Players {
+		player.sendCreatureSay(_creature, pnet.SPEAK_BROADCAST, _message, pnet.CHANNEL_WORLD)
+	}
 }
 
 func (g *Game) checkForWildEncounter(_creature ICreature) {
