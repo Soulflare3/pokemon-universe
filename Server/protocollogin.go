@@ -21,7 +21,6 @@ import (
 	"hash"
 	"crypto/sha1"
 	"strings"
-	"strconv"
 )
 
 const (
@@ -141,7 +140,7 @@ func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 			return
 		}
 
-		positionHash, _ := strconv.Atoi64(row["position"].(string))
+		positionHash, _ := row["position"].(int64)
 		movement := row["movement"].(int)
 		money := row["money"].(int)
 		idlocation := row["idlocation"].(int)

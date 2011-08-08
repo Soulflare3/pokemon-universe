@@ -10,7 +10,7 @@ USE `puserver` ;
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `puserver`.`pokecenter` (
   `idpokecenter` INT NOT NULL AUTO_INCREMENT ,
-  `position` VARCHAR(15) NOT NULL ,
+  `position` BIGINT NOT NULL ,
   `description` VARCHAR(250) NULL ,
   PRIMARY KEY (`idpokecenter`) )
 ENGINE = InnoDB;
@@ -60,7 +60,7 @@ CREATE  TABLE IF NOT EXISTS `puserver`.`player` (
   `name` VARCHAR(20) NULL ,
   `password` VARCHAR(45) NULL ,
   `password_salt` VARCHAR(45) NULL ,
-  `position` VARCHAR(15) NULL COMMENT 'x;y;z' ,
+  `position` BIGINT NULL COMMENT 'x;y;z' ,
   `movement` SMALLINT NULL ,
   `idpokecenter` INT NULL ,
   `money` INT NULL ,
