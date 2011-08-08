@@ -123,6 +123,8 @@ func (p *Player) OnCreatureDisappear(_creature ICreature, _isLogout bool) {
 func (p *Player) AddVisibleCreature(_creature ICreature) {
 	if _, found := p.VisibleCreatures[_creature.GetUID()]; !found {
 		p.VisibleCreatures[_creature.GetUID()] = _creature
+		p.sendCreatureAdd(_creature)
+		println("Adding " + (_creature.(*Player)).name + " To " + p.name)
 	}
 }
 
@@ -130,6 +132,7 @@ func (p *Player) RemoveVisibleCreature(_creature ICreature) {
 	// No need to check if the key actually exists because Go is awesome
 	// http://golang.org/doc/effective_go.html#maps
 	p.VisibleCreatures[_creature.GetUID()] = nil, false
+	p.sendCreatureRemove(_creature)
 }
 
 // ------------------------------------------------------ //
