@@ -124,7 +124,6 @@ func (p *Player) AddVisibleCreature(_creature ICreature) {
 	if _, found := p.VisibleCreatures[_creature.GetUID()]; !found {
 		p.VisibleCreatures[_creature.GetUID()] = _creature
 		p.sendCreatureAdd(_creature)
-		println("Adding " + (_creature.(*Player)).name + " To " + p.name)
 	}
 }
 
