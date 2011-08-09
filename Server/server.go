@@ -158,6 +158,13 @@ func (s *Server) parseFirstMessage(conn net.Conn) {
 				g_logger.Printf("[Login] %d - %v logged in", player.GetUID(), player.GetName())
 				// Assign Connection to Player object
 				player.SetConnection(connection)
+				
+				// AddCreature sends few messages to the player so,
+				// quickly sending the status message before adding the player.
+				connection.SendMessage(statusMessage)
+				println("- Loaded all data, adding to Game")
+				g_game.AddCreature(player)
+				return
 			}
 		}
 	}

@@ -182,9 +182,6 @@ func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 		p.SetOutfitKey(OUTFIT_LOWER, outfitLower)
 		p.SetOutfitKey(OUTFIT_FEET, outfitFeet)
 
-		println("- Loaded all data, adding to Game")
-		// Add player object to THE GAME (you've just lost it :3)
-		g_game.AddCreature(p)
 		ret = true
 	}
 
