@@ -59,6 +59,9 @@ func (p *PU_GameProtocol) ProcessMessage(_message *punet.Message) {
 
 	case punet.HEADER_REFRESHCOMPLETE:
 		p.Receive_TilesRefreshed()
+
+	case punet.HEADER_CHAT:
+		p.Receive_CreatureChat(_message)
 	}
 }
 

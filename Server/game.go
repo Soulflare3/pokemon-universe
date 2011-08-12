@@ -306,6 +306,9 @@ func (g *Game) internalCreatureSay(_creature ICreature, _speakType int, _message
 			player.sendCreatureSay(_creature, _speakType, _message, _channelId)
 		}
 	}
+
+	// Send to the sender too, so he know his message was received and sent to all.
+	_creature.(*Player).sendCreatureSay(_creature, _speakType, _message, _channelId)
 	
 	// TODO: Add logic so message is handled by NPCs LUA mechanism
 }
