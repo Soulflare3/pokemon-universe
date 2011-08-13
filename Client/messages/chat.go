@@ -30,8 +30,13 @@ func (p *PU_GameProtocol) Send_Chat(_speaktype int, _channelId int, _text string
 
 func (p *PU_GameProtocol) Receive_CreatureChat(_message *punet.Message) {
 	data := _message.Chat
-	text := NewText(0)
-	text.Add(data.Receiver + ": " + data.Message, 4294967295)
+	text := NewText(FONT_PURITANBOLD_14)
+	color := uint32(16773632)
+	if data.Receiver == g_game.self.name {
+		color = CreateColorKey(39,175,197)
+	}
+	text.Add(data.Receiver + ": ", color)
+	text.Add(data.Message, 16777215)
 	g_game.chat.AddMessage(data.ChannelId, text)
 	g_game.onscreenchat.Add(data.Receiver, data.Message)
 }
