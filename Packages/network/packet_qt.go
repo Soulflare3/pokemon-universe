@@ -61,19 +61,21 @@ func (p *QTPacket) SetHeader() {
 	p.MsgSize += 2
 }
 
-
+// Byte
 func (p *QTPacket) ReadUint8() uint8 {
 	v := p.Buffer[p.readPos]
 	p.readPos += 1
 	return v
 }
 
+// Short
 func (p *QTPacket) ReadUint16() uint16 {
 	v := uint16(uint16(p.Buffer[p.readPos+1]) | (uint16(p.Buffer[p.readPos]) << 8))
 	p.readPos += 2
 	return v
 }
 
+// Int
 func (p *QTPacket) ReadUint32() uint32 {
 	v := uint32((uint32(p.Buffer[p.readPos+3]) | (uint32(p.Buffer[p.readPos+2]) << 8) |
 		(uint32(p.Buffer[p.readPos+1]) << 16) | (uint32(p.Buffer[p.readPos]) << 24)))
@@ -104,6 +106,10 @@ func (p *QTPacket) ReadString() string {
 		v += string(val)
 	}
 	return v
+}
+
+func (p *QTPacket) ReadBool() bool {
+	return (p.ReadUint8() == 1)
 }
 
 func (p *QTPacket) AddUint8(_value uint8) bool {
