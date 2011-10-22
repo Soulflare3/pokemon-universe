@@ -58,17 +58,17 @@ func (s *Server) Start() {
 	g_logger.Println("Opening server socket on port " + s.Port)
 	socket, err := net.Listen("tcp", ":"+s.Port)
 	if err != nil {
-		g_logger.Printf("[Error] Could not open socket - %v\n", err)
+		g_logger.Printf("[ERROR] Could not open socket - %v\n", err)
 		return
 	}
 	defer socket.Close() // Defer the close function so that's get done automatically when this method breaks
-	defer g_logger.Println("[Notice] Server socket closed")
+	defer g_logger.Println("[NOTICE] Server socket closed")
 
 	g_logger.Println("Server ready to accept new connections")
 	for {
 		clientsock, err := socket.Accept()
 		if err != nil {
-			g_logger.Println("[Warning] Could not accept new connection")
+			g_logger.Println("[WARNING] Could not accept new connection")
 			continue
 		}
 
@@ -149,13 +149,13 @@ func (s *Server) parseFirstMessage(conn net.Conn) {
 
 			if !ret || player == nil {
 				statusMessage.LoginStatus.Status = LOGINSTATUS_FAILPROFILELOAD
-				g_logger.Printf("[Login] Failed to load profile for %v", loginMessage.Username)
+				g_logger.Printf("[LOGIN] Failed to load profile for %v", loginMessage.Username)
 			} else if player.Conn != nil {
 				statusMessage.LoginStatus.Status = LOGINSTATUS_ALREADYLOGGEDIN
 				fmt.Println("Already logged in")
 			} else {
 				statusMessage.LoginStatus.Status = LOGINSTATUS_READY
-				g_logger.Printf("[Login] %d - %v logged in", player.GetUID(), player.GetName())
+				g_logger.Printf("[LOGIN] %d - %v logged in", player.GetUID(), player.GetName())
 				// Assign Connection to Player object
 				player.SetConnection(connection)
 				
