@@ -61,6 +61,14 @@ func (p *QTPacket) SetHeader() {
 	p.MsgSize += 2
 }
 
+func (p *QTPacket) GetBuffer() [PACKET_MAXSIZE]uint8 {
+	return p.Buffer
+}
+
+func (p *QTPacket) GetMsgSize() uint16 {
+	return p.MsgSize
+}
+
 // Byte
 func (p *QTPacket) ReadUint8() uint8 {
 	v := p.Buffer[p.readPos]
@@ -185,6 +193,13 @@ func (p *QTPacket) AddUint64(_value uint64) bool {
 	return true
 }
 
+func (p *QTPacket) AddBool(_value bool) bool {
+	if _value {	
+		return p.AddUint8(1)
+	}
+	return p.AddUint8(0)
+}
+
 func (p *QTPacket) AddString(_value string) bool {
 	stringlen := uint16(len(_value) * 2)
 	if !p.CanAdd(stringlen * uint16(2)) {
@@ -196,5 +211,20 @@ func (p *QTPacket) AddString(_value string) bool {
 		p.AddUint16(uint16(_value[i]))
 	}
 
+	return true
+}
+
+func (p *QTPacket) AddBuffer(_value []uint8, _len uint16) bool {
+	if !p.CanAdd(_len) {
+		return false
+	}
+	
+	for i := 2; i < int(_len + 2); i++ {
+		p.Buffer[p.readPos] = _value[i]
+		p.readPos += 1
+	}
+	
+	p.MsgSize += _len
+	
 	return true
 }
