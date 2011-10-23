@@ -4,6 +4,7 @@ import (
 	"net"
 	"os"
 	"io"
+	"fmt"
 	pnet "network"
 )
 
@@ -30,7 +31,31 @@ func (s *POClientSocket) Connect(_inIpAddr string, _inPortNum int) bool {
 	s.connected = true
 	go s.ReceiveMessages()
 	
+	s.SendMessage(s.owner.meLoginPlayer.WritePacket(), COMMAND_Login)
+	
 	return true
+}
+
+func (s *POClientSocket) Disconnect() {
+	//
+	// TOOD: Send Logout message
+	//
+	
+	s.connected = false
+	s.socket.Close()
+	close(s.packetChan)
+}
+
+func (s *POClientSocket) SendMessage(_buffer pnet.IPacket, _header int) {
+	packet := NewQTPacket(uint8(_header))
+	if !packet.AddBuffer(_buffer.GetBuffer(), _buffer.GetMsgSize()) {
+		fmt.Println("[ERROR} PACKET IS TOO LARGE, CAN NOT ADD BUFFER!")
+		return
+	}
+	packet.SetHeader()
+	
+	// Send message to the big bad internetz and pray for it to arrive
+	s.socket.Write(packet.Buffer[0:packet.MsgSize])
 }
 
 func (s *POClientSocket) ReceiveMessages() {

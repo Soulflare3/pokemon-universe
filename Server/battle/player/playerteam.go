@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	pnet "network"
 )
 
@@ -27,4 +28,19 @@ func NewPlayerTeamFromPacket(_packet *pnet.QTPacket) *PlayerTeam {
 	playerTeam.Team = NewTeamFromPacket(_packet)
 	
 	return &playerTeam
+}
+
+func (p *PlayerTeam) WritePacket() (pnet.IPacket, os.Error) {
+	packet := NewQTPacket()
+	packet.AddString(p.Nick)
+	packet.AddString(p.Info)
+	packet.AddString(p.LoseMessage)
+	packet.AddString(p.WinMessage)
+	packet.AddUint16(uint16(p.avatar))
+	packet.AddString(p.DefaultTier)
+	
+	teamPacket, _ := p.Team.WritePacket()
+	packet.AddBuffer(teamPacket.GetBuffer(), teamPacket.GetMsgSize())
+	
+	return packet, nil
 }

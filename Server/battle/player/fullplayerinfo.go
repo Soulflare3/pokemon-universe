@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	pnet "network"
 )
 
@@ -10,7 +11,7 @@ type FullPlayerInfo struct {
 	
 	ladderEnabled bool
 	showTeam bool
-	nameColour QColor
+	nameColour *QColor
 }
 
 func NewFullPlayerInfo(_team *PlayerTeam, _ladderEnabled, _showTeam bool) *FullPlayerInfo {
@@ -33,4 +34,18 @@ func NewFullPlayerInfoFromPacket(_packet *pnet.QTPacket) *FullPlayerInfo {
 
 func (p *FullPlayerInfo) Nick() string {
 	return p.Team.Nick
+}
+
+func (p *FullPlayerInfo) WritePacket() (pnet.IPacket, os.Error) {
+	packet := NewQTPacket()
+	
+	teamPacket, _ := p.Team.WritePacket()
+	packet.AddBuffer(teamPacket.GetBuffer(), teamPacket.GetMsgSize)
+	packet.AddBool(p.ladderEnabled)
+	packet.AddBool(p.showTeam)
+	
+	colorPacket, _ := p.nameColour.WritePacket()
+	packet.AddBuffer(colorPacket.GetBuffer(), colorPacket.GetMsgSize())
+
+	return packet, nil
 }

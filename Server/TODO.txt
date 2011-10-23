@@ -1,4 +1,7 @@
 ===== PU SERVER TO-DO =====
+ * Polling mechanism to check if the PO battle server is still online
+	- Or maybe a constant connection which will be closed when the server is down
+ 
  * Player login
    - Load/send items
    - Load/send pokemon

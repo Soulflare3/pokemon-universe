@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	pnet "network"
 )
 
@@ -19,6 +20,35 @@ type TeamPoke struct {
 	Moves []int
 	DVs []int
 	EVs []int
+}
+
+func NewTeamPoke() *TeamPoke {
+	teamPoke := TeamPoke{}
+	teamPoke.UID = NewUniqueId()
+	teamPoke.Nick = "DERP"
+	teamPoke.Item = 71
+	teamPoke.Ability = 98
+	teamPoke.Nature = 0
+	teamPoke.Gender = 1
+	teamPoke.Gen = 5
+	teamPoke.Shiny = true
+	teamPoke.Happiness = 127
+	teamPoke.Level = 100
+	
+	teamPoke.Moves = make([]int, 4)
+	teamPoke.Moves[0] = 118
+	teamPoke.Moves[1] = 227
+	teamPoke.Moves[2] = 150
+	teamPoke.Moves[3] = 271
+	
+	teamPoke.DVs = make([]int, 6)
+	for i := 0; i < 6; i++ {
+		teamPoke.DVs[i] = 31
+	}
+	teamPoke.EVs = make([]int, 6)
+	for i := 0; i < 6; i++ {
+		teamPoke.EVs[i] = 10
+	}	
 }
 
 func NewTeamPokeFromPacket(_packet *pnet.QTPacket) *TeamPoke {
@@ -46,4 +76,33 @@ func NewTeamPokeFromPacket(_packet *pnet.QTPacket) *TeamPoke {
 	for i := 0; i < 6; i++ {
 		teamPoke.EVs[i] = (int)_packet.ReadByte()
 	}
+}
+
+func (t *TeamPoke) WritePacket() (pnet.IPacket, os.Error) {
+	packet := NewQTPacket()
+	idPacket, _ := t.UID.WritePacket()
+	packet.AddBuffer(idPacket.GetBuffer(), idPacket.GetMsgSize())
+	packet.AddString(t.Nick)
+	packet.AddUint16(uint16(t.Item))
+	packet.AddUint16(uint16(t.Ability))
+	packet.AddUint8(uint8(t.Nature))
+	packet.AddUint8(uint8(t.Gender))
+	// packet.AddUint8(uint8(t.Gen)) // XXX Gen would go here
+	packet.AddBool(t.Shiny)
+	packet.AddUint8(uint8(t.Happiness))
+	packet.AddUint8(uint8(t.Level))
+	
+	for i := 0; i < 4; i++ {
+		packet.AddUint32(uint32(t.Moves[i]))
+	}
+	
+	for i := 0; i < 6; i++ {
+		packet.AddUint8(uint8(t.DVs[i]))
+	}
+	
+	for i := 0; i < 6; i++ {
+		packet.AddUint8(uint8(t.EVs[i]))
+	}
+	
+	return packet, nil
 }

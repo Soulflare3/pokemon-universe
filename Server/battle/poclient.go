@@ -26,10 +26,18 @@ import (
 type POClient struct {
 	player *Player
 	socket *POClientSocket
+	
+	meLoginPlayer *FullPlayerInfo
+	mePlayer *PlayerInfo
 }
 
 func NewPOClient(_player *Player) (*POClient, os.Error) {
 	poClient := POClient{ player: _player }
+	
+	///
+	// TODO: Convert Player object to FullPlayerInfo
+	//
+	
 	return &poClient, nil
 }
 
