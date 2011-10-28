@@ -2,7 +2,7 @@ package main
 
 import (
 	"sync"
-	
+	"fmt"
 	pnet "network"
 )
 
@@ -40,10 +40,10 @@ type Battle struct {
 	dynamicInfo []*BattleDynamicInfo
 	
 	histDelta string
-	histMutex sync.Mutex
+	histMutex *sync.Mutex
 }
 
-func NewBattle(_bc *BattleConfig, _packet *pnet.QTPacket, _p1 *PlayerInfo, _p2 *PlayerInfo, _meID int, _bID int) *Battle {
+func NewBattle(_bc *BattleConf, _packet *pnet.QTPacket, _p1 *PlayerInfo, _p2 *PlayerInfo, _meID int, _bID int) *Battle {
 	battle := Battle{}
 	battle.conf = _bc
 	battle.bID = _bID
@@ -86,7 +86,7 @@ func NewBattle(_bc *BattleConfig, _packet *pnet.QTPacket, _p1 *PlayerInfo, _p2 *
 		battle.displayedMoves[i] = NewBattleMove()
 	}
 	
-	battle.WriteToHist(fmt.Sprintf("Battle between %v and %v started!"), battle.players[0].Nick, battle.players[1].Nick)
+	battle.WriteToHist(fmt.Sprintf("Battle between %v and %v started!", battle.players[0].Nick, battle.players[1].Nick))
 }
 
 func (b *Battle) WriteToHist(_message string) {

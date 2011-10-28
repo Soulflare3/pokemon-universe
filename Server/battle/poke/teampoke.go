@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	pnet "network"
 )
 
@@ -55,33 +54,32 @@ func NewTeamPokeFromPacket(_packet *pnet.QTPacket) *TeamPoke {
 	teamPoke := TeamPoke{}
 	teamPoke.UID = NewUniqueIdFromPacket(_packet)
 	teamPoke.Nick = _packet.ReadString()
-	teamPoke.Item = (int)_packet.ReadUint16()
-	teamPoke.Ability = (int)_packet.ReadUint16()
-	teamPoke.Nature = (int)_packet.ReadByte()
-	teamPoke.Gender = (int)_packet.ReadByte()
+	teamPoke.Item = int(_packet.ReadUint16())
+	teamPoke.Ability = int(_packet.ReadUint16())
+	teamPoke.Nature = int(_packet.ReadUint8())
+	teamPoke.Gender = int(_packet.ReadUint8())
 	// teamPoke.Gen = (int)_packet.ReadByte()
 	teamPoke.Shiny = _packet.ReadBool()
-	teamPoke.Happiness = (int)_packet.ReadByte()
-	teamPoke.Level = (int)_packet.ReadByte()
+	teamPoke.Happiness = int(_packet.ReadUint8())
+	teamPoke.Level = int(_packet.ReadUint8())
 	
 	teamPoke.Moves = make([]int, 4)
 	for i := 0; i < 4; i++ {
-		teamPoke.Moves[i] = (int)_packet.ReadUint32()
+		teamPoke.Moves[i] = int(_packet.ReadUint32())
 	}
 	teamPoke.DVs = make([]int, 6)
 	for i := 0; i < 6; i++ {
-		teamPoke.DVs[i] = (int)_packet.ReadByte()
+		teamPoke.DVs[i] = int(_packet.ReadUint8())
 	}
 	teamPoke.EVs = make([]int, 6)
 	for i := 0; i < 6; i++ {
-		teamPoke.EVs[i] = (int)_packet.ReadByte()
+		teamPoke.EVs[i] = int(_packet.ReadUint8())
 	}
 }
 
-func (t *TeamPoke) WritePacket() (pnet.IPacket, os.Error) {
-	packet := NewQTPacket()
-	idPacket, _ := t.UID.WritePacket()
-	packet.AddBuffer(idPacket.GetBuffer(), idPacket.GetMsgSize())
+func (t *TeamPoke) WritePacket() pnet.IPacket {
+	packet := pnet.NewQTPacket()
+	packet.AddBuffer(t.UID.WritePacket().GetBufferSlice())
 	packet.AddString(t.Nick)
 	packet.AddUint16(uint16(t.Item))
 	packet.AddUint16(uint16(t.Ability))
@@ -104,5 +102,5 @@ func (t *TeamPoke) WritePacket() (pnet.IPacket, os.Error) {
 		packet.AddUint8(uint8(t.EVs[i]))
 	}
 	
-	return packet, nil
+	return packet
 }

@@ -47,10 +47,11 @@ func (c *POClient) Connect() {
 }
 
 func (c *POClient) ProcessPacket(_packet *pnet.QTPacket) {
-	header := (int)packet.ReadUint8()
-	
+	header := int(_packet.ReadUint8())
 	switch header {
 		case COMMAND_ChallengeStuff:
 			// TODO
+		default:
+			fmt.Printf("UNIMPLEMENTED PACKET: %v\n", header)
 	}
 }

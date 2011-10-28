@@ -13,7 +13,7 @@ type BattleMove struct {
 	
 	power string
 	accuracy string
-	descrption string
+	description string
 	effect string
 }
 
@@ -36,16 +36,16 @@ func NewBattleMoveFromBattleMove(_battleMove *BattleMove) *BattleMove {
 	battleMove.Type = _battleMove.Type
 	battleMove.power = _battleMove.power
 	battleMove.accuracy = _battleMove.accuracy
-	battleMove.descrption = _battleMove.description
+	battleMove.description = _battleMove.description
 	battleMove.effect = _battleMove.effect
 	
 	return battleMove
 }
 
 func NewBattleMoveFromPacket(_packet *pnet.QTPacket) *BattleMove {
-	battleMove := NewBattleMoveFromId((int)_packet.ReadUint32())
-	battleMove.CurrentPP = (int)_packet.ReadByte()
-	battleMove.TotalPP = (int)_packet.ReadByte()
+	battleMove := NewBattleMoveFromId(int(_packet.ReadUint32()))
+	battleMove.CurrentPP = int(_packet.ReadUint8())
+	battleMove.TotalPP = int(_packet.ReadUint8())
 	
 	return battleMove
 }

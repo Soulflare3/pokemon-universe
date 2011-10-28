@@ -1,7 +1,11 @@
 package main
 
+import (
+	pnet "network"
+)
+
 const (
-	CHOICETYPE_CANCELTYPE int = _iota
+	CHOICETYPE_CANCELTYPE int = iota
 	CHOICETYPE_ATTACKTYPE
 	CHOICETYPE_SWITCHTYPE
 	CHOICETYPE_REARRANGETYPE
@@ -9,7 +13,7 @@ const (
 	CHOICETYPE_DRAWTYPE
 )
 
-type Choice interface {
+type IChoice interface {
 	GetChoiceType() int
 }
 
@@ -26,7 +30,7 @@ func NewAttackChoice(_as, _at int) *AttackChoice {
 }
 
 func NewAttackChoiceFromPacket(_packet *pnet.QTPacket) *AttackChoice {
-	return NewAttackChoice((int)_packet.ReadByte(), (int)_packet.ReadByte())
+	return NewAttackChoice(int(_packet.ReadUint8()), int(_packet.ReadUint8()))
 }
 
 func (c *AttackChoice) GetChoiceType() int {
@@ -45,7 +49,7 @@ func NewSwitchChoice(_slot int) *SwitchChoice {
 }
 
 func NewSwitchChoiceFromPacket(_packet *pnet.QTPacket) *SwitchChoice {
-	return NewSwitchChoice((int)_packet.ReadByte())
+	return NewSwitchChoice(int(_packet.ReadUint8()))
 }
 
 func (c *SwitchChoice) GetChoiceType() int {
@@ -72,7 +76,7 @@ func NewRearrangeChoiceFromPacket(_packet *pnet.QTPacket) *RearrangeChoice {
 	rearrangeChoice := RearrangeChoice{ }
 	rearrangeChoice.PokeIndexes = make([]int, 6)
 	for i := 0; i < 6; i++ {
-		rearrangeChoice.PokeIndexes[i] = _packet.ReadByte()
+		rearrangeChoice.PokeIndexes[i] = int(_packet.ReadUint8())
 	}
 	
 	return &rearrangeChoice
@@ -88,11 +92,11 @@ type MoveToCenterChoice struct {
 }
 
 func NewMoveToCenterChoice() *MoveToCenterChoice {
-	return &MoveToCenter{}
+	return &MoveToCenterChoice{}
 }
 
 func (m *MoveToCenterChoice) GetChoiceType() int {
-	return CHOICETYPE_MOVETOCENTERCHOICE
+	return CHOICETYPE_CENTERMOVETYPE
 }
 
 //
@@ -105,7 +109,7 @@ func NewDrawChoice() *DrawChoice {
 }
 
 func (m *DrawChoice) GetChoiceType() int {
-	return CHOICETYPE_DRAWCHOICE
+	return CHOICETYPE_DRAWTYPE
 }
 
 //
@@ -118,26 +122,26 @@ type BattleChoice struct {
 
 func NewBattleChoiceWithChoice(_ps int, _c IChoice, _ct int) *BattleChoice {
 	battleChoice := BattleChoice { PlayerSlot: _ps,
-									Choice _c,
+									Choice: _c,
 									ChoiceType: _ct }
 	return &battleChoice
 }
 
 func NewBattleChoice(_ps int, _ct int) *BattleChoice {
-	battleChoice := BattleChoice { PlayerSlot: ps,
+	battleChoice := BattleChoice { PlayerSlot: _ps,
 									ChoiceType: _ct }
 }
 
 func NewBattleChoiceFromPacket(_packet *pnet.QTPacket) *BattleChoice {
 	battleChoice := BattleChoice{}
-	battleChoice.PlayerSlot = (int)_packet.ReadByte()
-	battleChoice.ChoiceType = (int)_packet.ReadByte()
+	battleChoice.PlayerSlot = int(_packet.ReadUint8())
+	battleChoice.ChoiceType = int(_packet.ReadUint8())
 	
-	switch t := battleChoice.ChoiceType {
+	switch battleChoice.ChoiceType {
 		case CHOICETYPE_SWITCHTYPE:
 			battleChoice.Choice = NewSwitchChoiceFromPacket(_packet)
 		case CHOICETYPE_ATTACKTYPE:
-			battleChoice.Choice = NewAttackChoiceFromPacket(_paket)
+			battleChoice.Choice = NewAttackChoiceFromPacket(_packet)
 		case CHOICETYPE_REARRANGETYPE:
 			battleChoice.Choice = NewRearrangeChoiceFromPacket(_packet)
 	}

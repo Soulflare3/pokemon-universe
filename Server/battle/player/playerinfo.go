@@ -10,13 +10,13 @@ type PlayerInfo struct {
 	Info string
 	Auth int
 	Rating int
-	Pokes []UniqueId
+	Pokes []*UniqueId
 	Tier string
 	
 	flags int
 	rating int
 	avatar int
-	color QColor
+	color *QColor
 	gen int
 }
 
@@ -26,21 +26,21 @@ func NewPlayerInfo() *PlayerInfo {
 
 func NewPlayerInfoFromPacket(_packet *pnet.QTPacket) *PlayerInfo {
 	playerInfo := &PlayerInfo{};
-	playerInfo.Id = (int)_packet.ReadUint32()
+	playerInfo.Id = int(_packet.ReadUint32())
 	playerInfo.Nick = _packet.ReadString()
 	playerInfo.Info = _packet.ReadString()
-	playerInfo.Auth = (int)_packet.ReadUint8()
-	playerInfo.flags = (int)_packet.ReadUint8()
-	playerInfo.rating = (int)_packet.ReadUint16()
+	playerInfo.Auth = int(_packet.ReadUint8())
+	playerInfo.flags = int(_packet.ReadUint8())
+	playerInfo.rating = int(_packet.ReadUint16())
 	
-	for i := 0; i < 6; ++i {
-		playerInfo.pokes[i] = NewUniqueIdFromPacket(_packet)
+	for i := 0; i < 6; i++ {
+		playerInfo.Pokes[i] = NewUniqueIdFromPacket(_packet)
 	}
 	
-	playerInfo.avatar = (int)_packet.ReadUint8()
+	playerInfo.avatar = int(_packet.ReadUint8())
 	playerInfo.Tier = _packet.ReadString()
 	playerInfo.color = NewQColorFromPacket(_packet)
-	playerInfo.gen = (int)_packet.ReadUint8()
+	playerInfo.gen = int(_packet.ReadUint8())
 	
 	return playerInfo
 }

@@ -22,16 +22,17 @@ func NewPOClientSocket(_owner *POClient) *POClientSocket {
 
 func (s *POClientSocket) Connect(_inIpAddr string, _inPortNum int) bool {
 	var err os.Error
-	s.socket, err = net.Dial("tcp", _inIpAddr + ":" + _inPortNum)
+	s.socket, err = net.Dial("tcp", _inIpAddr + ":" + string(_inPortNum))
 	if err != nil {
-		g_logger.Println("[WARNING] Could not connect to PO battle server")
+		fmt.Println("[WARNING] Could not connect to PO battle server")
 		return false
 	}
 	
 	s.connected = true
 	go s.ReceiveMessages()
 	
-	s.SendMessage(s.owner.meLoginPlayer.WritePacket(), COMMAND_Login)
+	loginPacket := s.owner.meLoginPlayer.WritePacket()
+	s.SendMessage(loginPacket, COMMAND_Login)
 	
 	return true
 }
@@ -47,8 +48,9 @@ func (s *POClientSocket) Disconnect() {
 }
 
 func (s *POClientSocket) SendMessage(_buffer pnet.IPacket, _header int) {
-	packet := NewQTPacket(uint8(_header))
-	if !packet.AddBuffer(_buffer.GetBuffer(), _buffer.GetMsgSize()) {
+	packet := pnet.NewQTPacket()
+	packet.AddUint8(uint8(_header))
+	if !packet.AddBuffer(_buffer.GetBufferSlice()) {
 		fmt.Println("[ERROR} PACKET IS TOO LARGE, CAN NOT ADD BUFFER!")
 		return
 	}
@@ -76,7 +78,7 @@ func (s *POClientSocket) ReceiveMessages() {
 		reloop := false
 		bytesReceived := uint16(0)
 		for bytesReceived < packet.MsgSize {
-			recv, err := io.ReadFull(c.socket, databuffer[bytesReceived:])
+			recv, err := io.ReadFull(s.socket, databuffer[bytesReceived:])
 			if recv == 0 {
 				reloop = true
 				break
@@ -114,7 +116,7 @@ func (s *POClientSocket) HandlePacket() {
 	for {
 		var breakloop bool
 		select {
-			case packet := <- s.packetChan
+			case packet := <- s.packetChan:
 				s.owner.ProcessPacket(packet)
 			
 			default:

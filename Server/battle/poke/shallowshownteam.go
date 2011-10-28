@@ -9,7 +9,7 @@ type ShallowShownTeam struct {
 }
 
 func NewShallowShownTeamFromPacket(_packet *pnet.QTPacket) *ShallowShownTeam {
-	shownTeam := ShallowShownTeam { Pokes: make([]*ShallowShownPoke, 6)
+	shownTeam := ShallowShownTeam { Pokes: make([]*ShallowShownPoke, 6) }
 	for i := 0; i < 6; i++ {
 		shownTeam.Pokes[i] = NewShallowShownPokeFromPacket(_packet)
 	}

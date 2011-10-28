@@ -1,7 +1,7 @@
 package main
 
 const (
-    COMMAND_WhatAreYou int = _iota // = 0
+    COMMAND_WhatAreYou int = iota // = 0
     COMMAND_WhoAreYou
     COMMAND_Login
     COMMAND_Logout

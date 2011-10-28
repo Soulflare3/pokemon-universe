@@ -12,9 +12,9 @@ type ShallowShownPoke struct {
 }
 
 func NewShallowShownPokeFromPacket(_packet *pnet.QTPacket) *ShallowShownPoke {
-	shallowShownPoke := S`hallowShownPoke{ UID: NewUniqueIdFromPacket(_packet),
-											Level: (int)_packet.ReadByte(),
-											Gender: (int)_packet.ReadByte(),
+	shallowShownPoke := ShallowShownPoke{ UID: NewUniqueIdFromPacket(_packet),
+											Level: int(_packet.ReadUint8()),
+											Gender: int(_packet.ReadUint8()),
 											Item: _packet.ReadBool() }
 	return &shallowShownPoke
 }

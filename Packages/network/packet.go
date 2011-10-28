@@ -67,6 +67,10 @@ func (p *Packet) GetBuffer() [PACKET_MAXSIZE]uint8 {
 	return p.Buffer
 }
 
+func (p *Packet) GetBufferSlice() []uint8 {
+	return p.Buffer[0:p.MsgSize]
+}
+
 func (p *Packet) GetMsgSize() uint16 {
 	return p.MsgSize
 }
@@ -207,17 +211,18 @@ func (p *Packet) AddString(_value string) bool {
 	return true
 }
 
-func (p *Packet) AddBuffer(_value []uint8, _len uint16) bool {
-	if !p.CanAdd(_len) {
+func (p *Packet) AddBuffer(_value []uint8) bool {
+	size := uint16(len(_value))
+	if !p.CanAdd(size) {
 		return false
 	}
 	
-	for i := 2; i < int(_len + 2); i++ {
+	for i := 2; i < int(size + 2); i++ {
 		p.Buffer[p.readPos] = _value[i]
 		p.readPos += 1
 	}
 	
-	p.MsgSize += _len
+	p.MsgSize += size
 	
 	return true
 }

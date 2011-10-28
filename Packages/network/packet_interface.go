@@ -19,7 +19,7 @@ package network
 import "os"
 
 type INetMessageWriter interface {
-	WritePacket() (IPacket, os.Error)
+	WritePacket() IPacket
 }
 
 type INetMessageReader interface {
@@ -35,6 +35,7 @@ type IPacket interface {
 	SetHeader()
 	
 	GetBuffer() [PACKET_MAXSIZE]uint8
+	GetBufferSlice() []uint8
 	GetMsgSize() uint16
 
 	ReadUint8() uint8
@@ -50,5 +51,5 @@ type IPacket interface {
 	AddUint64(_value uint64) bool
 	AddBool(_value bool) bool
 	AddString(_value string) bool
-	AddBuffer(_value []uint8, _len uint16) bool
+	AddBuffer(_value []uint8) bool
 }

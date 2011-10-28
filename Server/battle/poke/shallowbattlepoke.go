@@ -8,8 +8,8 @@ type ShallowBattlePoke struct {
 	RNick string
 	Nick string
 	PokeName string
-	UID *UniqueID
-	Types []*Type
+	UID *UniqueId
+	Types []int
 	Shiny bool
 	Gender int
 	LifePercent int
@@ -21,11 +21,11 @@ type ShallowBattlePoke struct {
 }
 
 func NewShallowBattlePoke() *ShallowBattlePoke {
-	return &ShallowBattlePoke{ Types: make([]*Type, 2) }
+	return &ShallowBattlePoke{ Types: make([]int, 2) }
 }
 
 func NewShallowBattlePokeFromPacket(_packet *pnet.QTPacket, _isMe bool) *ShallowBattlePoke {
-	shallowPoke := ShallowBattlePoke{ Types: make([]*Type, 2) }
+	shallowPoke := ShallowBattlePoke{ Types: make([]int, 2) }
 	shallowPoke.UID = NewUniqueIdFromPacket(_packet)
 	shallowPoke.RNick = _packet.ReadString()
 	shallowPoke.Nick = shallowPoke.RNick
@@ -36,9 +36,9 @@ func NewShallowBattlePokeFromPacket(_packet *pnet.QTPacket, _isMe bool) *Shallow
 		//getTypes()
 	}
 	
-	shallowPoke.LifePercent = (int)_packet.ReadByte()
-	shallowPoke.fullStatus = (int)_packet.ReadUint32()
-	shallowPoke.Gender = (int)_packet.ReadByte()
+	shallowPoke.LifePercent = int(_packet.ReadUint8())
+	shallowPoke.fullStatus = int(_packet.ReadUint32())
+	shallowPoke.Gender = int(_packet.ReadUint8())
 	shallowPoke.Shiny = _packet.ReadBool()
-	shallowPoke.Level = (int)_packet.ReadUint32()
+	shallowPoke.Level = int(_packet.ReadUint32())
 }

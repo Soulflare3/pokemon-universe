@@ -10,7 +10,7 @@ const (
 	DYNAMICINFO_SPYKESL3 = 4
 	DYNAMICINFO_STEALTHROCK = 8
 	DYNAMICINFO_TOXICSPYKES = 16
-	DYNAMICINFO_TOXICSPYKES = 32
+	DYNAMICINFO_TOXICSPYKESL2 = 32
 )
 
 type BattleDynamicInfo struct {
@@ -22,7 +22,7 @@ func NewBattleDynamicInfoFromPacket(_packet *pnet.QTPacket) *BattleDynamicInfo {
 	battleDynamicInfo := BattleDynamicInfo{}
 	battleDynamicInfo.Boosts = make([]byte, 7)
 	for i := 0; i < 7; i++ {
-		battleDynamicInfo.Boosts[i] = _packet.ReadByte()
+		battleDynamicInfo.Boosts[i] = _packet.ReadUint8()
 	}
-	battleDynamicInfo.Flags = _packet.ReadByte()
+	battleDynamicInfo.Flags = _packet.ReadUint8()
 }

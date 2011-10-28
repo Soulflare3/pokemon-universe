@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	pnet "network"
 )
 
@@ -32,13 +31,13 @@ func NewQColorFromPacket(_packet *pnet.QTPacket) *QColor {
 	color.Html = ">"
 }
 
-func (c *QColor) WritePacket() (pnet.IPacket, os.Error) {
-	packet := NewQTPacket()
+func (c *QColor) WritePacket() pnet.IPacket {
+	packet := pnet.NewQTPacket()
 	packet.AddUint8(c.Spec)
 	packet.AddUint16(c.Alpha)
 	packet.AddUint16(c.Red)
 	packet.AddUint16(c.Green)
 	packet.AddUint16(c.Blue)
 	packet.AddUint16(c.Pad)
-	return packet, nil
+	return packet
 }
