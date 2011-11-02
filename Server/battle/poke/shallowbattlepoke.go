@@ -7,7 +7,6 @@ import (
 type ShallowBattlePoke struct {
 	RNick string
 	Nick string
-	PokeName string
 	UID *UniqueId
 	Types []int
 	Shiny bool
@@ -41,4 +40,12 @@ func NewShallowBattlePokeFromPacket(_packet *pnet.QTPacket, _isMe bool) *Shallow
 	shallowPoke.Gender = int(_packet.ReadUint8())
 	shallowPoke.Shiny = _packet.ReadBool()
 	shallowPoke.Level = int(_packet.ReadUint32())
+}
+
+func (s *ShallowBattlePoke) getName() {
+
+}
+
+func (s *ShallowBattlePoke) getType(_gen int) {
+
 }
