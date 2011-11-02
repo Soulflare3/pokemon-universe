@@ -44,6 +44,9 @@ func (m *PokemonManager) Load() {
 	}
 	
 	// Load Pokemon
+	if m.loadPokemon() {
+		return
+	}
 }
 
 func (m *PokemonManager) loadMoves() bool {
@@ -198,4 +201,54 @@ func (m *PokemonManager) loadPokemonSpecies() bool {
 		// Add to map
 		m.pokemonSpecies[pokemon.SpeciesId] = pokemon
 	}
+}
+
+func (m *PokemonManager) loadPokemon() {
+	var err os.Error
+	var query string = "SELECT id, species_id, height, weight, base_experience, order, is_default FROM pokemon"
+	
+	if err = g_db.Query(query); err != nil {
+		g_logger.Println("[ERROR] SQL error while executing query pokemon: " + err)
+		return false
+	}
+	
+	var result *mysql.Result
+	result, err = g_db.UseResult()
+	if err != nil {
+		g_logger.Println("[ERROR] SQL error while fetching result pokemon: " + err)
+		return false
+	}
+	
+	defer result.Free()
+	g_logger.Println(" - Processing pokemon")
+	for {
+		row := result.FetchRow()
+		if row == nil {
+			break
+		}
+		
+		pokemon := NewPokemon()
+		pokemon.PokemonId = row[0].(int)
+		pokemon.Species = GetPokemonSpecies(row[1].(int))
+		pokemon.Height = row[2].(int)
+		pokemon.Weight = row[3].(int)
+		pokemon.BaseExperience = row[4].(int)
+		pokemon.Order = row[5].(int)
+		pokemon.IsDefault = row[6].(int)
+		
+		// TODO: Load base stats for this pokemon
+		
+		// TODO: Fetch available abilities for this pokemon
+		
+		// TODO: Fetch available forms for this pokemon
+		
+		// TODO: Fetch learnable moves for this pokemon
+		
+		// Add to map
+		m.pokemon[pokemon.PokemonId] = pokemon
+	}
+}
+
+func (m *PokemonManager) GetPokemonSpecies(_speciesId int) *PokemonSpecies {
+	return m.pokemonSpecies[_speciesId]
 }
