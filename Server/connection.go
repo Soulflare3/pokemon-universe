@@ -73,7 +73,7 @@ func (c *Connection) SendMessage(_message *pnet.Message) {
 }
 
 func (c *Connection) SendPacket(_message pnet.INetMessageWriter) {
-	packet, _ := _message.WritePacket()
+	packet := _message.WritePacket()
 	packet.SetHeader()
 
 	c.Socket.Write(packet.Buffer[0:packet.MsgSize])

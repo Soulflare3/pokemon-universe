@@ -4,13 +4,11 @@
 
 include $(GOROOT)/src/Make.inc
 
-TARG=puserver
+TARG=potest
 GOFILES=\
 	*.go\
-	io/*.go\
-	messages/*.go\
-	tileevents/*.go\
-	pokemon/*.go\
 	battle/*.go\
+	player/*.go\
+	poke/*.go\
 
 include $(GOROOT)/src/Make.cmd

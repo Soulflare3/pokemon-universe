@@ -2,14 +2,18 @@ package main
 
 import (
 	"os"
-	"fmt"
+	"container/list"
 	"mysql"
 )
 
-type PokemonList map[int]*Pokemon
-type PokemonSpeciesList map[int]*PokemonSpecies
-type MoveList map[int]*Move
-type AbilityList map[int]*Ability
+type PokemonList 			map[int]*Pokemon
+type PokemonSpeciesList 	map[int]*PokemonSpecies
+type MoveList 				map[int]*Move
+type AbilityList 			map[int]*Ability
+type PokemonStatArray 		[]*PokemonStat
+type PokemonAbilityList 	map[int]*PokemonAbility
+type PokemonFormList 		*list.List
+type PokemonMoveList 		map[int]*PokemonMove
 
 var g_PokemonManager *PokemonManager = NewPokemonManager()
 
@@ -204,19 +208,10 @@ func (m *PokemonManager) loadPokemonSpecies() bool {
 }
 
 func (m *PokemonManager) loadPokemon() {
-	var err os.Error
 	var query string = "SELECT id, species_id, height, weight, base_experience, order, is_default FROM pokemon"
-	
-	if err = g_db.Query(query); err != nil {
-		g_logger.Println("[ERROR] SQL error while executing query pokemon: " + err)
-		return false
-	}
-	
-	var result *mysql.Result
-	result, err = g_db.UseResult()
+	result, err := DBQuerySelect(query)
 	if err != nil {
-		g_logger.Println("[ERROR] SQL error while fetching result pokemon: " + err)
-		return false
+		return
 	}
 	
 	defer result.Free()
@@ -236,13 +231,17 @@ func (m *PokemonManager) loadPokemon() {
 		pokemon.Order = row[5].(int)
 		pokemon.IsDefault = row[6].(int)
 		
-		// TODO: Load base stats for this pokemon
+		// Load base stats for this pokemon
+		pokemon.loadStats()
 		
-		// TODO: Fetch available abilities for this pokemon
+		// Fetch available abilities for this pokemon
+		pokemon.loadAbilities()
 		
-		// TODO: Fetch available forms for this pokemon
+		// Fetch available forms for this pokemon
+		pokemon.loadForms()
 		
-		// TODO: Fetch learnable moves for this pokemon
+		// Fetch learnable moves for this pokemon
+		pokemon.loadMoves()
 		
 		// Add to map
 		m.pokemon[pokemon.PokemonId] = pokemon
@@ -251,4 +250,12 @@ func (m *PokemonManager) loadPokemon() {
 
 func (m *PokemonManager) GetPokemonSpecies(_speciesId int) *PokemonSpecies {
 	return m.pokemonSpecies[_speciesId]
+}
+
+func (m *PokemonManager) GetAbilityById(_abilityId int) *Ability {
+	return m.abilities[_abilityId]
+}
+
+func (m *PokemonManager) GetMoveById(_moveId int) *Move {
+	return m.moves[_moveId]
 }

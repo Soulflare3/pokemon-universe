@@ -17,3 +17,7 @@ type PokemonMove struct {
 	Level				int
 	Order				int
 }
+
+func NewPokemonMove() *PokemonMove {
+	return &PokemonMove{}
+}

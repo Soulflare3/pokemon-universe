@@ -1,8 +1,7 @@
 package main
 
 const (
-	_ 					= iota // Truncate first value
-	POKESTAT_HP		int = 1
+	POKESTAT_HP		int = iota
 	POKESTAT_ATTACK
 	POKESTAT_DEFENSE
 	POKESTAT_SPECIALATTACK
@@ -16,4 +15,8 @@ type PokemonStat struct {
 	StatType	int
 	BaseStat	int
 	Effort		int
+}
+
+func NewPokemonStat() *PokemonStat {
+	return &PokemonStat{}
 }

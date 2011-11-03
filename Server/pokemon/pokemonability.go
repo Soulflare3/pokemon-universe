@@ -2,6 +2,10 @@ package main
 
 type PokemonAbility struct {
 	Ability			*Ability
-	IsDream			bool
+	IsDream			int
 	Slot			int
+}
+
+func NewPokemonAbility() *PokemonAbility {
+	return &PokemonAbility{}
 }

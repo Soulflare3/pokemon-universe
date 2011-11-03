@@ -3,7 +3,11 @@ package main
 type PokemonForm struct {
 	Id				int
 	Identifier		string
-	IsDefault		bool
-	IsBattleOnly	bool
+	IsDefault		int
+	IsBattleOnly	int
 	Order			int
+}
+
+func NewPokemonForm() *PokemonForm {
+	return &PokemonForm{}
 }
