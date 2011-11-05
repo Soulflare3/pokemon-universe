@@ -16,12 +16,16 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
-type PokemonAbility struct {
-	Ability			*Ability
-	IsDream			int
-	Slot			int
+type PokemonParty struct {
+	Party	[]*PlayerPokemon
 }
 
-func NewPokemonAbility() *PokemonAbility {
-	return &PokemonAbility{}
+func NewPokemonParty() *PokemonParty {
+	return &PokemonParty{ Party: make([]*PlayerPokemon, 6) }
+}
+
+func (p *PokemonParty) AddSlot(_pokemon *PlayerPokemon, _slot int) {
+	if p.Party[_slot] == nil {
+		p.Party[_slot] = _pokemon
+	}
 }

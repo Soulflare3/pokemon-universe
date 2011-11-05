@@ -16,12 +16,20 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
-type PokemonAbility struct {
-	Ability			*Ability
-	IsDream			int
-	Slot			int
+type PlayerPokemonList map[int]*PlayerPokemon
+
+type PlayerPokemon struct {
+	Base		*Pokemon
+	Nickname	string
+	IsBound		int // Can (not) trade if 1
+	Experience	int
+	Stats		[]int
+	Happiness	int
+	Gender		int
+	InParty		int
+	Slot		int
 }
 
-func NewPokemonAbility() *PokemonAbility {
-	return &PokemonAbility{}
+func NewPlayerPokemon() *PlayerPokemon {
+	return &PlayerPokemon{ Stats: make([]int, 6) }
 }

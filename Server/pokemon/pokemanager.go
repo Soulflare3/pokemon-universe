@@ -1,3 +1,19 @@
+/*Pokemon Universe MMORPG
+Copyright (C) 2010 the Pokemon Universe Authors
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
 import (
@@ -10,6 +26,7 @@ type PokemonSpeciesList 	map[int]*PokemonSpecies
 type MoveList 				map[int]*Move
 type AbilityList 			map[int]*Ability
 type PokemonStatArray 		[]*PokemonStat
+type PokemonTypeArray		[]int
 type PokemonAbilityList 	map[int]*PokemonAbility
 type PokemonMoveList 		map[int]*PokemonMove
 
@@ -243,6 +260,9 @@ func (m *PokemonManager) loadPokemon() bool {
 		// Fetch learnable moves for this pokemon
 		pokemon.loadMoves()
 		
+		// Fetch pokemon types
+		pokemon.loadTypes()
+		
 		// Add to map
 		m.pokemon[pokemon.PokemonId] = pokemon
 	}
@@ -250,8 +270,28 @@ func (m *PokemonManager) loadPokemon() bool {
 	return true
 }
 
+func (m *PokemonManager) GetPokemon(_pokemonId int) *Pokemon {
+	return m.pokemon[_pokemonId]
+}
+
 func (m *PokemonManager) GetPokemonSpecies(_speciesId int) *PokemonSpecies {
 	return m.pokemonSpecies[_speciesId]
+}
+
+// TODO: Do something with the _formId variable, now we just get the name by only _speciesId
+func (m *PokemonManager) GetPokemonName(_speciesId, _formId int) string {
+	var name string = ""
+	species := m.GetPokemonSpecies(_speciesId)
+	if species != nil {
+		name = species.Identifier
+	}
+	return name
+}
+
+// TODO: Do something with the _FormId variable
+func (m *PokemonManager) GetPokemonTypes(_pokemonId, _formId int) PokemonTypeArray {
+	pokemon := m.GetPokemon(_pokemonId)
+	return pokemon.Types
 }
 
 func (m *PokemonManager) GetAbilityById(_abilityId int) *Ability {

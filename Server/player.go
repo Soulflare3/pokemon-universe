@@ -16,15 +16,23 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
+import (
+	"fmt"
+)
+
 type PlayerList map[uint64]*Player
 
 type Player struct {
 	Creature // Inherit generic creature data
+	dbid			int // database id
 
-	Conn *Connection
+	Conn			*Connection
 
-	Location       *Location
-	LastPokeCenter *Tile
+	Pokemon			PlayerPokemonList
+	PokemonParty	*PokemonParty
+	
+	Location		*Location
+	LastPokeCenter	*Tile
 
 	Money          int
 	TimeoutCounter int
@@ -37,12 +45,114 @@ func NewPlayer(_name string) *Player {
 	p.Outfit = NewOutfit()
 	p.name = _name
 
+	p.Pokemon = make(PlayerPokemonList)
+	p.PokemonParty = NewPokemonParty()
 	p.lastStep = PUSYS_TIME()
 	p.moveSpeed = 280
 	p.VisibleCreatures = make(CreatureList)
 	p.TimeoutCounter = 0
 
 	return &p
+}
+
+func (p *Player) LoadData() {
+	// Load player info
+	if !p.loadPlayerInfo() {
+		// TODO: Unload player and disconnect
+	}
+	
+	// Load all pokemon player has
+	if !p.loadPokemon() {
+		// TODO: Unload player and disconnect
+	}
+}
+
+func (p *Player) loadPlayerInfo() bool {
+	var query string = "SELECT p.idplayer, p.name, p.position, p.movement, p.idpokecenter, p.money, p.idlocation," +
+						" g.group_idgroup, o.head, o.nek, o.upper, o.lower, o.feet FROM player `p`" +
+						" INNER JOIN player_outfit `o` ON o.idplayer = p.idplayer" +
+						" INNER JOIN player_group `g` ON g.player_idplayer = p.idplayer" +
+						" WHERE p.name='%s'"
+	result, err := DBQuerySelect(fmt.Sprintf(query, p.name))
+	if err != nil {
+		return false
+	}
+	
+	defer result.Free()
+	row := result.FetchRow()
+	if row == nil {
+		g_logger.Printf("[Error] No data for player %s (%d)", p.name, p.dbid)
+		return false;
+	}
+		
+	p.dbid = row[0].(int)
+	p.name = row[1].(string)
+	tile, ok := g_map.GetTile(row[2].(int64))
+	if !ok {
+		g_logger.Printf("[Error] Could not load position info for player %s (%d)", p.name, p.dbid)
+		return false
+	}
+	p.Position = tile
+	p.Movement = row[3].(int)
+	// TODO: p.LastPokeCenter = row[4].(int)
+	p.Money = row[5].(int)
+	location, ok := g_game.Locations.GetLocation(row[6].(int))
+	if !ok {
+		g_logger.Printf("[Error] Could not load location info for player %s (%d)", p.name, p.dbid)
+		return false
+	}
+	p.Location = location
+	
+	// Group/Right stuff : row[7].(int)
+	
+	p.SetOutfitKey(OUTFIT_HEAD, row[8].(int))
+	p.SetOutfitKey(OUTFIT_NEK, row[9].(int))
+	p.SetOutfitKey(OUTFIT_UPPER, row[10].(int))
+	p.SetOutfitKey(OUTFIT_LOWER, row[11].(int))
+	p.SetOutfitKey(OUTFIT_FEET, row[12].(int))
+	
+	return true
+}
+
+func (p *Player) loadPokemon() bool {
+	var query string = "SELECT idpokemon, nickname, bound, experience, iv_hp, iv_attack, iv_attack_spec, iv_defence, iv_defence_spec," +
+						" iv_speed, happiness, gender, in_party, party_slot WHERE idplayer='%d'"
+	result, err := DBQuerySelect(fmt.Sprintf(query, p.dbid))
+	if err != nil {
+		return false
+	}
+	
+	defer result.Free()
+	for {
+		row := result.FetchRow()
+		if row == nil {
+			break
+		}
+		
+		pokemon := NewPlayerPokemon()
+		pokemonId := row[0].(int)
+		pokemon.Base = g_PokemonManager.GetPokemon(pokemonId)
+		pokemon.Nickname = row[1].(string)
+		pokemon.IsBound = row[2].(int)
+		pokemon.Experience = row[3].(int)
+		pokemon.Stats[0] = row[4].(int)
+		pokemon.Stats[1] = row[5].(int)
+		pokemon.Stats[2] = row[7].(int)
+		pokemon.Stats[3] = row[6].(int)
+		pokemon.Stats[4] = row[8].(int)
+		pokemon.Stats[5] = row[9].(int)
+		pokemon.Happiness = row[10].(int)
+		pokemon.Gender = row[11].(int)
+		pokemon.InParty = row[12].(int)
+		pokemon.Slot = row[13].(int)
+		
+		// Add to party if needed
+		if pokemon.InParty == 1 {
+			p.PokemonParty.AddSlot(pokemon, pokemon.Slot)
+		}
+	}
+	
+	return true
 }
 
 func (p *Player) GetType() int {

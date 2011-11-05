@@ -37,13 +37,13 @@ const (
 var (
 	configFile *string
 
-	g_config *conf.ConfigFile
-	g_logger *log.Logger
-	g_db     *mysql.Client
+	g_config 	*conf.ConfigFile
+	g_logger 	*log.Logger
+	g_db     	*mysql.Client
 
-	g_game   *Game
-	g_server *Server
-	g_map    *Map
+	g_game   	*Game
+	g_server	*Server
+	g_map    	*Map
 
 	// Client viewport variables. The Z position doesn't matter in this case
 	CLIENT_VIEWPORT        pos.Position = pos.Position{28, 22, 0}
