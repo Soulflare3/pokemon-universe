@@ -59,4 +59,6 @@ func NewBattlePokeFromPacket(_packet *pnet.QTPacket) *BattlePoke {
 	for i := 0; i < 6; i++ {
 		battlePoke.DVs[i] = int(_packet.ReadUint32())
 	}
+	
+	return &battlePoke
 }

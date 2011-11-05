@@ -29,6 +29,8 @@ func NewQColorFromPacket(_packet *pnet.QTPacket) *QColor {
 	color.Blue = _packet.ReadUint16()
 	color.Pad = _packet.ReadUint16()
 	color.Html = ">"
+	
+	return &color
 }
 
 func (c *QColor) WritePacket() pnet.IPacket {

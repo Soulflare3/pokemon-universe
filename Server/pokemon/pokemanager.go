@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"container/list"
 	"mysql"
 )
 
@@ -12,7 +11,6 @@ type MoveList 				map[int]*Move
 type AbilityList 			map[int]*Ability
 type PokemonStatArray 		[]*PokemonStat
 type PokemonAbilityList 	map[int]*PokemonAbility
-type PokemonFormList 		*list.List
 type PokemonMoveList 		map[int]*PokemonMove
 
 var g_PokemonManager *PokemonManager = NewPokemonManager()
@@ -60,14 +58,14 @@ func (m *PokemonManager) loadMoves() bool {
 		" FROM moves"
 		
 	if err = g_db.Query(query); err != nil {
-		g_logger.Println("[ERROR] SQL error while executing query pokemon moves: " + err)
+		g_logger.Printf("[ERROR] SQL error while executing query pokemon moves: %s\n\r", err)
 		return false
 	}
 	
 	var result *mysql.Result
 	result, err = g_db.UseResult()
 	if err != nil {
-		g_logger.Println("[ERROR] SQL error while fetching result pokemon moves: " + err)
+		g_logger.Println("[ERROR] SQL error while fetching result pokemon moves: %s\n\r", err)
 		return false
 	}
 	
@@ -106,14 +104,14 @@ func (m *PokemonManager) loadAbilities() bool {
 	var query string = "SELECT id, identifier FROM abilities"
 	
 	if err = g_db.Query(query); err != nil {
-		g_logger.Println("[ERROR] SQL error while executing query pokemon abilities: " + err)
+		g_logger.Println("[ERROR] SQL error while executing query pokemon abilities: %s\n\r", err)
 		return false
 	}
 	
 	var result *mysql.Result
 	result, err = g_db.UseResult()
 	if err != nil {
-		g_logger.Println("[ERROR] SQL error while fetching result pokemon abilities: " + err)
+		g_logger.Println("[ERROR] SQL error while fetching result pokemon abilities: %s\n\r", err)
 		return false
 	}
 	
@@ -148,14 +146,14 @@ func (m *PokemonManager) loadPokemonSpecies() bool {
 											" WHERE `ps2`.evolves_from_species_id = `ps`.id LIMIT 1)"
 	
 	if err = g_db.Query(query); err != nil {
-		g_logger.Println("[ERROR] SQL error while executing query pokemon species: " + err)
+		g_logger.Println("[ERROR] SQL error while executing query pokemon species: %s\n\r", err)
 		return false
 	}
 	
 	var result *mysql.Result
 	result, err = g_db.UseResult()
 	if err != nil {
-		g_logger.Println("[ERROR] SQL error while fetching result pokemon species: " + err)
+		g_logger.Println("[ERROR] SQL error while fetching result pokemon species: %s\n\r", err)
 		return false
 	}
 	
@@ -188,7 +186,7 @@ func (m *PokemonManager) loadPokemonSpecies() bool {
 		pokemon := NewPokemonSpecies()
 		pokemon.SpeciesId = row[0].(int)
 		pokemon.Identifier = row[1].(string)
-		pokemon.EvolvedFromSpeciesId = row[2].(int)
+		pokemon.EvolvesFromSpeciesId = row[2].(int)
 		pokemon.EvolutionChain = evoChain
 		pokemon.ColorId = row[3].(int)
 		pokemon.ShapeId = row[4].(int)
@@ -205,13 +203,15 @@ func (m *PokemonManager) loadPokemonSpecies() bool {
 		// Add to map
 		m.pokemonSpecies[pokemon.SpeciesId] = pokemon
 	}
+	
+	return true
 }
 
-func (m *PokemonManager) loadPokemon() {
+func (m *PokemonManager) loadPokemon() bool {
 	var query string = "SELECT id, species_id, height, weight, base_experience, order, is_default FROM pokemon"
 	result, err := DBQuerySelect(query)
 	if err != nil {
-		return
+		return false
 	}
 	
 	defer result.Free()
@@ -224,7 +224,7 @@ func (m *PokemonManager) loadPokemon() {
 		
 		pokemon := NewPokemon()
 		pokemon.PokemonId = row[0].(int)
-		pokemon.Species = GetPokemonSpecies(row[1].(int))
+		pokemon.Species = m.GetPokemonSpecies(row[1].(int))
 		pokemon.Height = row[2].(int)
 		pokemon.Weight = row[3].(int)
 		pokemon.BaseExperience = row[4].(int)
@@ -246,6 +246,8 @@ func (m *PokemonManager) loadPokemon() {
 		// Add to map
 		m.pokemon[pokemon.PokemonId] = pokemon
 	}
+	
+	return true
 }
 
 func (m *PokemonManager) GetPokemonSpecies(_speciesId int) *PokemonSpecies {

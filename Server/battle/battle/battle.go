@@ -87,6 +87,8 @@ func NewBattle(_bc *BattleConf, _packet *pnet.QTPacket, _p1 *PlayerInfo, _p2 *Pl
 	}
 	
 	battle.WriteToHist(fmt.Sprintf("Battle between %v and %v started!", battle.players[0].Nick, battle.players[1].Nick))
+	
+	return &battle
 }
 
 func (b *Battle) WriteToHist(_message string) {

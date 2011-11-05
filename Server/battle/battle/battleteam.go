@@ -20,4 +20,6 @@ func NewBattleTeamFromPacket(_packet *pnet.QTPacket) *BattleTeam {
 		battleTeam.Pokes[i] = NewBattlePokeFromPacket(_packet)
 		battleTeam.Pokes[i].TeamNum = i
 	}
+	
+	return &battleTeam
 }

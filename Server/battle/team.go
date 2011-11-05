@@ -14,6 +14,8 @@ func NewTeam() *Team {
 	for i := 0; i < 6; i++ {
 		team.Pokes[i] = NewTeamPoke()
 	}
+	
+	return &team
 }
 
 func NewTeamFromPacket(_packet *pnet.QTPacket) *Team {

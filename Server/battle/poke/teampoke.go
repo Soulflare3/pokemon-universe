@@ -48,6 +48,8 @@ func NewTeamPoke() *TeamPoke {
 	for i := 0; i < 6; i++ {
 		teamPoke.EVs[i] = 10
 	}	
+	
+	return &teamPoke
 }
 
 func NewTeamPokeFromPacket(_packet *pnet.QTPacket) *TeamPoke {
@@ -75,6 +77,8 @@ func NewTeamPokeFromPacket(_packet *pnet.QTPacket) *TeamPoke {
 	for i := 0; i < 6; i++ {
 		teamPoke.EVs[i] = int(_packet.ReadUint8())
 	}
+	
+	return &teamPoke
 }
 
 func (t *TeamPoke) WritePacket() pnet.IPacket {

@@ -2,6 +2,7 @@ package main
 
 import (	
 	"fmt"
+	"container/list"
 )
 
 type Pokemon struct {
@@ -9,21 +10,24 @@ type Pokemon struct {
 	Species					*PokemonSpecies
 	Height					int
 	Weight					int
-	BaseExperince			int
+	BaseExperience			int
 	Order					int
-	IsDefault				bool
+	IsDefault				int
 	
 	Stats					PokemonStatArray // Size = 6
 	
 	Abilities				PokemonAbilityList
-	Forms					PokemonFormList
+	Forms					*list.List
 	Moves					PokemonMoveList
 }
 
 func NewPokemon() *Pokemon {
-	return &Pokemon{ Stats: make(PokemonStatArray, 6),
+	pokemon := &Pokemon{ Stats: make(PokemonStatArray, 6),
 					 Abilities: make(PokemonAbilityList),
 					 Moves: make(PokemonMoveList) }
+	pokemon.Forms.Init()
+	
+	return pokemon
 }
 
 func (p *Pokemon) loadStats() {

@@ -13,6 +13,8 @@ func NewShallowShownTeamFromPacket(_packet *pnet.QTPacket) *ShallowShownTeam {
 	for i := 0; i < 6; i++ {
 		shownTeam.Pokes[i] = NewShallowShownPokeFromPacket(_packet)
 	}
+	
+	return &shownTeam
 }
 
 func (s *ShallowShownTeam) Poke(_index int) *ShallowShownPoke {

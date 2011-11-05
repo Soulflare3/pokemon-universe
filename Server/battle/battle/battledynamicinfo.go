@@ -25,4 +25,6 @@ func NewBattleDynamicInfoFromPacket(_packet *pnet.QTPacket) *BattleDynamicInfo {
 		battleDynamicInfo.Boosts[i] = _packet.ReadUint8()
 	}
 	battleDynamicInfo.Flags = _packet.ReadUint8()
+	
+	return &battleDynamicInfo
 }

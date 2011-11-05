@@ -2,7 +2,7 @@ package main
 
 type PokemonSpecies struct {
 	SpeciesId				int
-	Identfier				int
+	Identifier				string
 	EvolvesFromSpeciesId	int
 	EvolutionChain			*EvolutionChain
 	ColorId					int

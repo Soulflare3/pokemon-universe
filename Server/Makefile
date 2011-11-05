@@ -11,6 +11,9 @@ GOFILES=\
 	messages/*.go\
 	tileevents/*.go\
 	pokemon/*.go\
+	battle/battle/*.go\
+	battle/player/*.go\
+	battle/poke/*go\
 	battle/*.go\
 
 include $(GOROOT)/src/Make.cmd

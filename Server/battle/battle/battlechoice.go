@@ -121,14 +121,13 @@ type BattleChoice struct {
 }
 
 func NewBattleChoiceWithChoice(_ps int, _c IChoice, _ct int) *BattleChoice {
-	battleChoice := BattleChoice { PlayerSlot: _ps,
+	return &BattleChoice { PlayerSlot: _ps,
 									Choice: _c,
 									ChoiceType: _ct }
-	return &battleChoice
 }
 
 func NewBattleChoice(_ps int, _ct int) *BattleChoice {
-	battleChoice := BattleChoice { PlayerSlot: _ps,
+	return &BattleChoice { PlayerSlot: _ps,
 									ChoiceType: _ct }
 }
 
@@ -145,4 +144,6 @@ func NewBattleChoiceFromPacket(_packet *pnet.QTPacket) *BattleChoice {
 		case CHOICETYPE_REARRANGETYPE:
 			battleChoice.Choice = NewRearrangeChoiceFromPacket(_packet)
 	}
+	
+	return &battleChoice
 }
