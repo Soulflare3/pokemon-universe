@@ -24,6 +24,15 @@ func NewPokemonParty() *PokemonParty {
 	return &PokemonParty{ Party: make([]*PlayerPokemon, 6) }
 }
 
+func (p *PokemonParty) Add(_pokemon *PlayerPokemon) {
+	for i := 0; i < 6; i++ {
+		if p.Party[i] == nil {
+			p.Party[i] = _pokemon
+			break
+		}
+	}
+}
+
 func (p *PokemonParty) AddSlot(_pokemon *PlayerPokemon, _slot int) {
 	if p.Party[_slot] == nil {
 		p.Party[_slot] = _pokemon

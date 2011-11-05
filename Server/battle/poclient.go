@@ -33,9 +33,8 @@ type POClient struct {
 func NewPOClient(_player *Player) (*POClient, os.Error) {
 	poClient := POClient{ player: _player }
 	
-	///
-	// TODO: Convert Player object to FullPlayerInfo
-	//
+	meLoginPlayer = NewFullPlayerInfoFromPlayer(_player)
+	mePlayer = NewPlayerInfoFromFullPlayerInfo(meLoginPlayer)
 	
 	return &poClient, nil
 }

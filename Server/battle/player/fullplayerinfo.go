@@ -30,11 +30,20 @@ type FullPlayerInfo struct {
 }
 
 func NewFullPlayerInfo(_team *PlayerTeam, _ladderEnabled, _showTeam bool) *FullPlayerInfo {
-	fullPlayerInfo := &FullPlayerInfo { Team: _team,
+	return &FullPlayerInfo { Team: _team,
 										IsDefault: true,
 										ladderEnabled: _ladderEnabled,
 										showTeam: _showTeam }
-	return fullPlayerInfo
+}
+
+func NewFullPlayerInfoFromPlayer(_player *Player) *FullPlayerInfo {
+	fullPlayerInfo := FullPlayerInfo{}
+	fullPlayerInfo.Team = NewPlayerTeamFromPlayer(_player)
+	fullPlayerInfo.IsDefault = true
+	fullPlayerInfo.ladderEnabled = false
+	fullPlayerInfo.nameColor = NewQColor()
+	
+	return &fullPlayerInfo
 }
 
 func NewFullPlayerInfoFromPacket(_packet *pnet.QTPacket) *FullPlayerInfo {

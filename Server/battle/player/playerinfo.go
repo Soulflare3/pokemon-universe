@@ -40,6 +40,10 @@ func NewPlayerInfo() *PlayerInfo {
 	return &PlayerInfo{}
 }
 
+func NewPlayerInfoFromFullPlayerInfo(_info *FullPlayerInfo) *PlayerInfo {
+	return &PlayerInfo{ Nick: _info.Nick() }
+}
+
 func NewPlayerInfoFromPacket(_packet *pnet.QTPacket) *PlayerInfo {
 	playerInfo := &PlayerInfo{};
 	playerInfo.Id = int(_packet.ReadUint32())

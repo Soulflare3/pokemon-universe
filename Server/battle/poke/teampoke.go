@@ -58,11 +58,46 @@ func NewTeamPoke() *TeamPoke {
 	
 	teamPoke.DVs = make([]int, 6)
 	for i := 0; i < 6; i++ {
-		teamPoke.DVs[i] = 31
+		teamPoke.DVs[i] = 0
 	}
 	teamPoke.EVs = make([]int, 6)
 	for i := 0; i < 6; i++ {
 		teamPoke.EVs[i] = 10
+	}	
+	
+	return &teamPoke
+}
+
+func NewTeamPokeFromPokemon(_pokemon *PlayerPokemon) *TeamPoke {
+	teamPoke := TeamPoke{}
+	teamPoke.UID = NewUniqueIdExt(_pokemon.Base.PokemonId, 0) // TODO: Add form as SubNum
+	teamPoke.Nick = _pokemon.GetNickname()
+	teamPoke.Item = 0 // TODO: Add item 
+	teamPoke.Ability = _pokemon.Ability.AbilityId
+	teamPoke.Nature = 0
+	teamPoke.Gender = _pokemon.Gender
+	teamPoke.Gen = 5
+	teamPoke.Shiny = (_pokemon.IsShiny == 1)
+	teamPoke.Happiness = _pokemon.Happiness
+	teamPoke.Level = _pokemon.GetLevel()
+	
+	teamPoke.Moves = make([]int, 4)
+	for i := 0; i < 4; i++ {
+		
+		if pmove := _pokemon.Moves[i]; pmove != nil {
+			teamPoke.Moves[i] = pmove.Move.MoveId
+		} else {
+			teamPoke.Moves[i] = 0
+		}
+	}
+	
+	teamPoke.DVs = make([]int, 6)
+	for i := 0; i < 6; i++ {
+		teamPoke.DVs[i] = _pokemon.Stats[i]
+	}
+	teamPoke.EVs = make([]int, 6)
+	for i := 0; i < 6; i++ {
+		teamPoke.EVs[i] = 0
 	}	
 	
 	return &teamPoke

@@ -26,10 +26,27 @@ type PlayerPokemon struct {
 	Stats		[]int
 	Happiness	int
 	Gender		int
+	Ability		*Ability
+	Moves		[]*PokemonMove
+	IsShiny		int
 	InParty		int
 	Slot		int
 }
 
 func NewPlayerPokemon() *PlayerPokemon {
-	return &PlayerPokemon{ Stats: make([]int, 6) }
+	return &PlayerPokemon{ Stats: make([]int, 6),
+							Moves: make([]*PokemonMove, 4) }
+}
+
+func (p *PlayerPokemon) GetNickname() string {
+	if len(p.Nickname) == 0 {
+		return p.Base.Species.Identifier
+	}
+	return p.Nickname
+}
+
+func (p *PlayerPokemon) GetLevel() int {
+	// TODO: Calculate pokemon level from exp
+	
+	return 25
 }

@@ -34,6 +34,16 @@ func NewTeam() *Team {
 	return &team
 }
 
+func NewTeamFromParty(_party *PokemonParty) *Team {
+	team := Team { Pokes: make([]*TeamPoke, 6) }
+	for i := 0; i < 6; i++ {
+		if _party.Party[i] != nil {
+			team.Pokes[i] = NewTeamPokeFromPokemon(_party.Party[i])
+		}
+	}
+	return &team
+}
+
 func NewTeamFromPacket(_packet *pnet.QTPacket) *Team {
 	team := Team { Pokes: make([]*TeamPoke, 6) }
 	team.Gen = int(_packet.ReadUint8())

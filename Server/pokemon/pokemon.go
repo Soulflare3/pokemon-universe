@@ -122,7 +122,8 @@ func (p *Pokemon) loadForms() {
 }
 
 func (p *Pokemon) loadMoves() {
-	var query string = "SELECT verion_group_id, move_id, pokemon_move_method_id, level, order FROM pokemon_moves WHERE pokemon_id='%d'"
+	var query string = "SELECT verion_group_id, move_id, pokemon_move_method_id, level, order FROM pokemon_moves" + 
+						" WHERE pokemon_id='%d' AND verion_group_id=11"
 	result, err := DBQuerySelect(fmt.Sprintf(query, p.PokemonId))
 	if err != nil {
 		return

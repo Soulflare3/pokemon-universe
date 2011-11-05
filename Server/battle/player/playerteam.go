@@ -32,6 +32,23 @@ type PlayerTeam struct {
 	avatar int
 }
 
+func NewPlayerTeam() *PlayerTeam {
+	return &PlayerTeam{}
+}
+
+func NewPlayerTeamFromPlayer(_player *Player) *PlayerTeam {
+	playerTeam := PlayerTeam{}
+	playerTeam.Nick = _player.GetName()
+	playerTeam.Info = "PU Client"
+	playerTeam.LoseMessage = "bgnt"
+	playerTeam.WinMessage = "gg"
+	playerTeam.avatar = 0
+	playerTeam.DefaultTier = ""
+	playerTeam.Team = NewTeamFromParty(_player.PokemonParty)
+	
+	return &playerTeam
+}
+
 func NewPlayerTeamFromPacket(_packet *pnet.QTPacket) *PlayerTeam {
 	playerTeam := PlayerTeam{}
 	playerTeam.Nick = _packet.ReadString()
