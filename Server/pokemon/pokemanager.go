@@ -16,11 +16,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
-import (
-	"os"
-	"mysql"
-)
-
 type PokemonList 			map[int]*Pokemon
 type PokemonSpeciesList 	map[int]*PokemonSpecies
 type MoveList 				map[int]*Move
@@ -29,8 +24,6 @@ type PokemonStatArray 		[]*PokemonStat
 type PokemonTypeArray		[]int
 type PokemonAbilityList 	map[int]*PokemonAbility
 type PokemonMoveList 		map[int]*PokemonMove
-
-var g_PokemonManager *PokemonManager = NewPokemonManager()
 
 type PokemonManager struct {
 	pokemon				PokemonList // All pokemon including different forms
@@ -46,43 +39,36 @@ func NewPokemonManager() *PokemonManager {
 							 abilities: make(AbilityList) }
 }
 
-func (m *PokemonManager) Load() {
+func (m *PokemonManager) Load() bool {
 	// Load moves
 	if !m.loadMoves() {
-		return
+		return false
 	}
 	
 	// Load abilities
 	if !m.loadAbilities() {
-		return
-	}
-	
-	// Load PokemonSpecies
-	if m.loadPokemonSpecies() {
-		return
-	}
-	
-	// Load Pokemon
-	if m.loadPokemon() {
-		return
-	}
-}
-
-func (m *PokemonManager) loadMoves() bool {
-	var err os.Error
-	var query string = "SELECT id, identifier, type_id, power, accuracy, priority, target_id, damage_class_id," +
-		" effect_id, effect_chance, contest_type_id, contest_effect_id, super_contest_effect_id" +
-		" FROM moves"
-		
-	if err = g_db.Query(query); err != nil {
-		g_logger.Printf("[ERROR] SQL error while executing query pokemon moves: %s\n\r", err)
 		return false
 	}
 	
-	var result *mysql.Result
-	result, err = g_db.UseResult()
+	// Load PokemonSpecies
+	if !m.loadPokemonSpecies() {
+		return false
+	}
+	
+	// Load Pokemon
+	if !m.loadPokemon() {
+		return false
+	}
+	
+	return true
+}
+
+func (m *PokemonManager) loadMoves() bool {
+	var query string = "SELECT id, identifier, type_id, power, accuracy, priority, target_id, damage_class_id," +
+		" effect_id, effect_chance, contest_type_id, contest_effect_id, super_contest_effect_id" +
+		" FROM moves"
+	result, err := DBQuerySelect(query)
 	if err != nil {
-		g_logger.Println("[ERROR] SQL error while fetching result pokemon moves: %s\n\r", err)
 		return false
 	}
 	
@@ -95,19 +81,19 @@ func (m *PokemonManager) loadMoves() bool {
 		}
 		
 		move := NewMove()
-		move.MoveId = row[0].(int)
-		move.Identifier = row[1].(string)
-		move.TypeId = row[2].(int)
-		move.Power = row[3].(int)
-		move.Accuracy = row[4].(int)
-		move.Priority = row[5].(int)
-		move.TargetId = row[6].(int)
-		move.DamageClassId = row[7].(int)
-		move.EffectId = row[8].(int)
-		move.EffectChance = row[9].(int)
-		move.ContestType = row[10].(int)
-		move.ContestEffect = row[11].(int)
-		move.SuperContestEffect = row[12].(int)
+		move.MoveId = DBGetInt(row[0])
+		move.Identifier = DBGetString(row[1])
+		move.TypeId = DBGetInt(row[2])
+		move.Power = DBGetInt(row[3])
+		move.Accuracy = DBGetInt(row[4])
+		move.Priority = DBGetInt(row[5])
+		move.TargetId = DBGetInt(row[6])
+		move.DamageClassId = DBGetInt(row[7])
+		move.EffectId = DBGetInt(row[8])
+		move.EffectChance = DBGetInt(row[9])
+		move.ContestType = DBGetInt(row[10])
+		move.ContestEffect = DBGetInt(row[11])
+		move.SuperContestEffect = DBGetInt(row[12])
 		
 		// Add to map
 		m.moves[move.MoveId] = move
@@ -117,18 +103,9 @@ func (m *PokemonManager) loadMoves() bool {
 }
 
 func (m *PokemonManager) loadAbilities() bool {
-	var err os.Error
 	var query string = "SELECT id, identifier FROM abilities"
-	
-	if err = g_db.Query(query); err != nil {
-		g_logger.Println("[ERROR] SQL error while executing query pokemon abilities: %s\n\r", err)
-		return false
-	}
-	
-	var result *mysql.Result
-	result, err = g_db.UseResult()
+	result, err := DBQuerySelect(query)
 	if err != nil {
-		g_logger.Println("[ERROR] SQL error while fetching result pokemon abilities: %s\n\r", err)
 		return false
 	}
 	
@@ -141,8 +118,8 @@ func (m *PokemonManager) loadAbilities() bool {
 		}
 		
 		ability := NewAbility()
-		ability.AbilityId = row[0].(int)
-		ability.Identifier = row[1].(string)
+		ability.AbilityId = DBGetInt(row[0])
+		ability.Identifier = DBGetString(row[1])
 		
 		// Add to map
 		m.abilities[ability.AbilityId] = ability
@@ -153,7 +130,6 @@ func (m *PokemonManager) loadAbilities() bool {
 
 func (m *PokemonManager) loadPokemonSpecies() bool {
 	// Select all pokemon including their evolution parameters
-	var err os.Error
 	var query string = "SELECT `ps`.id, `ps`.identifier, `ps`.evolves_from_species_id, `ps`.color_id, `ps`.shape_id, `ps`.habitat_id, `ps`.gender_rate," +
 		" `ps`.capture_rate, `ps`.base_happiness, `ps`.is_baby, `ps`.hatch_counter, `ps`.has_gender_differences, `ps`.growth_rate_id, `ps`.forms_switchable," +
 		" `pe`.evolved_species_id, `pe`.evolution_trigger_id, `pe`.trigger_item_id, `pe`.minimum_level, `pe`.gender, `pe`.location_id, `pe`.held_item_id, `pe`.time_of_day," + 
@@ -161,16 +137,8 @@ func (m *PokemonManager) loadPokemonSpecies() bool {
 		" FROM pokemon_species AS `ps` LEFT JOIN pokemon_evolution AS `pe`" +
 		" ON `pe`.evolved_species_id = (SELECT `ps2`.id FROM pokemon_species AS `ps2`" +
 											" WHERE `ps2`.evolves_from_species_id = `ps`.id LIMIT 1)"
-	
-	if err = g_db.Query(query); err != nil {
-		g_logger.Println("[ERROR] SQL error while executing query pokemon species: %s\n\r", err)
-		return false
-	}
-	
-	var result *mysql.Result
-	result, err = g_db.UseResult()
+	result, err := DBQuerySelect(query)
 	if err != nil {
-		g_logger.Println("[ERROR] SQL error while fetching result pokemon species: %s\n\r", err)
 		return false
 	}
 	
@@ -184,38 +152,38 @@ func (m *PokemonManager) loadPokemonSpecies() bool {
 		
 		// Create EvolutionChain object
 		evoChain := NewEvolutionChain()
-		evoChain.EvolvedSpeciesId = row[14].(int)
-		evoChain.EvolutionTriggerId = row[15].(int)
-		evoChain.TriggerItemId = row[16].(int) // TODO: Change this to the actual Item objet
-		evoChain.MinimumLevel = row[17].(int)
-		evoChain.Gender = row[18].(int)
-		evoChain.LocationId = row[19].(int)
-		evoChain.HeldItemId = row[20].(int)
-		evoChain.TimeOfDay = row[21].(int)
-		evoChain.KnownMoveId = row[22].(int) // TODO: Change to move object
-		evoChain.MinimumHappiness = row[23].(int)
-		evoChain.MinimumBeauty = row[24].(int)
-		evoChain.RelativePhysicalStats = row[25].(int)
-		evoChain.PartySpeciesId = row[26].(int)
-		evoChain.TradeSpeciesId = row[27].(int)
+		evoChain.EvolvedSpeciesId = DBGetInt(row[14])
+		evoChain.EvolutionTriggerId = DBGetInt(row[15])
+		evoChain.TriggerItemId = DBGetInt(row[16]) // TODO: Change this to the actual Item objet
+		evoChain.MinimumLevel = DBGetInt(row[17])
+		evoChain.Gender = DBGetString(row[18])
+		evoChain.LocationId = DBGetInt(row[19])
+		evoChain.HeldItemId = DBGetInt(row[20])
+		evoChain.TimeOfDay = DBGetString(row[21])
+		evoChain.KnownMoveId = DBGetInt(row[22]) // TODO: Change to move object
+		evoChain.MinimumHappiness = DBGetInt(row[23])
+		evoChain.MinimumBeauty = DBGetInt(row[24])
+		evoChain.RelativePhysicalStats = DBGetInt(row[25])
+		evoChain.PartySpeciesId = DBGetInt(row[26])
+		evoChain.TradeSpeciesId = DBGetInt(row[27])
 		
 		// Creat PokemonSpecies object
 		pokemon := NewPokemonSpecies()
-		pokemon.SpeciesId = row[0].(int)
-		pokemon.Identifier = row[1].(string)
-		pokemon.EvolvesFromSpeciesId = row[2].(int)
+		pokemon.SpeciesId = DBGetInt(row[0])
+		pokemon.Identifier = DBGetString(row[1])
+		pokemon.EvolvesFromSpeciesId = DBGetInt(row[2])
 		pokemon.EvolutionChain = evoChain
-		pokemon.ColorId = row[3].(int)
-		pokemon.ShapeId = row[4].(int)
-		pokemon.HabitatId = row[5].(int)
-		pokemon.GenderRate = row[6].(int)
-		pokemon.CaptureRate = row[7].(int)
-		pokemon.BaseHappiness = row[8].(int)
-		pokemon.IsBaby = row[9].(int)
-		pokemon.HatchCounter = row[10].(int)
-		pokemon.HasGenderDifferences = row[11].(int)
-		pokemon.GrowthRateId = row[12].(int)
-		pokemon.FormsSwitchable = row[12].(int)
+		pokemon.ColorId = DBGetInt(row[3])
+		pokemon.ShapeId = DBGetInt(row[4])
+		pokemon.HabitatId = DBGetInt(row[5])
+		pokemon.GenderRate = DBGetInt(row[6])
+		pokemon.CaptureRate = DBGetInt(row[7])
+		pokemon.BaseHappiness = DBGetInt(row[8])
+		pokemon.IsBaby = DBGetInt(row[9])
+		pokemon.HatchCounter = DBGetInt(row[10])
+		pokemon.HasGenderDifferences = DBGetInt(row[11])
+		pokemon.GrowthRateId = DBGetInt(row[12])
+		pokemon.FormsSwitchable = DBGetInt(row[12])
 		
 		// Add to map
 		m.pokemonSpecies[pokemon.SpeciesId] = pokemon
@@ -225,13 +193,12 @@ func (m *PokemonManager) loadPokemonSpecies() bool {
 }
 
 func (m *PokemonManager) loadPokemon() bool {
-	var query string = "SELECT id, species_id, height, weight, base_experience, order, is_default FROM pokemon"
+	var query string = "SELECT `id`, `species_id`, `height`, `weight`, `base_experience`, `order`, `is_default` FROM pokemon"
 	result, err := DBQuerySelect(query)
 	if err != nil {
 		return false
 	}
 	
-	defer result.Free()
 	g_logger.Println(" - Processing pokemon")
 	for {
 		row := result.FetchRow()
@@ -240,31 +207,45 @@ func (m *PokemonManager) loadPokemon() bool {
 		}
 		
 		pokemon := NewPokemon()
-		pokemon.PokemonId = row[0].(int)
-		pokemon.Species = m.GetPokemonSpecies(row[1].(int))
-		pokemon.Height = row[2].(int)
-		pokemon.Weight = row[3].(int)
-		pokemon.BaseExperience = row[4].(int)
-		pokemon.Order = row[5].(int)
-		pokemon.IsDefault = row[6].(int)
-		
-		// Load base stats for this pokemon
-		pokemon.loadStats()
-		
-		// Fetch available abilities for this pokemon
-		pokemon.loadAbilities()
-		
-		// Fetch available forms for this pokemon
-		pokemon.loadForms()
-		
-		// Fetch learnable moves for this pokemon
-		pokemon.loadMoves()
-		
-		// Fetch pokemon types
-		pokemon.loadTypes()
-		
+		pokemon.PokemonId = DBGetInt(row[0])
+		pokemon.Species = m.GetPokemonSpecies(DBGetInt(row[1]))
+		pokemon.Height = DBGetInt(row[2])
+		pokemon.Weight = DBGetInt(row[3])
+		pokemon.BaseExperience = DBGetInt(row[4])
+		pokemon.Order = DBGetInt(row[5])
+		pokemon.IsDefault = DBGetInt(row[6])
+				
 		// Add to map
 		m.pokemon[pokemon.PokemonId] = pokemon
+	}
+	result.Free()
+	
+	// We load the actual pokemon data after we loaded the pokemon
+	for _, pokemon := range(m.pokemon) {
+		// Load base stats for this pokemon
+		if !pokemon.loadStats() {
+			return false
+		}
+		
+		// Fetch available abilities for this pokemon
+		if !pokemon.loadAbilities() {
+			return false
+		}
+		
+		// Fetch available forms for this pokemon
+		if !pokemon.loadForms() {
+			return false
+		}
+		
+		// Fetch learnable moves for this pokemon
+		if !pokemon.loadMoves() {
+			return false
+		}
+		
+		// Fetch pokemon types
+		if !pokemon.loadTypes() {
+			return false
+		}
 	}
 	
 	return true

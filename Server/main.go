@@ -41,9 +41,10 @@ var (
 	g_logger 	*log.Logger
 	g_db     	*mysql.Client
 
-	g_game   	*Game
-	g_server	*Server
-	g_map    	*Map
+	g_game				*Game
+	g_server			*Server
+	g_map    			*Map
+	g_PokemonManager 	*PokemonManager
 
 	// Client viewport variables. The Z position doesn't matter in this case
 	CLIENT_VIEWPORT        pos.Position = pos.Position{28, 22, 0}
@@ -146,6 +147,13 @@ func main() {
 	if initDatabase() == false {
 		return
 	}
+	
+	g_logger.Println("Loading pokemon data")
+	g_PokemonManager = NewPokemonManager()
+	// if !g_PokemonManager.Load() {
+	//	g_logger.Println("Failed to load pokemon data...")
+	//	return
+	// }
 
 	// Load data
 	g_logger.Println("Loading game data...")

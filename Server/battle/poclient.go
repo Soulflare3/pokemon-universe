@@ -33,8 +33,8 @@ type POClient struct {
 func NewPOClient(_player *Player) (*POClient, os.Error) {
 	poClient := POClient{ player: _player }
 	
-	meLoginPlayer = NewFullPlayerInfoFromPlayer(_player)
-	mePlayer = NewPlayerInfoFromFullPlayerInfo(meLoginPlayer)
+	poClient.meLoginPlayer = NewFullPlayerInfoFromPlayer(_player)
+	poClient.mePlayer = NewPlayerInfoFromFullPlayerInfo(poClient.meLoginPlayer)
 	
 	return &poClient, nil
 }

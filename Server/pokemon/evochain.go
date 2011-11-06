@@ -21,10 +21,10 @@ type EvolutionChain struct {
 	EvolutionTriggerId		int
 	TriggerItemId			int
 	MinimumLevel			int
-	Gender					int
+	Gender					string
 	LocationId				int
 	HeldItemId				int
-	TimeOfDay				int
+	TimeOfDay				string
 	KnownMoveId				int
 	MinimumHappiness		int
 	MinimumBeauty			int

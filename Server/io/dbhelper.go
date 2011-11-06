@@ -23,15 +23,29 @@ import (
 
 func DBQuerySelect(_query string) (result *mysql.Result, err os.Error) {
 	if err = g_db.Query(_query); err != nil {
-		g_logger.Printf("[ERROR] SQL error while executing query:\n\r%s\n\rError: %s\n\r", _query, err)
+		g_logger.Printf("[ERROR] SQL error while executing query:\n\r%s\n\rError: %s", _query, err)
 		return nil, err
 	}
 	
 	result, err = g_db.UseResult()
 	if err != nil {
-		g_logger.Println("[ERROR] SQL error while fetching result for query:\n\r%s\n\rError: %s\n\r", _query, err)
+		g_logger.Println("[ERROR] SQL error while fetching result for query:\n\r%s\n\rError: %s", _query, err)
 		return nil, err
 	}
 	
 	return result, nil
+}
+
+func DBGetString(_row interface{}) string {
+	if _row != nil {
+		return _row.(string)
+	}
+	return ""
+}
+
+func DBGetInt(_row interface{}) int {
+	if _row != nil {
+		return _row.(int)
+	}
+	return 0
 }
