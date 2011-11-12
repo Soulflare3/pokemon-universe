@@ -26,7 +26,7 @@ type UniqueId struct {
 }
 
 func NewUniqueId() *UniqueId {
-	return &UniqueId { PokeNum: 173, SubNum: 0 }
+	return &UniqueId { PokeNum: 0, SubNum: 0 }
 }
 
 func NewUniqueIdExt(_pokeNum, _subNum int) *UniqueId {

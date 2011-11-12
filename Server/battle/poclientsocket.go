@@ -36,11 +36,12 @@ func NewPOClientSocket(_owner *POClient) *POClientSocket {
 							 packetChan: make(chan *pnet.QTPacket, 1000) }
 }
 
-func (s *POClientSocket) Connect(_inIpAddr string, _inPortNum int) bool {
+func (s *POClientSocket) Connect(_inIpAddr string, _inPortNum string) bool {
 	var err os.Error
-	s.socket, err = net.Dial("tcp", _inIpAddr + ":" + string(_inPortNum))
+	s.socket, err = net.Dial("tcp", _inIpAddr + ":" + _inPortNum)
 	if err != nil {
 		fmt.Println("[WARNING] Could not connect to PO battle server")
+		fmt.Printf("%v\n\r", err)
 		return false
 	}
 	
@@ -50,7 +51,95 @@ func (s *POClientSocket) Connect(_inIpAddr string, _inPortNum int) bool {
 	loginPacket := s.owner.meLoginPlayer.WritePacket()
 	s.SendMessage(loginPacket, COMMAND_Login)
 	
+	//s.loginTest()
+	
 	return true
+}
+
+func (s *POClientSocket) loginTest() {
+	packet := pnet.NewQTPacket()
+	packet.AddString("HerpDerp")    // Name
+	packet.AddString("Dark Info")   // Info
+	packet.AddString("Dark Lose")   // Lose text
+	packet.AddString("Dark Winrar") // Win text
+	packet.AddUint16(0)             // Avatar
+	packet.AddString("1")           // Default Tier
+	packet.AddUint8(5)              // Generation
+
+	// TEAM - Loop Pokemon
+	packet.AddUint16(16)       // pokemon number
+	packet.AddUint8(0)         // sub number (alt-forms)
+	packet.AddString("Pidgey") // nickname
+	packet.AddUint16(0)        // item
+	packet.AddUint16(65)       // ability
+	packet.AddUint8(0)         // nature
+	packet.AddUint8(1)         // gender
+	packet.AddUint8(0)         // shiny	
+	packet.AddUint8(0)         // happiness
+	packet.AddUint8(100)       // level
+
+	// Team - Loop Pokemon - Loop Moves
+	packet.AddUint32(16) // moveid
+	packet.AddUint32(0)  // moveid
+	packet.AddUint32(0)  // moveid
+	packet.AddUint32(0)  // moveid
+	// Team - Loop Pokemon - End Loop Moves
+	// Team - Loop Pokemon - Loop DV
+	packet.AddUint8(15) // hp
+	packet.AddUint8(15) // attack
+	packet.AddUint8(15) // defense
+	packet.AddUint8(15) // SpAttack
+	packet.AddUint8(15) // SpDefence
+	packet.AddUint8(15) // Speed
+	// Team - Loop Pokemon - End Loop DV
+	// Team - Loop Pokemon - Loop EV
+	packet.AddUint8(152)
+	packet.AddUint8(92)
+	packet.AddUint8(60)
+	packet.AddUint8(64)
+	packet.AddUint8(64)
+	packet.AddUint8(76)
+	// Team - Loop Pokemon - End Loop EV
+
+	// Loop 5 more empty pokemon
+	for i := 0; i < 5; i++ {
+		packet.AddUint16(0)  // pokemon number
+		packet.AddUint8(0)   // sub number (alt-forms)
+		packet.AddString("") // nickname
+		packet.AddUint16(0)  // item
+		packet.AddUint16(0)  // ability
+		packet.AddUint8(0)   // nature
+		packet.AddUint8(0)   // gender
+		packet.AddUint8(0)   // shiny
+		packet.AddUint8(0)   // happiness
+		packet.AddUint8(0)   // level	
+
+		packet.AddUint32(0) // moveid
+		packet.AddUint32(0) // moveid
+		packet.AddUint32(0) // moveid
+		packet.AddUint32(0) // moveid
+
+		packet.AddUint8(0) // hp
+		packet.AddUint8(0) // attack
+		packet.AddUint8(0) // defense
+		packet.AddUint8(0) // SpAttack
+		packet.AddUint8(0) // SpDefence
+		packet.AddUint8(0) // Speed
+
+		packet.AddUint8(0)
+		packet.AddUint8(0)
+		packet.AddUint8(0)
+		packet.AddUint8(0)
+		packet.AddUint8(0)
+		packet.AddUint8(0)
+	}
+
+	// Team - End Loop Pokemon
+	packet.AddUint8(1)  // Ladder
+	packet.AddUint8(1)  // Show team
+	packet.AddUint32(1) // Colour
+	
+	s.SendMessage(packet, COMMAND_Login)
 }
 
 func (s *POClientSocket) Disconnect() {
@@ -78,15 +167,15 @@ func (s *POClientSocket) SendMessage(_buffer pnet.IPacket, _header int) {
 
 func (s *POClientSocket) ReceiveMessages() {
 	for s.connected {
-		var headerbuffer [1]uint8
-		recv, err := io.ReadFull(s.socket, headerbuffer[0:])
+		var headerbuffer [2]uint8
+		recv, err := s.socket.Read(headerbuffer[0:])
 		if err != nil || recv == 0 {
 			fmt.Println("[POCLIENTSOCKET] Disconnected")
 			break
 		}
 		
 		packet := pnet.NewQTPacket()
-		copy(packet.Buffer[0:1], headerbuffer[0:1])
+		copy(packet.Buffer[0:2], headerbuffer[0:2])
 		packet.GetHeader()
 		
 		databuffer := make([]uint8, packet.MsgSize)
@@ -109,37 +198,12 @@ func (s *POClientSocket) ReceiveMessages() {
 		if reloop {
 			continue
 		}
-		
 		copy(packet.Buffer[2:], databuffer[:])
-		
-		// Put the packet in the buffer
-		select {
-			case s.packetChan <- packet:
-				// done
-			default:
-				fmt.Println("[POCLIENTSOCKET] ERROR: Packet buffer full!")
-		}
+			
+		s.owner.ProcessPacket(packet)
 	}
+	
+	fmt.Println("EXIT")
 	
 	s.connected = false
-}
-
-func (s *POClientSocket) HandlePacket() {
-	if !s.connected {
-		return
-	}
-	
-	for {
-		var breakloop bool
-		select {
-			case packet := <- s.packetChan:
-				s.owner.ProcessPacket(packet)
-			
-			default:
-				breakloop = true
-		}
-		if breakloop {
-			break
-		}
-	}
 }

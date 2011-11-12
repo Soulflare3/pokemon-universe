@@ -113,3 +113,13 @@ func (b *Battle) WriteToHist(_message string) {
 	
 	b.histDelta = b.histDelta + _message
 }
+
+func (b *Battle) ReceiveCommand(_packet *pnet.QTPacket) {
+	bc := int(_packet.ReadUint8())
+	player := int(_packet.ReadUint8())
+	fmt.Printf("Battle command received: %d | PlayerId: %d", bc, player)
+	switch bc {
+		default:
+			fmt.Printf("Battle command unimplemented: %d", bc)	
+	}
+}

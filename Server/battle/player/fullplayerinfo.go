@@ -41,6 +41,7 @@ func NewFullPlayerInfoFromPlayer(_player *Player) *FullPlayerInfo {
 	fullPlayerInfo.Team = NewPlayerTeamFromPlayer(_player)
 	fullPlayerInfo.IsDefault = true
 	fullPlayerInfo.ladderEnabled = false
+	fullPlayerInfo.showTeam = true
 	fullPlayerInfo.nameColor = NewQColor()
 	
 	return &fullPlayerInfo
@@ -51,6 +52,7 @@ func NewFullPlayerInfoFromPacket(_packet *pnet.QTPacket) *FullPlayerInfo {
 	fullPlayerInfo.Team = NewPlayerTeamFromPacket(_packet)
 	fullPlayerInfo.IsDefault = true
 	fullPlayerInfo.ladderEnabled = _packet.ReadBool()
+	fullPlayerInfo.showTeam = _packet.ReadBool()
 	fullPlayerInfo.nameColor = NewQColorFromPacket(_packet)
 	
 	return fullPlayerInfo

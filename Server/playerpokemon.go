@@ -16,9 +16,15 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
+import (
+	"fmt"
+)
+
 type PlayerPokemonList map[int]*PlayerPokemon
 
 type PlayerPokemon struct {
+	IdDb		int
+	PlayerId	int
 	Base		*Pokemon
 	Nickname	string
 	IsBound		int // Can (not) trade if 1
@@ -27,15 +33,40 @@ type PlayerPokemon struct {
 	Happiness	int
 	Gender		int
 	Ability		*Ability
-	Moves		[]*PokemonMove
+	Moves		[]*Move
 	IsShiny		int
 	InParty		int
 	Slot		int
+	Nature		int
 }
 
-func NewPlayerPokemon() *PlayerPokemon {
+func NewPlayerPokemon(_playerId int) *PlayerPokemon {
 	return &PlayerPokemon{ Stats: make([]int, 6),
-							Moves: make([]*PokemonMove, 4) }
+							Moves: make([]*Move, 4),
+							Nature: 0,
+							PlayerId: _playerId }
+}
+
+func (p *PlayerPokemon) LoadMoves() {
+	var query string = "SELECT idmove FROM player_pokemon_move WHERE idplayer_pokemon='%d'"
+	derp := fmt.Sprintf(query, p.IdDb)
+	result, err := DBQuerySelect(derp)
+	if err != nil {
+		return
+	}
+	
+	defer result.Free()
+	var index int = 0
+	for {
+		row := result.FetchRow()
+		if row == nil {
+			break
+		}
+		
+		moveId := DBGetInt(row[0])
+		p.Moves[index] = g_PokemonManager.GetMoveById(moveId)
+		index++
+	}
 }
 
 func (p *PlayerPokemon) GetNickname() string {

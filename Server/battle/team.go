@@ -39,6 +39,8 @@ func NewTeamFromParty(_party *PokemonParty) *Team {
 	for i := 0; i < 6; i++ {
 		if _party.Party[i] != nil {
 			team.Pokes[i] = NewTeamPokeFromPokemon(_party.Party[i])
+		} else {
+			team.Pokes[i] = NewTeamPoke()
 		}
 	}
 	return &team

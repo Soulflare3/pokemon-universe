@@ -37,7 +37,7 @@ type PlayerInfo struct {
 }
 
 func NewPlayerInfo() *PlayerInfo {
-	return &PlayerInfo{}
+	return &PlayerInfo{ Pokes: make([]*UniqueId, 6) }
 }
 
 func NewPlayerInfoFromFullPlayerInfo(_info *FullPlayerInfo) *PlayerInfo {
@@ -45,7 +45,7 @@ func NewPlayerInfoFromFullPlayerInfo(_info *FullPlayerInfo) *PlayerInfo {
 }
 
 func NewPlayerInfoFromPacket(_packet *pnet.QTPacket) *PlayerInfo {
-	playerInfo := &PlayerInfo{};
+	playerInfo := NewPlayerInfo();
 	playerInfo.Id = int(_packet.ReadUint32())
 	playerInfo.Nick = _packet.ReadString()
 	playerInfo.Info = _packet.ReadString()

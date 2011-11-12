@@ -22,6 +22,7 @@ import (
 	"flag"
 	"runtime"
 	"os"
+	"time"
 
 	"conf"
 	"mysql"
@@ -32,6 +33,7 @@ import (
 
 const (
 	IS_DEBUG = true
+	PO_DEBUG = true
 )
 
 var (
@@ -150,11 +152,12 @@ func main() {
 	
 	g_logger.Println("Loading pokemon data")
 	g_PokemonManager = NewPokemonManager()
-	// if !g_PokemonManager.Load() {
-	//	g_logger.Println("Failed to load pokemon data...")
-	//	return
-	// }
+	if !g_PokemonManager.Load() {
+		g_logger.Println("Failed to load pokemon data...")
+		return
+	}
 
+	if !PO_DEBUG {
 	// Load data
 	g_logger.Println("Loading game data...")
 	g_game = NewGame()
@@ -168,4 +171,11 @@ func main() {
 	g_logger.Println("--- SERVER STARTING ---")
 	g_server = NewServer()
 	g_server.Start()
+	} else {
+		POTestClientDoIt()
+		
+		for {
+			time.Sleep(1e9)
+		}
+	}
 }

@@ -66,7 +66,8 @@ func (p *QTPacket) GetBuffer() [PACKET_MAXSIZE]uint8 {
 }
 
 func (p *QTPacket) GetBufferSlice() []uint8 {
-	return p.Buffer[0:p.MsgSize]
+	size := p.MsgSize + 2
+	return p.Buffer[2:size]
 }
 
 func (p *QTPacket) GetMsgSize() uint16 {
@@ -106,7 +107,12 @@ func (p *QTPacket) ReadUint64() uint64 {
 
 func (p *QTPacket) ReadString() string {
 	stringlen := p.ReadUint32()
-	if uint16(stringlen) >= (QTPACKET_MAXSIZE + p.readPos) {
+	if stringlen <= 0 || stringlen >= uint32(QTPACKET_MAXSIZE + p.readPos) {
+		return ""
+	}
+	
+	// QString has a special value of 0xFFFFFFFF if it's NULL
+	if stringlen >= 0xFFFFFFFF {
 		return ""
 	}
 
@@ -224,11 +230,14 @@ func (p *QTPacket) AddBuffer(_value []uint8) bool {
 		return false
 	}
 	
-	for i := 2; i < int(size + 2); i++ {
+	copy(p.Buffer[p.readPos:], _value[:])
+
+	/*for i := 0; i < int(size); i++ {
 		p.Buffer[p.readPos] = _value[i]
 		p.readPos += 1
-	}
-	
+	}*/
+		
+	p.readPos += size
 	p.MsgSize += size
 	
 	return true

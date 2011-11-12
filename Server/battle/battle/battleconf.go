@@ -38,3 +38,7 @@ func NewBattleConfFromPacket(_packet *pnet.QTPacket) *BattleConf {
 	
 	return &battleConf
 }
+
+func (b *BattleConf) GetId(_index int) int {
+	return b.Ids[_index]
+}

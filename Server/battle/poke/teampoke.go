@@ -40,21 +40,21 @@ type TeamPoke struct {
 func NewTeamPoke() *TeamPoke {
 	teamPoke := TeamPoke{}
 	teamPoke.UID = NewUniqueId()
-	teamPoke.Nick = "DERP"
-	teamPoke.Item = 71
-	teamPoke.Ability = 98
+	teamPoke.Nick = ""
+	teamPoke.Item = 0
+	teamPoke.Ability = 0
 	teamPoke.Nature = 0
-	teamPoke.Gender = 1
-	teamPoke.Gen = 5
+	teamPoke.Gender = 0
+	teamPoke.Gen = 0
 	teamPoke.Shiny = true
-	teamPoke.Happiness = 127
-	teamPoke.Level = 100
+	teamPoke.Happiness = 0
+	teamPoke.Level = 0
 	
 	teamPoke.Moves = make([]int, 4)
-	teamPoke.Moves[0] = 118
-	teamPoke.Moves[1] = 227
-	teamPoke.Moves[2] = 150
-	teamPoke.Moves[3] = 271
+	teamPoke.Moves[0] = 0
+	teamPoke.Moves[1] = 0
+	teamPoke.Moves[2] = 0
+	teamPoke.Moves[3] = 0
 	
 	teamPoke.DVs = make([]int, 6)
 	for i := 0; i < 6; i++ {
@@ -62,7 +62,7 @@ func NewTeamPoke() *TeamPoke {
 	}
 	teamPoke.EVs = make([]int, 6)
 	for i := 0; i < 6; i++ {
-		teamPoke.EVs[i] = 10
+		teamPoke.EVs[i] = 0
 	}	
 	
 	return &teamPoke
@@ -74,7 +74,7 @@ func NewTeamPokeFromPokemon(_pokemon *PlayerPokemon) *TeamPoke {
 	teamPoke.Nick = _pokemon.GetNickname()
 	teamPoke.Item = 0 // TODO: Add item 
 	teamPoke.Ability = _pokemon.Ability.AbilityId
-	teamPoke.Nature = 0
+	teamPoke.Nature = _pokemon.Nature
 	teamPoke.Gender = _pokemon.Gender
 	teamPoke.Gen = 5
 	teamPoke.Shiny = (_pokemon.IsShiny == 1)
@@ -85,7 +85,7 @@ func NewTeamPokeFromPokemon(_pokemon *PlayerPokemon) *TeamPoke {
 	for i := 0; i < 4; i++ {
 		
 		if pmove := _pokemon.Moves[i]; pmove != nil {
-			teamPoke.Moves[i] = pmove.Move.MoveId
+			teamPoke.Moves[i] = pmove.MoveId
 		} else {
 			teamPoke.Moves[i] = 0
 		}
@@ -97,7 +97,7 @@ func NewTeamPokeFromPokemon(_pokemon *PlayerPokemon) *TeamPoke {
 	}
 	teamPoke.EVs = make([]int, 6)
 	for i := 0; i < 6; i++ {
-		teamPoke.EVs[i] = 0
+		teamPoke.EVs[i] = 42
 	}	
 	
 	return &teamPoke
@@ -134,7 +134,8 @@ func NewTeamPokeFromPacket(_packet *pnet.QTPacket) *TeamPoke {
 
 func (t *TeamPoke) WritePacket() pnet.IPacket {
 	packet := pnet.NewQTPacket()
-	packet.AddBuffer(t.UID.WritePacket().GetBufferSlice())
+	uIdPacket := t.UID.WritePacket()
+	packet.AddBuffer(uIdPacket.GetBufferSlice())
 	packet.AddString(t.Nick)
 	packet.AddUint16(uint16(t.Item))
 	packet.AddUint16(uint16(t.Ability))
@@ -144,11 +145,11 @@ func (t *TeamPoke) WritePacket() pnet.IPacket {
 	packet.AddBool(t.Shiny)
 	packet.AddUint8(uint8(t.Happiness))
 	packet.AddUint8(uint8(t.Level))
-	
+
 	for i := 0; i < 4; i++ {
 		packet.AddUint32(uint32(t.Moves[i]))
 	}
-	
+
 	for i := 0; i < 6; i++ {
 		packet.AddUint8(uint8(t.DVs[i]))
 	}

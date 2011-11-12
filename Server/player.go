@@ -55,16 +55,22 @@ func NewPlayer(_name string) *Player {
 	return &p
 }
 
-func (p *Player) LoadData() {
+func (p *Player) LoadData() bool {
 	// Load player info
 	if !p.loadPlayerInfo() {
 		// TODO: Unload player and disconnect
+		
+		return false
 	}
 	
 	// Load all pokemon player has
 	if !p.loadPokemon() {
 		// TODO: Unload player and disconnect
+		
+		return false
 	}
+	
+	return true
 }
 
 func (p *Player) loadPlayerInfo() bool {
@@ -84,71 +90,95 @@ func (p *Player) loadPlayerInfo() bool {
 		g_logger.Printf("[Error] No data for player %s (%d)", p.name, p.dbid)
 		return false;
 	}
+	
+	fmt.Printf("Player: %d - %s\n\r", DBGetInt(row[0]), DBGetString(row[1]))
 		
-	p.dbid = row[0].(int)
-	p.name = row[1].(string)
-	tile, ok := g_map.GetTile(row[2].(int64))
-	if !ok {
-		g_logger.Printf("[Error] Could not load position info for player %s (%d)", p.name, p.dbid)
-		return false
-	}
-	p.Position = tile
-	p.Movement = row[3].(int)
+	p.dbid = DBGetInt(row[0])
+	p.name = DBGetString(row[1])
+//	tile, ok := g_map.GetTile(row[2].(int64))
+//	if !ok {
+//		g_logger.Printf("[Error] Could not load position info for player %s (%d)", p.name, p.dbid)
+//		return false
+//	}
+//	p.Position = tile
+	p.Movement = DBGetInt(row[3])
 	// TODO: p.LastPokeCenter = row[4].(int)
-	p.Money = row[5].(int)
-	location, ok := g_game.Locations.GetLocation(row[6].(int))
-	if !ok {
-		g_logger.Printf("[Error] Could not load location info for player %s (%d)", p.name, p.dbid)
-		return false
-	}
-	p.Location = location
+	p.Money = DBGetInt(row[5])
+//	location, ok := g_game.Locations.GetLocation(DBGetInt(row[6]))
+//	if !ok {
+//		g_logger.Printf("[Error] Could not load location info for player %s (%d)", p.name, p.dbid)
+//		return false
+//	}
+//	p.Location = location 
 	
 	// Group/Right stuff : row[7].(int)
 	
-	p.SetOutfitKey(OUTFIT_HEAD, row[8].(int))
-	p.SetOutfitKey(OUTFIT_NEK, row[9].(int))
-	p.SetOutfitKey(OUTFIT_UPPER, row[10].(int))
-	p.SetOutfitKey(OUTFIT_LOWER, row[11].(int))
-	p.SetOutfitKey(OUTFIT_FEET, row[12].(int))
+	p.SetOutfitKey(OUTFIT_HEAD, DBGetInt(row[8]))
+	p.SetOutfitKey(OUTFIT_NEK, DBGetInt(row[9]))
+	p.SetOutfitKey(OUTFIT_UPPER, DBGetInt(row[10]))
+	p.SetOutfitKey(OUTFIT_LOWER, DBGetInt(row[11]))
+	p.SetOutfitKey(OUTFIT_FEET, DBGetInt(row[12]))
 	
 	return true
 }
 
 func (p *Player) loadPokemon() bool {
 	var query string = "SELECT idpokemon, nickname, bound, experience, iv_hp, iv_attack, iv_attack_spec, iv_defence, iv_defence_spec," +
-						" iv_speed, happiness, gender, in_party, party_slot WHERE idplayer='%d'"
+						" iv_speed, happiness, gender, in_party, party_slot, idplayer_pokemon, shiny, abilityId FROM player_pokemon WHERE idplayer='%d'"
 	result, err := DBQuerySelect(fmt.Sprintf(query, p.dbid))
 	if err != nil {
+		fmt.Println(err)
 		return false
 	}
 	
-	defer result.Free()
+	fmt.Println("Loading player pokemon..")
+	
 	for {
 		row := result.FetchRow()
 		if row == nil {
 			break
 		}
 		
-		pokemon := NewPlayerPokemon()
-		pokemonId := row[0].(int)
+		fmt.Printf("Player pokemon: %d\n\r", DBGetInt(row[14]))
+		
+		pokemon := NewPlayerPokemon(p.dbid)
+		pokemon.IdDb = DBGetInt(row[14])
+		pokemonId := DBGetInt(row[0])
 		pokemon.Base = g_PokemonManager.GetPokemon(pokemonId)
-		pokemon.Nickname = row[1].(string)
-		pokemon.IsBound = row[2].(int)
-		pokemon.Experience = row[3].(int)
-		pokemon.Stats[0] = row[4].(int)
-		pokemon.Stats[1] = row[5].(int)
-		pokemon.Stats[2] = row[7].(int)
-		pokemon.Stats[3] = row[6].(int)
-		pokemon.Stats[4] = row[8].(int)
-		pokemon.Stats[5] = row[9].(int)
-		pokemon.Happiness = row[10].(int)
-		pokemon.Gender = row[11].(int)
-		pokemon.InParty = row[12].(int)
-		pokemon.Slot = row[13].(int)
+		pokemon.Nickname = DBGetString(row[1])
+		pokemon.IsBound = DBGetInt(row[2])
+		pokemon.Experience = DBGetInt(row[3])
+		pokemon.Stats[0] = DBGetInt(row[4])
+		pokemon.Stats[1] = DBGetInt(row[5])
+		pokemon.Stats[2] = DBGetInt(row[7])
+		pokemon.Stats[3] = DBGetInt(row[6])
+		pokemon.Stats[4] = DBGetInt(row[8])
+		pokemon.Stats[5] = DBGetInt(row[9])
+		pokemon.Happiness = DBGetInt(row[10])
+		pokemon.Gender = DBGetInt(row[11])
+		pokemon.InParty = DBGetInt(row[12])
+		pokemon.Slot = DBGetInt(row[13])
+		pokemon.IsShiny = DBGetInt(row[15])
+		abilityId := DBGetInt(row[16])
+		pokemon.Ability = g_PokemonManager.GetAbilityById(abilityId)
+		
+		if pokemon.Ability == nil {
+			g_logger.Printf("[Warning] Pokemon (%d) has an invalid abilityId (%d)\n\r", pokemon.IdDb, abilityId)
+			pokemon.Ability = g_PokemonManager.GetAbilityById(96)
+		}
 		
 		// Add to party if needed
 		if pokemon.InParty == 1 {
 			p.PokemonParty.AddSlot(pokemon, pokemon.Slot)
+		}
+	}
+	result.Free()
+	
+	// Load moves for each pokemon
+	for index, pokemon := range(p.PokemonParty.Party) {
+		if pokemon != nil {
+			fmt.Printf("Load pokemon moves for: %d\n\r", index)
+			pokemon.LoadMoves()
 		}
 	}
 	
