@@ -74,6 +74,10 @@ func (p *QTPacket) GetMsgSize() uint16 {
 	return p.MsgSize
 }
 
+func (p *QTPacket) GetReadPos() uint16 {
+	return p.readPos
+}
+
 // Byte
 func (p *QTPacket) ReadUint8() uint8 {
 	v := p.Buffer[p.readPos]

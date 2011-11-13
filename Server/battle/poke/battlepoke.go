@@ -45,9 +45,10 @@ type BattlePoke struct {
 
 func NewBattlePokeFromPacket(_packet *pnet.QTPacket) *BattlePoke {
 	battlePoke := BattlePoke{}
-	battlePoke.UID = NewUniqueIdFromPacket(_packet)
+	battlePoke.UID = NewUniqueIdFromPacket(_packet)	
 	battlePoke.Nick = _packet.ReadString()
 	battlePoke.TotalHP = int(_packet.ReadUint16())
+	battlePoke.CurrentHP = int(_packet.ReadUint16())
 	battlePoke.Gender = int(_packet.ReadUint8())
 	battlePoke.Shiny = _packet.ReadBool()
 	battlePoke.Level = int(_packet.ReadUint8())
@@ -55,9 +56,6 @@ func NewBattlePokeFromPacket(_packet *pnet.QTPacket) *BattlePoke {
 	battlePoke.ItemString = ""
 	battlePoke.ability = int(_packet.ReadUint16())
 	battlePoke.happiness = int(_packet.ReadUint8())
-	
-	battlePoke.getName()
-	battlePoke.getTypes()
 	
 	battlePoke.Stats = make([]int, 5)
 	for i := 0; i < 5; i++ {
@@ -76,5 +74,12 @@ func NewBattlePokeFromPacket(_packet *pnet.QTPacket) *BattlePoke {
 		battlePoke.DVs[i] = int(_packet.ReadUint32())
 	}
 	
+	if g_PokemonManager.GetPokemon(battlePoke.UID.PokeNum) == nil {
+		return nil
+	}
+	
+	battlePoke.getName()	
+	battlePoke.getTypes()
+		
 	return &battlePoke
 }

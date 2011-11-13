@@ -34,7 +34,9 @@ func NewBattleTeamFromPacket(_packet *pnet.QTPacket) *BattleTeam {
 								indexes: make([]int, 6) }
 	for i := 0; i < 6; i++ {
 		battleTeam.Pokes[i] = NewBattlePokeFromPacket(_packet)
-		battleTeam.Pokes[i].TeamNum = i
+		if battleTeam.Pokes[i] != nil {
+			battleTeam.Pokes[i].TeamNum = i
+		}
 	}
 	
 	return &battleTeam

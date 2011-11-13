@@ -16,6 +16,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
+import (
+	"fmt"
+)
+
 type PokemonList 			map[int]*Pokemon
 type PokemonSpeciesList 	map[int]*PokemonSpecies
 type MoveList 				map[int]*Move
@@ -272,6 +276,9 @@ func (m *PokemonManager) GetPokemonName(_speciesId, _formId int) string {
 // TODO: Do something with the _FormId variable
 func (m *PokemonManager) GetPokemonTypes(_pokemonId, _formId int) PokemonTypeArray {
 	pokemon := m.GetPokemon(_pokemonId)
+	if pokemon == nil {
+		fmt.Printf("PokemonManager::GetPokemonTypes - Could not find pokemon with id: %d\n\r", _pokemonId)
+	}
 	return pokemon.Types
 }
 

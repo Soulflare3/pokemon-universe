@@ -104,6 +104,7 @@ func (c *POClient) login(_packet *pnet.QTPacket) {
 
 func (c *POClient) playerList(_packet *pnet.QTPacket) {
 	p := NewPlayerInfoFromPacket(_packet)
+	fmt.Printf("PlayerList: %d - %s\n\r", p.Id, p.Nick)
 	if _, found := c.players[p.Id]; !found {
 		c.players[p.Id] = p
 	}
@@ -135,12 +136,12 @@ func (c *POClient) engageBattle(_packet *pnet.QTPacket) {
 	c.bID = int(_packet.ReadUint32())
 	pID1 := int(_packet.ReadUint32())
 	pID2 := int(_packet.ReadUint32())
-	if pID1 == 0 { // This is us!
+	if pID1 == 0 { // This is us!				
 		battleConf := NewBattleConfFromPacket(_packet)
 		// Start the battle
 		c.battle = NewBattle(battleConf, _packet, c.players[battleConf.GetId(0)], c.players[battleConf.GetId(1)], c.mePlayer.Id, c.bID)
 		
-		fmt.Printf("Battle between %s and %s started!", c.players[pID1].Nick, c.players[pID2].Nick)
+		fmt.Printf("Battle between %s and %s started!\n", c.mePlayer.Nick, c.players[pID2].Nick)
 	}
 }
 

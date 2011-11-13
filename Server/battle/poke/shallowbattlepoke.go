@@ -33,7 +33,7 @@ type ShallowBattlePoke struct {
 	LastKnowPercent int
 	Sub bool
 	
-	fullStatus int
+	fullStatus uint32
 }
 
 func NewShallowBattlePoke() *ShallowBattlePoke {
@@ -53,7 +53,7 @@ func NewShallowBattlePokeFromPacket(_packet *pnet.QTPacket, _isMe bool) *Shallow
 	}
 	
 	shallowPoke.LifePercent = int(_packet.ReadUint8())
-	shallowPoke.fullStatus = int(_packet.ReadUint32())
+	shallowPoke.fullStatus = _packet.ReadUint32()
 	shallowPoke.Gender = int(_packet.ReadUint8())
 	shallowPoke.Shiny = _packet.ReadBool()
 	shallowPoke.Level = int(_packet.ReadUint32())
@@ -67,4 +67,13 @@ func (s *ShallowBattlePoke) getName() {
 
 func (s *ShallowBattlePoke) getTypes() {
 	s.Types = g_PokemonManager.GetPokemonTypes(s.UID.PokeNum, s.UID.SubNum)
+}
+
+func (s *ShallowBattlePoke) ChangeStatus(_status uint) {
+	// Clear past status
+	s.fullStatus = s.fullStatus & ^(uint32(1 << STATUS_KEOD) | 0x3F)
+	
+	// Add new status
+	s.fullStatus = s.fullStatus | (1 << _status)
+	
 }

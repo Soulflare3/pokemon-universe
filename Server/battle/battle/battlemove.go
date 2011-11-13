@@ -59,7 +59,7 @@ func NewBattleMoveFromBattleMove(_battleMove *BattleMove) *BattleMove {
 }
 
 func NewBattleMoveFromPacket(_packet *pnet.QTPacket) *BattleMove {
-	battleMove := NewBattleMoveFromId(int(_packet.ReadUint32()))
+	battleMove := NewBattleMoveFromId(int(_packet.ReadUint16()))
 	battleMove.CurrentPP = int(_packet.ReadUint8())
 	battleMove.TotalPP = int(_packet.ReadUint8())
 	
