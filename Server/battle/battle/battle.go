@@ -24,6 +24,7 @@ import (
 )
 
 type Battle struct {
+	owner *POClient
 	players []*PlayerInfo // 0 = you, 1 = opponent
 	
 	remainingTime []int
@@ -60,8 +61,9 @@ type Battle struct {
 	histMutex *sync.RWMutex
 }
 
-func NewBattle(_bc *BattleConf, _packet *pnet.QTPacket, _p1 *PlayerInfo, _p2 *PlayerInfo, _meID int, _bID int) *Battle {
+func NewBattle(_owner *POClient, _bc *BattleConf, _packet *pnet.QTPacket, _p1 *PlayerInfo, _p2 *PlayerInfo, _meID int, _bID int) *Battle {
 	battle := Battle{}
+	battle.owner = _owner
 	battle.conf = _bc
 	battle.bID = _bID
 	battle.myTeam = NewBattleTeamFromPacket(_packet)
@@ -123,8 +125,20 @@ func (b *Battle) ReceiveCommand(_packet *pnet.QTPacket) {
 	switch bc {
 		case BattleCommand_SendOut: // 0
 			b.receivedSendOut(_packet, player)
+		case BattleCommand_SendBack: // 1
+			b.receivedSendBack(player)
+		case BattleCommand_UseAttack: // 2
+			b.receivedUseAttack(_packet, player)
 		case BattleCommand_OfferChoice: // 3
 			b.receiveOfferChoice(_packet)
+		case BattleCommand_BeginTurn: // 4
+			b.receivedBeginTurn(_packet)
+		case BattleCommand_ChangePP: // 5
+			b.receivedChangePP(_packet)
+		case BattleCommand_ChangeHp: // 6
+			b.receivedChangeHp(_packet, player)
+		case BattleCommand_Ko: // 7
+			b.receivedKo(player)
 		case BattleCommand_AbsStatusChange: // 25
 			b.receivedAbsStatusChange(_packet, player)
 		case BattleCommand_BlankMessage: // 28
@@ -183,6 +197,15 @@ func (b *Battle) receivedSendOut(_packet *pnet.QTPacket, _player int) {
 	}
 }
 
+func (b *Battle) receivedSendBack(_player int) {
+	b.WriteToHist(fmt.Sprintf("%s called %s back!\n", b.players[_player].Nick, b.currentPoke(_player).RNick))
+}
+
+func (b *Battle) receivedUseAttack(_packet *pnet.QTPacket, _player int) {
+	attack := int(_packet.ReadUint16())
+	b.WriteToHist(fmt.Sprintf("%s used %s!\n", b.currentPoke(_player).Nick, g_PokemonManager.GetMoveById(attack).Identifier))
+}
+
 func (b *Battle) receiveOfferChoice(_packet *pnet.QTPacket) {
 	_packet.ReadUint8() // We don't need it (numSlot)
 	b.allowSwitch = _packet.ReadBool()
@@ -202,6 +225,38 @@ func (b *Battle) receiveOfferChoice(_packet *pnet.QTPacket) {
 	}
 	
 	// TODO: Send updateButtons to PU client
+}
+
+func (b *Battle) receivedBeginTurn(_packet *pnet.QTPacket) {
+	turn := _packet.ReadUint32()
+	b.WriteToHist(fmt.Sprintf("Start of turn %d!\n", turn))
+}
+
+func (b *Battle) receivedChangePP(_packet *pnet.QTPacket) {
+	moveNum := int(_packet.ReadUint8())
+	newPP := int(_packet.ReadUint8())
+	b.displayedMoves[moveNum].CurrentPP = newPP
+	b.myTeam.Pokes[0].Moves[moveNum].CurrentPP = newPP
+	
+	// TODO: Send updateMovePP to PUClient
+}
+
+func (b *Battle) receivedChangeHp(_packet *pnet.QTPacket, _player int) {
+	newHp := int(_packet.ReadUint16())
+	if _player == b.me {
+		b.myTeam.Pokes[0].CurrentHP = newHp;
+		b.currentPoke(_player).LastKnownPercent = newHp
+		b.currentPoke(_player).LifePercent = (newHp * 100) / b.myTeam.Pokes[0].TotalHP
+	} else {
+		b.currentPoke(_player).LastKnownPercent = newHp
+		b.currentPoke(_player).LifePercent = newHp
+	}
+	
+	// TODO: Send HP update to PU Client
+}
+
+func (b *Battle) receivedKo(_player int) {
+	b.WriteToHist(fmt.Sprintf("%s fainted!\n", b.currentPoke(_player).Nick))
 }
 
 func (b *Battle) receivedAbsStatusChange(_packet *pnet.QTPacket, _player int) {
@@ -259,4 +314,34 @@ func (b *Battle) receiveMakeYourCoice() {
 	if b.allowSwitch && !b.allowAttack {
 		// TOOD: Send switchToPokeViewer to PU client
 	}
+}
+
+// -------------------- Send Messages ----------------------
+func (b *Battle) sendBattleMessageAttack(_attackSlot int) {
+	packet := pnet.NewQTPacket()
+	packet.AddUint32(uint32(b.bID))
+	ac := NewAttackChoice(_attackSlot, b.opp)
+	bc := NewBattleChoiceWithChoice(b.me, ac, CHOICETYPE_ATTACKTYPE)
+	packet.AddBuffer(bc.WritePacket().GetBufferSlice())
+	
+	b.owner.SendMessage(packet, COMMAND_BattleMessage)
+}
+
+func (b *Battle) sendBattleMessageSwitch(_toSpot int) {
+	packet := pnet.NewQTPacket()
+	packet.AddUint32(uint32(b.bID))
+	sc := NewSwitchChoice(_toSpot)
+	bc := NewBattleChoiceWithChoice(b.me, sc, CHOICETYPE_SWITCHTYPE)
+	packet.AddBuffer(bc.WritePacket().GetBufferSlice())
+	
+	b.owner.SendMessage(packet, COMMAND_BattleMessage)
+}
+
+func (b *Battle) sendBattleMessageCancel() {
+	packet := pnet.NewQTPacket()
+	packet.AddUint32(uint32(b.bID))
+	bc := NewBattleChoice(b.me, CHOICETYPE_CANCELTYPE)
+	packet.AddBuffer(bc.WritePacket().GetBufferSlice())
+	
+	b.owner.SendMessage(packet, COMMAND_BattleMessage)
 }

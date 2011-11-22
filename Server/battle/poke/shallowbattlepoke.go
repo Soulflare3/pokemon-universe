@@ -30,7 +30,7 @@ type ShallowBattlePoke struct {
 	Gender int
 	LifePercent int
 	Level int
-	LastKnowPercent int
+	LastKnownPercent int
 	Sub bool
 	
 	fullStatus uint32

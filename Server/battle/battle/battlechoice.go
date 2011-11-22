@@ -31,6 +31,7 @@ const (
 
 type IChoice interface {
 	GetChoiceType() int
+	WritePacket() pnet.IPacket
 }
 
 //
@@ -53,6 +54,13 @@ func (c *AttackChoice) GetChoiceType() int {
 	return CHOICETYPE_ATTACKTYPE
 }
 
+func (c *AttackChoice) WritePacket() pnet.IPacket {
+	packet := pnet.NewQTPacket()
+	packet.AddUint8(uint8(c.AttackSlot))
+	packet.AddUint8(uint8(c.AttackTarget))
+	return packet
+}
+
 //
 // Switch Choice
 type SwitchChoice struct {
@@ -70,6 +78,12 @@ func NewSwitchChoiceFromPacket(_packet *pnet.QTPacket) *SwitchChoice {
 
 func (c *SwitchChoice) GetChoiceType() int {
 	return CHOICETYPE_ATTACKTYPE
+}
+
+func (c *SwitchChoice) WritePacket() pnet.IPacket {
+	packet := pnet.NewQTPacket()
+	packet.AddUint8(uint8(c.PokeSlot))
+	return packet
 }
 
 //
@@ -102,6 +116,14 @@ func (c *RearrangeChoice) GetChoiceType() int {
 	return CHOICETYPE_REARRANGETYPE
 }
 
+func (c *RearrangeChoice) WritePacket() pnet.IPacket {
+	packet := pnet.NewQTPacket()
+	for i := 0; i < 6; i++ {
+		packet.AddUint8(uint8(c.PokeIndexes[i]))
+	}
+	return packet
+}
+
 //
 // MovetoCenter Choice
 type MoveToCenterChoice struct {
@@ -115,6 +137,10 @@ func (m *MoveToCenterChoice) GetChoiceType() int {
 	return CHOICETYPE_CENTERMOVETYPE
 }
 
+func (c *MoveToCenterChoice) WritePacket() pnet.IPacket {
+	return pnet.NewQTPacket()
+}
+
 //
 // Draw Choice
 type DrawChoice struct {
@@ -126,6 +152,10 @@ func NewDrawChoice() *DrawChoice {
 
 func (m *DrawChoice) GetChoiceType() int {
 	return CHOICETYPE_DRAWTYPE
+}
+
+func (c *DrawChoice) WritePacket() pnet.IPacket {
+	return pnet.NewQTPacket()
 }
 
 //
@@ -162,4 +192,21 @@ func NewBattleChoiceFromPacket(_packet *pnet.QTPacket) *BattleChoice {
 	}
 	
 	return &battleChoice
+}
+
+func (b *BattleChoice) WritePacket() pnet.IPacket {
+	packet := pnet.NewQTPacket()
+	packet.AddUint8(uint8(b.PlayerSlot))
+	packet.AddUint8(uint8(b.ChoiceType))
+	
+	switch b.ChoiceType {
+		case CHOICETYPE_SWITCHTYPE:
+			fallthrough
+		case CHOICETYPE_ATTACKTYPE:
+			fallthrough
+		case CHOICETYPE_REARRANGETYPE:
+			packet.AddBuffer(b.Choice.WritePacket().GetBufferSlice())
+	}
+	
+	return packet
 }

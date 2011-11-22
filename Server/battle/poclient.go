@@ -139,7 +139,7 @@ func (c *POClient) engageBattle(_packet *pnet.QTPacket) {
 	if pID1 == 0 { // This is us!				
 		battleConf := NewBattleConfFromPacket(_packet)
 		// Start the battle
-		c.battle = NewBattle(battleConf, _packet, c.players[battleConf.GetId(0)], c.players[battleConf.GetId(1)], c.mePlayer.Id, c.bID)
+		c.battle = NewBattle(c, battleConf, _packet, c.players[battleConf.GetId(0)], c.players[battleConf.GetId(1)], c.mePlayer.Id, c.bID)
 		
 		fmt.Printf("Battle between %s and %s started!\n", c.mePlayer.Nick, c.players[pID2].Nick)
 	}
