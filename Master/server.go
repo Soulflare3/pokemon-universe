@@ -17,11 +17,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
-	"fmt"
-	"os"
-	"net"
-	"hash"
 	"crypto/sha1"
+
+	"fmt"
+	"hash"
+	"net"
 	"strings"
 
 	"mysql"
@@ -117,7 +117,7 @@ func (s *Server) checkCredentials(_username, _password string) (ret bool, iduser
 	_username = g_db.Escape(_username)
 	_password = g_db.Escape(_password)
 
-	var err os.Error
+	var err error
 	var res *mysql.MySQLResult
 	var rows map[string]interface{}
 	var queryString string = "SELECT iduser, password, password_salt FROM users WHERE username='" + _username + "'"
@@ -141,7 +141,7 @@ func (s *Server) checkCredentials(_username, _password string) (ret bool, iduser
 }
 
 func (s *Server) loadCharacters(_message *LoginMessage, _iduser string) {
-	var err os.Error
+	var err error
 	var res *mysql.MySQLResult
 	var rows map[string]interface{}
 	var queryString string = "SELECT idserver, name FROM characters WHERE idaccount='" + _iduser + "'"

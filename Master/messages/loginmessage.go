@@ -16,10 +16,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
-import (
-	"os"
-	pnet "network"
-)
+import pnet "network"
 
 const (
 	LOGINSTATUS_IDLE            = 0
@@ -55,7 +52,7 @@ func (m *LoginMessage) GetHeader() uint8 {
 }
 
 // ReadPacket reads all data from a packet and puts it in the object
-func (m *LoginMessage) ReadPacket(_packet *pnet.Packet) os.Error {
+func (m *LoginMessage) ReadPacket(_packet *pnet.Packet) error {
 	m.Username = _packet.ReadString()
 	m.Password = _packet.ReadString()
 	m.ClientVersion = _packet.ReadUint16()
@@ -64,7 +61,7 @@ func (m *LoginMessage) ReadPacket(_packet *pnet.Packet) os.Error {
 }
 
 // WritePacket write the needed object data to a Packet and returns it
-func (m *LoginMessage) WritePacket() (*pnet.Packet, os.Error) {
+func (m *LoginMessage) WritePacket() (*pnet.Packet, error) {
 	packet := pnet.NewPacketExt(m.GetHeader())
 	packet.AddUint32(m.Status)
 

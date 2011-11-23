@@ -16,15 +16,13 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
-import (
-	"os"
-)
+import "errors"
 
 type IOMapXML struct {
 
 }
 
-func (m *IOMapXML) LoadMap(_map *Map) os.Error {
-	err := os.NewError("Map loading from XML is not yet supported.")
+func (m *IOMapXML) LoadMap(_map *Map) error {
+	err := errors.New("Map loading from XML is not yet supported.")
 	return err
 }

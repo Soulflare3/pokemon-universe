@@ -18,7 +18,6 @@ package main
 
 import (
 	"math"
-	list "container/vector"
 )
 
 const (
@@ -41,7 +40,7 @@ type PU_OnscreenChatMessage struct {
 	name  string
 	x     int
 	y     int
-	lines list.Vector
+	lines []*PU_OnscreenChatLine
 }
 
 func NewOnscreenChatMessage(_name string, _x int, _y int) *PU_OnscreenChatMessage {
@@ -62,9 +61,9 @@ func (m *PU_OnscreenChatMessage) Draw(_ticks int) bool {
 	m.UpdateLines(_ticks)
 
 	font := g_engine.GetFont(FONT_PURITANBOLD_14)
-	if m.lines.Len() > 0 {
+	if len(m.lines) > 0 {
 		lineHeight := font.GetStringHeight()
-		height := lineHeight + (lineHeight * m.lines.Len())
+		height := lineHeight + (lineHeight * len(m.lines))
 
 		center := false
 
@@ -90,9 +89,9 @@ func (m *PU_OnscreenChatMessage) Draw(_ticks int) bool {
 
 		widest := font.GetStringWidth(header)
 
-		for i := 0; i < m.lines.Len(); i++ {
-			line, ok := m.lines.At(i).(*PU_OnscreenChatLine)
-			if ok {
+		for i := 0; i < len(m.lines); i++ {
+			line := m.lines[i]
+			if line != nil {
 				len := font.GetStringWidth(line.text)
 				if len > widest {
 					widest = len
@@ -126,9 +125,9 @@ func (m *PU_OnscreenChatMessage) Draw(_ticks int) bool {
 		font.SetStyle(true, false, false)
 		font.DrawBorderedText(header, centerPos, drawY)
 
-		for i := 0; i < m.lines.Len(); i++ {
-			line, ok := m.lines.At(i).(*PU_OnscreenChatLine)
-			if ok {
+		for i := 0; i < len(m.lines); i++ {
+			line := m.lines[i]
+			if line != nil {
 				nameHalf = int(math.Floor(float64(font.GetStringWidth(line.text)) / 2.0))
 				centerPos = posHalf - nameHalf
 
@@ -143,9 +142,9 @@ func (m *PU_OnscreenChatMessage) Draw(_ticks int) bool {
 }
 
 func (m *PU_OnscreenChatMessage) AddLine(_text string) {
-	m.lines.Push(NewOnscreenChatLine(_text))
-	if m.lines.Len() > 4 {
-		m.lines.Delete(0)
+	m.lines = append(m.lines, NewOnscreenChatLine(_text))
+	if len(m.lines) > 4 {
+		m.lines = append(m.lines[:0], m.lines[1:]...)
 	}
 }
 
@@ -211,12 +210,12 @@ func (t *PU_OnscreenChatMessage) NextWord(_text string, _start int) string {
 }
 
 func (m *PU_OnscreenChatMessage) UpdateLines(_ticks int) {
-	for i := 0; i < m.lines.Len(); {
-		line, ok := m.lines.At(i).(*PU_OnscreenChatLine)
-		if ok {
+	for i := 0; i < len(m.lines); {
+		line := m.lines[i]
+		if line != nil {
 			line.ticks -= _ticks
 			if line.ticks <= 0 {
-				m.lines.Delete(i)
+				m.lines = append(m.lines[:i], m.lines[i+1:]...)
 			} else {
 				i++
 			}

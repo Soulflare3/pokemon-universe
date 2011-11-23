@@ -45,13 +45,13 @@ func (m *PU_Map) AddTile(_x int, _y int) *PU_Tile {
 }
 
 func (m *PU_Map) RemoveTile(_tile *PU_Tile) {
-	m.tileMap[_tile.GetHash()] = _tile, false
+	delete(m.tileMap, _tile.GetHash())
 }
 
 func (m *PU_Map) RemoveTileFromPos(_pos *pos.Position) {
-	tile, present := m.tileMap[_pos.Hash()]
+	_, present := m.tileMap[_pos.Hash()]
 	if present {
-		m.tileMap[_pos.Hash()] = tile, false
+		delete(m.tileMap, _pos.Hash())
 	}
 }
 

@@ -17,13 +17,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
-	"os"
+	"errors"
 	pos "position"
 )
 
 // Interface for map loading
 type IMapLoader interface {
-	LoadMap(_map *Map) os.Error
+	LoadMap(_map *Map) error
 }
 
 type TilesMap map[int64]*Tile
@@ -35,7 +35,7 @@ func NewMap() *Map {
 	return &Map{tiles: make(TilesMap)}
 }
 
-func (m *Map) Load() os.Error {
+func (m *Map) Load() error {
 	maptype, _ := g_config.GetString("map", "type")
 	var loader IMapLoader
 	switch maptype {
@@ -44,7 +44,7 @@ func (m *Map) Load() os.Error {
 	case "db":
 		loader = &IOMapDB{}
 	default:
-		return os.NewError("Undefined map format!")
+		return errors.New("Undefined map format!")
 	}
 
 	err := loader.LoadMap(m)

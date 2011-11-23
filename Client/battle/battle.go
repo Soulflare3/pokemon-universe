@@ -16,14 +16,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
-import (
-	list "container/vector"
-)
-
 type PU_Battle struct {
 	battletype int
 
-	eventQueue list.Vector
+	eventQueue []IBattleEvent
 
 	fighters     [4]*PU_Fighter
 	self         *PU_Fighter
@@ -56,7 +52,7 @@ func (b *PU_Battle) Stop() {
 }
 
 func (b *PU_Battle) AddEvent(_event IBattleEvent) {
-	b.eventQueue.Push(_event)
+	b.eventQueue = append(b.eventQueue, _event)
 }
 
 func (b *PU_Battle) SetPokemon(_slot int) {
@@ -162,9 +158,9 @@ func (b *PU_Battle) ProcessEvents() {
 		}
 
 	case BATTLE_RUNNING:
-		if b.eventQueue.Len() > 0 {
-			event := b.eventQueue.At(0).(IBattleEvent)
-			b.eventQueue.Delete(0)
+		if len(b.eventQueue) > 0 {
+			event := b.eventQueue[0]
+			b.eventQueue = append(b.eventQueue[:0], b.eventQueue[1:]...)
 			if event != nil {
 				event.Execute()
 			}

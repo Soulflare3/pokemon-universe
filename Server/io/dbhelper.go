@@ -16,23 +16,20 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
-import (
-	"os"
-	"mysql"
-)
+import "mysql"
 
-func DBQuerySelect(_query string) (result *mysql.Result, err os.Error) {
+func DBQuerySelect(_query string) (result *mysql.Result, err error) {
 	if err = g_db.Query(_query); err != nil {
 		g_logger.Printf("[ERROR] SQL error while executing query:\n\r%s\n\rError: %s", _query, err)
 		return nil, err
 	}
-	
+
 	result, err = g_db.UseResult()
 	if err != nil {
 		g_logger.Println("[ERROR] SQL error while fetching result for query:\n\r%s\n\rError: %s", _query, err)
 		return nil, err
 	}
-	
+
 	return result, nil
 }
 

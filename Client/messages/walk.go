@@ -17,8 +17,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
-	punet "network"
 	"math"
+	punet "network"
 )
 
 func (p *PU_GameProtocol) Send_Walk(_direction int, _requestTiles bool) {
@@ -40,7 +40,7 @@ func (p *PU_GameProtocol) Receive_CreatureWalk(_message *punet.Message) {
 	fromTile := g_map.GetTile(data.FromX, data.FromY)
 	toTile := g_map.GetTile(data.ToX, data.ToY)
 	if creature != nil {
-		if int(math.Fabs(float64(data.FromX)-float64(data.ToX))) > 1 || int(math.Fabs(float64(data.FromY)-float64(data.ToY))) > 1 {
+		if int(math.Abs(float64(data.FromX)-float64(data.ToX))) > 1 || int(math.Abs(float64(data.FromY)-float64(data.ToY))) > 1 {
 			creature.SetPosition(data.ToX, data.ToY)
 		} else {
 			creature.ReceiveWalk(fromTile, toTile)

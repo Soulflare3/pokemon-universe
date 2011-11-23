@@ -17,7 +17,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
-	"os"
 	"mysql"
 	pos "position"
 )
@@ -38,7 +37,7 @@ func NewLocationStore() *LocationStore {
 	return &LocationStore{Locations: make(LocationMap)}
 }
 
-func (store *LocationStore) Load() (err os.Error) {
+func (store *LocationStore) Load() (err error) {
 	var query string = "SELECT t.idlocation, t.name, t.idmusic, p.position FROM location t LEFT JOIN pokecenter p ON p.idpokecenter = t.idpokecenter"
 	if err = g_db.Query(query); err != nil {
 		return

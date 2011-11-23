@@ -17,10 +17,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
-	"os"
-	pos "position"
-	"mysql"
 	"fmt"
+	"mysql"
+	pos "position"
 )
 
 type IOMapDB struct{}
@@ -71,7 +70,7 @@ func processRows(_map *Map) {
 	}
 }
 
-func (io *IOMapDB) LoadMap(_map *Map) (err os.Error) {
+func (io *IOMapDB) LoadMap(_map *Map) (err error) {
 	// Spawn a row processor, in a different goroutine.
 	go processRows(_map)
 

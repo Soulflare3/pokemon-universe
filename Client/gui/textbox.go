@@ -20,7 +20,6 @@ package main
 
 import (
 	"sdl"
-	list "container/vector"
 )
 
 const (
@@ -37,7 +36,7 @@ type PU_Textbox struct {
 	italic     bool
 	underlined bool
 
-	lines     list.Vector
+	lines     []*PU_Text
 	scrollbar *PU_Scrollbar
 }
 
@@ -65,10 +64,10 @@ func (t *PU_Textbox) SetStyle(_bold bool, _italic bool, _underlined bool) {
 }
 
 func (t *PU_Textbox) AddLine(_line *PU_Text) {
-	if t.lines.Len() > TEXTBOX_BUFFERSIZE {
-		t.lines.Delete(0)
+	if len(t.lines) > TEXTBOX_BUFFERSIZE {
+		t.lines = append(t.lines[:0], t.lines[1:]...)
 	}
-	t.lines.Push(_line)
+	t.lines = append(t.lines, _line)
 
 	t.UpdateScrollbar()
 }
@@ -149,7 +148,7 @@ func (t *PU_Textbox) UpdateScrollbar() {
 		boxHeight := t.rect.height - 6
 		visibleLines := int(float32(boxHeight) / float32(fontHeight))
 
-		max := t.lines.Len() - visibleLines
+		max := len(t.lines) - visibleLines
 		if max <= 0 {
 			max = 0
 		}
@@ -190,9 +189,9 @@ func (t *PU_Textbox) Draw() {
 	drawY := top.y + 3
 
 	for line := scrollInc; line < (visibleLines + scrollInc); line++ {
-		if line < t.lines.Len() {
-			text, ok := t.lines.At(line).(*PU_Text)
-			if ok {
+		if line < len(t.lines) {
+			text := t.lines[line]
+			if text != nil {
 				numParts := text.count
 				for part := 0; part < numParts; part++ {
 					curPart := text.GetPart(part)

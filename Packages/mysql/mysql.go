@@ -7,10 +7,11 @@ package mysql
 
 // Imports
 import (
+	"errors"
 	"fmt"
 	"log"
-	"os"
 	"net"
+	"os"
 	"strings"
 	"sync"
 )
@@ -88,7 +89,7 @@ func NewClient(protocol ...uint8) (c *Client) {
 }
 
 // Connect to server via TCP
-func DialTCP(raddr, user, passwd string, dbname ...string) (c *Client, err os.Error) {
+func DialTCP(raddr, user, passwd string, dbname ...string) (c *Client, err error) {
 	c = NewClient(DEFAULT_PROTOCOL)
 	// Add port if not set
 	if strings.Index(raddr, ":") == -1 {
@@ -100,7 +101,7 @@ func DialTCP(raddr, user, passwd string, dbname ...string) (c *Client, err os.Er
 }
 
 // Connect to server via unix socket
-func DialUnix(raddr, user, passwd string, dbname ...string) (c *Client, err os.Error) {
+func DialUnix(raddr, user, passwd string, dbname ...string) (c *Client, err error) {
 	c = NewClient(DEFAULT_PROTOCOL)
 	// Use default socket if socket is empty
 	if raddr == "" {
@@ -112,7 +113,7 @@ func DialUnix(raddr, user, passwd string, dbname ...string) (c *Client, err os.E
 }
 
 // Connect to the server
-func (c *Client) Connect(network, raddr, user, passwd string, dbname ...string) (err os.Error) {
+func (c *Client) Connect(network, raddr, user, passwd string, dbname ...string) (err error) {
 	// Log connect
 	c.log(1, "=== Begin connect ===")
 	// Lock mutex/defer unlock
@@ -139,12 +140,12 @@ func (c *Client) Connect(network, raddr, user, passwd string, dbname ...string) 
 }
 
 // Close connection to server
-func (c *Client) Close() (err os.Error) {
+func (c *Client) Close() (err error) {
 	// Log close
 	c.log(1, "=== Begin close ===")
 	// Check connection
 	if !c.connected {
-		err = os.NewError("Must be connected to do this")
+		err = errors.New("Must be connected to do this")
 		return
 	}
 	// Lock mutex/defer unlock
@@ -164,52 +165,52 @@ func (c *Client) Close() (err os.Error) {
 }
 
 // Change the current database
-func (c *Client) ChangeDb(dbname string) (err os.Error) {
+func (c *Client) ChangeDb(dbname string) (err error) {
 	return
 }
 
 // Send a query to the server
-func (c *Client) Query(sql string) (err os.Error) {
+func (c *Client) Query(sql string) (err error) {
 	return
 }
 
 // Send multiple queries to the server
-func (c *Client) MultiQuery(sql string) (err os.Error) {
+func (c *Client) MultiQuery(sql string) (err error) {
 	return
 }
 
 // Fetch all rows for a result and store it, returning the result set
-func (c *Client) StoreResult() (result *Result, err os.Error) {
+func (c *Client) StoreResult() (result *Result, err error) {
 	return
 }
 
 // Use a result set, does not store rows
-func (c *Client) UseResult() (result *Result, err os.Error) {
+func (c *Client) UseResult() (result *Result, err error) {
 	return
 }
 
 // Check if more results are available
-func (c *Client) MoreResults() (ok bool, err os.Error) {
+func (c *Client) MoreResults() (ok bool, err error) {
 	return
 }
 
 // Move to the next available result
-func (c *Client) NextResult() (ok bool, err os.Error) {
+func (c *Client) NextResult() (ok bool, err error) {
 	return
 }
 
 // Enable or disable autocommit
-func (c *Client) AutoCommit(state bool) (err os.Error) {
+func (c *Client) AutoCommit(state bool) (err error) {
 	return
 }
 
 // Commit a transaction
-func (c *Client) Commit() (err os.Error) {
+func (c *Client) Commit() (err error) {
 	return
 }
 
 // Rollback a transaction
-func (c *Client) Rollback() (err os.Error) {
+func (c *Client) Rollback() (err error) {
 	return
 }
 
@@ -219,12 +220,12 @@ func (c *Client) Escape(str string) (esc string) {
 }
 
 // Initialise and prepare a new statement
-func (c *Client) Prepare(sql string) (stmt *Statement, err os.Error) {
+func (c *Client) Prepare(sql string) (stmt *Statement, err error) {
 	return
 }
 
 // Initialise a new statment
-func (c *Client) StmtInit() (stmt *Statement, err os.Error) {
+func (c *Client) StmtInit() (stmt *Statement, err error) {
 	return
 }
 
@@ -308,7 +309,7 @@ func (c *Client) reset() {
 }
 
 // Performs the actual connect
-func (c *Client) connect() (err os.Error) {
+func (c *Client) connect() (err error) {
 	// Connect to server
 	err = c.dial()
 	if err != nil {
@@ -332,7 +333,7 @@ func (c *Client) connect() (err os.Error) {
 }
 
 // Connect to server
-func (c *Client) dial() (err os.Error) {
+func (c *Client) dial() (err error) {
 	// Log connect
 	c.log(1, "Connecting to server via %s to %s", c.network, c.raddr)
 	// Connect to server
@@ -346,7 +347,7 @@ func (c *Client) dial() (err os.Error) {
 			c.error(CR_CONN_HOST_ERROR, CR_CONN_HOST_ERROR_STR, c.network, c.raddr)
 		}
 		// Log error
-		c.log(1, err.String())
+		c.log(1, err.Error())
 		return
 	}
 	// Log connect success
@@ -360,7 +361,7 @@ func (c *Client) dial() (err os.Error) {
 }
 
 // Read initial packet from server
-func (c *Client) init() (err os.Error) {
+func (c *Client) init() (err error) {
 	// Log read packet
 	c.log(1, "Reading handshake initialization packet from server")
 	// Read packet
@@ -401,7 +402,7 @@ func (c *Client) init() (err os.Error) {
 }
 
 // Send auth packet to the server
-func (c *Client) auth() (err os.Error) {
+func (c *Client) auth() (err error) {
 	// Log write packet
 	c.log(1, "Sending authentication packet to server")
 	// Construct packet
@@ -451,7 +452,7 @@ func (c *Client) auth() (err os.Error) {
 }
 
 // Send a command to the server
-func (c *Client) command(command command, args ...interface{}) (err os.Error) {
+func (c *Client) command(command command, args ...interface{}) (err error) {
 	// Log write packet
 	c.log(1, "Sending command packet to server")
 	// Simple validation, arg count
@@ -459,29 +460,29 @@ func (c *Client) command(command command, args ...interface{}) (err os.Error) {
 	// No args
 	case COM_QUIT, COM_STATISTICS, COM_PROCESS_INFO, COM_DEBUG, COM_PING:
 		if len(args) != 0 {
-			err = os.NewError(fmt.Sprintf("Invalid arg count, expected 0 but found %d", len(args)))
+			err = errors.New(fmt.Sprintf("Invalid arg count, expected 0 but found %d", len(args)))
 		}
 	// 1 arg
 	case COM_INIT_DB, COM_QUERY, COM_CREATE_DB, COM_DROP_DB, COM_REFRESH, COM_SHUTDOWN, COM_PROCESS_KILL, COM_STMT_PREPARE, COM_STMT_CLOSE, COM_STMT_RESET:
 		if len(args) != 1 {
-			err = os.NewError(fmt.Sprintf("Invalid arg count, expected 1 but found %d", len(args)))
+			err = errors.New(fmt.Sprintf("Invalid arg count, expected 1 but found %d", len(args)))
 		}
 	// 2 args
 	case COM_FIELD_LIST, COM_STMT_FETCH:
 		if len(args) != 2 {
-			err = os.NewError(fmt.Sprintf("Invalid arg count, expected 2 but found %d", len(args)))
+			err = errors.New(fmt.Sprintf("Invalid arg count, expected 2 but found %d", len(args)))
 		}
 	// 4 args
 	case COM_CHANGE_USER:
 		if len(args) != 4 {
-			err = os.NewError(fmt.Sprintf("Invalid arg count, expected 4 but found %d", len(args)))
+			err = errors.New(fmt.Sprintf("Invalid arg count, expected 4 but found %d", len(args)))
 		}
 	// Commands with custom functions
 	case COM_STMT_EXECUTE, COM_STMT_SEND_LONG_DATA:
-		err = os.NewError("This command should not be used here")
+		err = errors.New("This command should not be used here")
 	// Everything else e.g. replication unsupported
 	default:
-		err = os.NewError("This command is unsupported")
+		err = errors.New("This command is unsupported")
 	}
 	// Construct packet
 	p := &packetCommand{
@@ -499,7 +500,7 @@ func (c *Client) command(command command, args ...interface{}) (err os.Error) {
 }
 
 // Get auth response
-func (c *Client) authResult() (err os.Error) {
+func (c *Client) authResult() (err error) {
 	// Log read result
 	c.log(1, "Reading auth result packet from server")
 	// Get result packet
@@ -518,17 +519,17 @@ func (c *Client) authResult() (err os.Error) {
 }
 
 // Sequence check
-func (c *Client) checkSequence(sequence uint8) (err os.Error) {
+func (c *Client) checkSequence(sequence uint8) (err error) {
 	if sequence != c.sequence {
 		c.error(CR_COMMANDS_OUT_OF_SYNC, CR_COMMANDS_OUT_OF_SYNC_STR)
 		c.log(1, "Sequence doesn't match, commands out of sync")
-		err = os.NewError("Bad sequence number")
+		err = errors.New("Bad sequence number")
 	}
 	return
 }
 
 // Process OK packet
-func (c *Client) processOKResult(p *packetOK) (err os.Error) {
+func (c *Client) processOKResult(p *packetOK) (err error) {
 	// Log OK result
 	c.log(1, "Received OK packet")
 	// Check sequence
@@ -545,7 +546,7 @@ func (c *Client) processOKResult(p *packetOK) (err os.Error) {
 }
 
 // Process error packet
-func (c *Client) processErrorResult(p *packetError) (err os.Error) {
+func (c *Client) processErrorResult(p *packetError) (err error) {
 	// Log error result
 	c.log(1, "Received error packet")
 	// Check sequence
@@ -555,6 +556,6 @@ func (c *Client) processErrorResult(p *packetError) (err os.Error) {
 	}
 	c.error(Errno(p.errno), Error(p.error))
 	// Return error string as error
-	err = os.NewError(p.error)
+	err = errors.New(p.error)
 	return
 }

@@ -37,14 +37,14 @@ func NewTranceiver(_socket io.ReadWriter) *Tranceiver {
 
 func (t *Tranceiver) Send(_message *Message) {
 	if err := t.encoder.Encode(_message); err != nil {
-		println("Encode error: " + err.String())
+		println("Encode error: " + err.Error())
 	}
 }
 
 func (t *Tranceiver) Receive() (message *Message, error string) {
 	var msg Message
 	if err := t.decoder.Decode(&msg); err != nil {
-		error = err.String()
+		error = err.Error()
 		return
 	}
 	message = &msg

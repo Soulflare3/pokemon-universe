@@ -17,11 +17,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
-	"flag"
 	"runtime"
-	"os"
+
 	"time"
 
 	"conf"
@@ -39,14 +39,14 @@ const (
 var (
 	configFile *string
 
-	g_config 	*conf.ConfigFile
-	g_logger 	*log.Logger
-	g_db     	*mysql.Client
+	g_config *conf.ConfigFile
+	g_logger *log.Logger
+	g_db     *mysql.Client
 
-	g_game				*Game
-	g_server			*Server
-	g_map    			*Map
-	g_PokemonManager 	*PokemonManager
+	g_game           *Game
+	g_server         *Server
+	g_map            *Map
+	g_PokemonManager *PokemonManager
 
 	// Client viewport variables. The Z position doesn't matter in this case
 	CLIENT_VIEWPORT        pos.Position = pos.Position{28, 22, 0}
@@ -105,7 +105,7 @@ func initDatabase() bool {
 	// g_db.Logging, _ = g_config.GetBool("database", "show_log")
 
 	// Connect to database
-	var err os.Error
+	var err error
 	g_db, err = mysql.DialTCP(SQLHost, SQLUser, SQLPass, SQLDB)
 	if err != nil {
 		g_logger.Printf("[Error] Could not connect to database: %v\n\r", err)
@@ -149,7 +149,7 @@ func main() {
 	if initDatabase() == false {
 		return
 	}
-	
+
 	g_logger.Println("Loading pokemon data")
 	g_PokemonManager = NewPokemonManager()
 	if !g_PokemonManager.Load() {
@@ -158,22 +158,22 @@ func main() {
 	}
 
 	if !PO_DEBUG {
-	// Load data
-	g_logger.Println("Loading game data...")
-	g_game = NewGame()
-	if !g_game.Load() {
-		g_logger.Println("Failed to load game data...")
-		return
-	}
+		// Load data
+		g_logger.Println("Loading game data...")
+		g_game = NewGame()
+		if !g_game.Load() {
+			g_logger.Println("Failed to load game data...")
+			return
+		}
 
-	// Start server
-	g_game.State = GAME_STATE_NORMAL
-	g_logger.Println("--- SERVER STARTING ---")
-	g_server = NewServer()
-	g_server.Start()
+		// Start server
+		g_game.State = GAME_STATE_NORMAL
+		g_logger.Println("--- SERVER STARTING ---")
+		g_server = NewServer()
+		g_server.Start()
 	} else {
 		POTestClientDoIt()
-		
+
 		for {
 			time.Sleep(1e9)
 		}

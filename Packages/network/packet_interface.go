@@ -16,15 +16,13 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package network
 
-import "os"
-
 type INetMessageWriter interface {
 	WritePacket() IPacket
 }
 
 type INetMessageReader interface {
 	GetHeader() uint8
-	ReadPacket(IPacket) os.Error
+	ReadPacket(IPacket) error
 }
 
 type IPacket interface {
@@ -33,7 +31,7 @@ type IPacket interface {
 
 	GetHeader() uint16
 	SetHeader()
-	
+
 	GetBuffer() [PACKET_MAXSIZE]uint8
 	GetBufferSlice() []uint8
 	GetMsgSize() uint16

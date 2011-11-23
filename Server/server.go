@@ -17,10 +17,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
+	"fmt"
 	"net"
 	"time"
-	"fmt"
-	
+
 	pnet "network" // PU Network package
 )
 
@@ -88,7 +88,7 @@ func (s *Server) timeoutLoop() {
 	for guid, value := range g_game.PlayersDiscon {
 		value.TimeoutCounter++
 		if value.TimeoutCounter >= 30 {
-			g_game.PlayersDiscon[guid] = nil, false
+			delete(g_game.PlayersDiscon, guid)
 			go g_game.RemoveCreature(guid)
 		}
 	}
@@ -158,7 +158,7 @@ func (s *Server) parseFirstMessage(conn net.Conn) {
 				g_logger.Printf("[LOGIN] %d - %v logged in", player.GetUID(), player.GetName())
 				// Assign Connection to Player object
 				player.SetConnection(connection)
-				
+
 				// AddCreature sends few messages to the player so,
 				// quickly sending the status message before adding the player.
 				connection.SendMessage(statusMessage)

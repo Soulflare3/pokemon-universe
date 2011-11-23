@@ -79,7 +79,7 @@ func (g *PU_Game) GetCreatureImage(_bodypart int, _id int, _dir int, _frame int)
 func (g *PU_Game) LoadGameImages(_dir string, _map map[uint16]*PU_Image) {
 	files, err := ioutil.ReadDir(_dir)
 	if err != nil {
-		fmt.Printf("Couldn't open directory: %v. Error: %v\n", _dir, err.String())
+		fmt.Printf("Couldn't open directory: %v. Error: %v\n", _dir, err.Error())
 		return
 	}
 
@@ -113,7 +113,7 @@ func (g *PU_Game) LoadCreatureImages() {
 	dir := GetPath() + "data/creatures/"
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
-		fmt.Printf("Couldn't open directory: %v. Error: %v\n", dir, err.String())
+		fmt.Printf("Couldn't open directory: %v. Error: %v\n", dir, err.Error())
 		return
 	}
 

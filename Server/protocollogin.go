@@ -42,13 +42,13 @@ func CheckAccountInfo(_username string, _password string) bool {
 
 	var queryString string = "SELECT password, password_salt FROM player WHERE name='" + _username + "'"
 	if err := g_db.Query(queryString); err != nil {
-		println("Error - CheckAccountInfo: " + err.String())
+		println("Error - CheckAccountInfo: " + err.Error())
 		return false
 	}
 
 	result, err := g_db.UseResult()
 	if err != nil {
-		println("Error - CheckAccountInfo: " + err.String())
+		println("Error - CheckAccountInfo: " + err.Error())
 		return false
 	}
 

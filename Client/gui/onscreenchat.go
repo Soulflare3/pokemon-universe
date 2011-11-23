@@ -18,19 +18,19 @@ package main
 
 import (
 	"sdl"
-	list "container/vector"
 )
 
 type PU_OnscreenChat struct {
 	PU_GuiElement
 
 	lastTicks uint32
-	messages  list.Vector
+	messages  []*PU_OnscreenChatMessage
 }
 
 func NewOnscreenChat() *PU_OnscreenChat {
 	chat := &PU_OnscreenChat{}
 	chat.visible = true
+	chat.messages = make([]*PU_OnscreenChatMessage, 0)
 	g_gui.AddElement(chat)
 
 	chat.lastTicks = sdl.GetTicks()
@@ -50,11 +50,11 @@ func (g *PU_OnscreenChat) Draw() {
 	ticks := int(sdl.GetTicks() - g.lastTicks)
 	g.lastTicks = sdl.GetTicks()
 
-	for i := 0; i < g.messages.Len(); {
-		msg, ok := g.messages.At(i).(*PU_OnscreenChatMessage)
-		if ok {
+	for i := 0; i < len(g.messages); {
+		msg := g.messages[i]
+		if msg != nil {
 			if !msg.Draw(ticks) {
-				g.messages.Delete(i)
+				g.messages = append(g.messages[:i], g.messages[i+1:]...)
 			} else {
 				i++
 			}
@@ -72,17 +72,17 @@ func (g *PU_OnscreenChat) Add(_name string, _text string) {
 		return
 	}
 
-	for i := 0; i < g.messages.Len(); i++ {
-		msg, ok := g.messages.At(i).(*PU_OnscreenChatMessage)
-		if ok {
+	for i := 0; i < len(g.messages); i++ {
+		msg := g.messages[i]
+		if msg != nil {
 			if msg.name == _name && msg.x == int(sender.GetX()) && msg.y == int(sender.GetY()) {
 				msg.AddText(_text)
 				return
 			}
 		}
 	}
-
-	g.messages.Push(NewOnscreenChatMessageExt(_name, int(sender.GetX()), int(sender.GetY()), _text))
+	
+	g.messages = append(g.messages, NewOnscreenChatMessageExt(_name, int(sender.GetX()), int(sender.GetY()), _text))
 }
 
 func (g *PU_OnscreenChat) MouseDown(_x int, _y int) {

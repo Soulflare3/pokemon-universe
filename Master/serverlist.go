@@ -17,9 +17,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
-	"os"
-	"time"
 	"sync"
+	"time"
 
 	"mysql"
 )
@@ -48,7 +47,7 @@ func NewServerStore() *ServerStore {
 	return s
 }
 
-func (store *ServerStore) load() (err os.Error) {
+func (store *ServerStore) load() (err error) {
 	var res *mysql.MySQLResult
 	var row map[string]interface{}
 

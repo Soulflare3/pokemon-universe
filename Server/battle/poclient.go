@@ -17,7 +17,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
-	"os"
 	"fmt"
 	pnet "network"
 )
@@ -27,23 +26,23 @@ type PlayerInfoList map[int]*PlayerInfo
 type POClient struct {
 	player *Player
 	socket *POClientSocket
-	
-	players PlayerInfoList
+
+	players       PlayerInfoList
 	meLoginPlayer *FullPlayerInfo
-	mePlayer *PlayerInfo
-	
-	battle	*Battle
-	
-	bID	int
+	mePlayer      *PlayerInfo
+
+	battle *Battle
+
+	bID int
 }
 
-func NewPOClient(_player *Player) (*POClient, os.Error) {
-	poClient := POClient{ player: _player,
-						  players: make(PlayerInfoList) }
-	
+func NewPOClient(_player *Player) (*POClient, error) {
+	poClient := POClient{player: _player,
+		players: make(PlayerInfoList)}
+
 	poClient.meLoginPlayer = NewFullPlayerInfoFromPlayer(_player)
 	poClient.mePlayer = NewPlayerInfoFromFullPlayerInfo(poClient.meLoginPlayer)
-	
+
 	return &poClient, nil
 }
 
@@ -55,40 +54,40 @@ func (c *POClient) Connect() {
 func (c *POClient) ProcessPacket(_packet *pnet.QTPacket) {
 	header := int(_packet.ReadUint8())
 	switch header {
-		case COMMAND_Login: // 2
-			c.login(_packet)
-		case COMMAND_PlayersList: // 5
-			c.playerList(_packet)
-		case COMMAND_ChallengeStuff: // 7
-			c.challengeStuff(_packet)
-		case COMMAND_EngageBattle: // 8
-			c.engageBattle(_packet)
-		case COMMAND_BattleMessage: // 10
-			c.battleMessage(_packet)
-		case COMMAND_KeepAlive: // 12
-			c.keepAlive()
-		case COMMAND_Register: // 14
-			// Do nothing
-		case COMMAND_VersionControl: // 33
-			// Do nothing
-		case COMMAND_TierSelection: // 34
-			// Do nothing
-		case COMMAND_BattleList: // 43
-			// Do nothin
-		case COMMAND_ChannelsList: // 44
-			// Do nothing
-		case COMMAND_ChannelPlayers: // 45
-			// Do nothing
-		case COMMAND_JoinChannel: // 46
-			// Do nothing
-		case COMMAND_ChannelMessage: // 51
-			// Do nothing
-		case COMMAND_HtmlMessage: // 53
-			fmt.Printf("[Message] %s\n\r", _packet.ReadString())
-		case COMMAND_ServerName: // 55
-			// Do nothing
-		default:
-			fmt.Printf("UNIMPLEMENTED PACKET: %v\n", header)
+	case COMMAND_Login: // 2
+		c.login(_packet)
+	case COMMAND_PlayersList: // 5
+		c.playerList(_packet)
+	case COMMAND_ChallengeStuff: // 7
+		c.challengeStuff(_packet)
+	case COMMAND_EngageBattle: // 8
+		c.engageBattle(_packet)
+	case COMMAND_BattleMessage: // 10
+		c.battleMessage(_packet)
+	case COMMAND_KeepAlive: // 12
+		c.keepAlive()
+	case COMMAND_Register: // 14
+		// Do nothing
+	case COMMAND_VersionControl: // 33
+		// Do nothing
+	case COMMAND_TierSelection: // 34
+		// Do nothing
+	case COMMAND_BattleList: // 43
+		// Do nothin
+	case COMMAND_ChannelsList: // 44
+		// Do nothing
+	case COMMAND_ChannelPlayers: // 45
+		// Do nothing
+	case COMMAND_JoinChannel: // 46
+		// Do nothing
+	case COMMAND_ChannelMessage: // 51
+		// Do nothing
+	case COMMAND_HtmlMessage: // 53
+		fmt.Printf("[Message] %s\n\r", _packet.ReadString())
+	case COMMAND_ServerName: // 55
+		// Do nothing
+	default:
+		fmt.Printf("UNIMPLEMENTED PACKET: %v\n", header)
 	}
 }
 
@@ -113,7 +112,7 @@ func (c *POClient) playerList(_packet *pnet.QTPacket) {
 func (c *POClient) challengeStuff(_packet *pnet.QTPacket) {
 	challenge := NewIncommingChallengeFromPacket(_packet)
 	challenge.SetNick(c.players[challenge.opponent])
-	
+
 	// PU server will handle the challenge stuff
 	if challenge.desc == CHALLENGEDESC_SENT {
 		if challenge.IsValidChallenge(c.players) {
@@ -140,7 +139,7 @@ func (c *POClient) engageBattle(_packet *pnet.QTPacket) {
 		battleConf := NewBattleConfFromPacket(_packet)
 		// Start the battle
 		c.battle = NewBattle(c, battleConf, _packet, c.players[battleConf.GetId(0)], c.players[battleConf.GetId(1)], c.mePlayer.Id, c.bID)
-		
+
 		fmt.Printf("Battle between %s and %s started!\n", c.mePlayer.Nick, c.players[pID2].Nick)
 	}
 }

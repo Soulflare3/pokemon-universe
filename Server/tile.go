@@ -158,7 +158,7 @@ func (t *Tile) RemoveCreature(_creature ICreature, _checkEvents bool) (ret Retur
 		}
 	}
 
-	t.Creatures[_creature.GetUID()] = nil, false
+	delete(t.Creatures, _creature.GetUID())
 
 	return
 }

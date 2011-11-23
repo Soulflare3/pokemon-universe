@@ -7,8 +7,7 @@ package mysql
 
 import (
 	"fmt"
-	"os"
-	"rand"
+	"math/rand"
 	"strconv"
 	"testing"
 )
@@ -50,7 +49,7 @@ const (
 
 var (
 	db  *Client
-	err os.Error
+	err error
 )
 
 type SimpleRow struct {

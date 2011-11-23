@@ -8,11 +8,11 @@ package mysql
 
 import (
 	"bufio"
-	"io"
-	"os"
 	"crypto/sha1"
-	"strconv"
+	"errors"
+	"io"
 	"math"
+	"strconv"
 )
 
 /**
@@ -27,7 +27,7 @@ type packetHeader struct {
 /**
  * Read packet header from buffer
  */
-func (hdr *packetHeader) read(reader *bufio.Reader) (err os.Error) {
+func (hdr *packetHeader) read(reader *bufio.Reader) (err error) {
 	// Read length
 	num, err := hdr.readNumber(reader, 3)
 	if err != nil {
@@ -46,7 +46,7 @@ func (hdr *packetHeader) read(reader *bufio.Reader) (err os.Error) {
 /**
  * Write packet header to buffer
  */
-func (hdr *packetHeader) write(writer *bufio.Writer) (err os.Error) {
+func (hdr *packetHeader) write(writer *bufio.Writer) (err error) {
 	// Write length
 	err = hdr.writeNumber(writer, uint64(hdr.length), 3)
 	if err != nil {
@@ -77,7 +77,7 @@ type packetInit struct {
 /**
  * Read initialisation packet from buffer
  */
-func (pkt *packetInit) read(reader *bufio.Reader) (err os.Error) {
+func (pkt *packetInit) read(reader *bufio.Reader) (err error) {
 	// Need to keep track of bytes read for 5.5 compatibility
 	bytesRead := uint32(0)
 	// Protocol version
@@ -203,7 +203,7 @@ func (pkt *packetAuth) encrypt(password string, scrambleBuff []byte) {
 /**
  * Write authentication packet to buffer and flush
  */
-func (pkt *packetAuth) write(writer *bufio.Writer) (err os.Error) {
+func (pkt *packetAuth) write(writer *bufio.Writer) (err error) {
 	// Construct packet header
 	pkt.header = new(packetHeader)
 	pkt.header.length = 33 + uint32(len(pkt.user))
@@ -292,7 +292,7 @@ type packetOK struct {
 /**
  * Read the OK packet from the buffer
  */
-func (pkt *packetOK) read(reader *bufio.Reader) (err os.Error) {
+func (pkt *packetOK) read(reader *bufio.Reader) (err error) {
 	var n, bytes int
 	// Read field count
 	c, err := reader.ReadByte()
@@ -351,7 +351,7 @@ type packetError struct {
 /**
  * Read error packet from the buffer
  */
-func (pkt *packetError) read(reader *bufio.Reader) (err os.Error) {
+func (pkt *packetError) read(reader *bufio.Reader) (err error) {
 	var bytes int
 	// Read field count
 	c, err := reader.ReadByte()
@@ -408,7 +408,7 @@ type packetCommand struct {
 /**
  * Write the command packet to the buffer and send to the server
  */
-func (pkt *packetCommand) write(writer *bufio.Writer) (err os.Error) {
+func (pkt *packetCommand) write(writer *bufio.Writer) (err error) {
 	// Construct packet header
 	pkt.header = new(packetHeader)
 	pkt.header.length = 1
@@ -416,7 +416,7 @@ func (pkt *packetCommand) write(writer *bufio.Writer) (err os.Error) {
 	for i := 0; i < len(pkt.args); i++ {
 		switch v := pkt.args[i].(type) {
 		default:
-			return os.ErrorString("Unsupported type")
+			return errors.New("Unsupported type")
 		case string:
 			pkt.header.length += uint32(len(v))
 		case uint8:
@@ -474,7 +474,7 @@ type packetResultSet struct {
 /**
  * Read the result set from the buffer (requires the packet length as buffer will contain several packets)
  */
-func (pkt *packetResultSet) read(reader *bufio.Reader) (err os.Error) {
+func (pkt *packetResultSet) read(reader *bufio.Reader) (err error) {
 	var n int
 	// Read field count
 	pkt.fieldCount, n, err = pkt.readlengthCodedBinary(reader)
@@ -510,7 +510,7 @@ type packetField struct {
 /**
  * Read field packet from buffer
  */
-func (pkt *packetField) read(reader *bufio.Reader) (err os.Error) {
+func (pkt *packetField) read(reader *bufio.Reader) (err error) {
 	var n, bytes int
 	// Read catalog
 	pkt.catalog, n, err = pkt.readlengthCodedString(reader)
@@ -608,7 +608,7 @@ type packetRowData struct {
 /**
  * Read row data packet
  */
-func (pkt *packetRowData) read(reader *bufio.Reader) (err os.Error) {
+func (pkt *packetRowData) read(reader *bufio.Reader) (err error) {
 	// Read (check if exists) null bit map
 	c, err := reader.ReadByte()
 	if err != nil {
@@ -669,7 +669,7 @@ type packetEOF struct {
 /**
  * Read the EOF packet from the buffer
  */
-func (pkt *packetEOF) read(reader *bufio.Reader) (err os.Error) {
+func (pkt *packetEOF) read(reader *bufio.Reader) (err error) {
 	// Read field count
 	c, err := reader.ReadByte()
 	if err != nil {
@@ -705,7 +705,7 @@ type packetOKPrepared struct {
 /**
  * Read prepared statement ok packet
  */
-func (pkt *packetOKPrepared) read(reader *bufio.Reader) (err os.Error) {
+func (pkt *packetOKPrepared) read(reader *bufio.Reader) (err error) {
 	// Read field count
 	c, err := reader.ReadByte()
 	if err != nil {
@@ -758,7 +758,7 @@ type packetParameter struct {
 /**
  * Read parameter packet
  */
-func (pkt *packetParameter) read(reader *bufio.Reader) (err os.Error) {
+func (pkt *packetParameter) read(reader *bufio.Reader) (err error) {
 	// Skip this packet, documentation is incorrect and it is also ignored in MySQL code!
 	bytes := make([]byte, pkt.header.length)
 	io.ReadFull(reader, bytes)
@@ -780,7 +780,7 @@ type packetLongData struct {
 /**
  * Write long data packet
  */
-func (pkt *packetLongData) write(writer *bufio.Writer) (err os.Error) {
+func (pkt *packetLongData) write(writer *bufio.Writer) (err error) {
 	// Construct packet header
 	pkt.header = new(packetHeader)
 	pkt.header.length = 7 + uint32(len(pkt.data))
@@ -947,7 +947,7 @@ func (pkt *packetExecute) encodeParams(params []interface{}) {
 /**
  * Write execute packet
  */
-func (pkt *packetExecute) write(writer *bufio.Writer) (err os.Error) {
+func (pkt *packetExecute) write(writer *bufio.Writer) (err error) {
 	// Construct packet header
 	pkt.header = new(packetHeader)
 	pkt.header.length = 11 + uint32(len(pkt.nullBitMap)) + pkt.paramLength
@@ -1019,7 +1019,7 @@ type packetBinaryRowData struct {
 	values []interface{}
 }
 
-func (pkt *packetBinaryRowData) read(reader *bufio.Reader) (err os.Error) {
+func (pkt *packetBinaryRowData) read(reader *bufio.Reader) (err error) {
 	// Keep track of bytes read
 	bytesRead := uint32(0)
 	// Ignore first byte
@@ -1308,7 +1308,7 @@ type packetFunctions struct {
 /**
  * Read a number from the buffer that is n bytes long
  */
-func (pkt *packetFunctions) readNumber(reader *bufio.Reader, n uint8) (num uint64, err os.Error) {
+func (pkt *packetFunctions) readNumber(reader *bufio.Reader, n uint8) (num uint64, err error) {
 	p := make([]byte, n)
 	_, err = io.ReadFull(reader, p)
 	if err != nil {
@@ -1324,7 +1324,7 @@ func (pkt *packetFunctions) readNumber(reader *bufio.Reader, n uint8) (num uint6
 /**
  * Read n 0x00 bytes from the buffer
  */
-func (pkt *packetFunctions) readFill(reader *bufio.Reader, n int) (err os.Error) {
+func (pkt *packetFunctions) readFill(reader *bufio.Reader, n int) (err error) {
 	p := make([]byte, n)
 	_, err = io.ReadFull(reader, p)
 	return
@@ -1333,7 +1333,7 @@ func (pkt *packetFunctions) readFill(reader *bufio.Reader, n int) (err os.Error)
 /**
  * Read a length coded bunary number from the buffer
  */
-func (pkt *packetFunctions) readlengthCodedBinary(reader *bufio.Reader) (num uint64, n int, err os.Error) {
+func (pkt *packetFunctions) readlengthCodedBinary(reader *bufio.Reader) (num uint64, n int, err error) {
 	// Read first byte
 	c, err := reader.ReadByte()
 	if err != nil {
@@ -1368,7 +1368,7 @@ func (pkt *packetFunctions) readlengthCodedBinary(reader *bufio.Reader) (num uin
 /**
  * Read a length coded binary string from the buffer
  */
-func (pkt *packetFunctions) readlengthCodedString(reader *bufio.Reader) (str string, n int, err os.Error) {
+func (pkt *packetFunctions) readlengthCodedString(reader *bufio.Reader) (str string, n int, err error) {
 	// Get string length
 	strlen, n, err := pkt.readlengthCodedBinary(reader)
 	if err != nil {
@@ -1389,7 +1389,7 @@ func (pkt *packetFunctions) readlengthCodedString(reader *bufio.Reader) (str str
 /**
  * Write a number to the buffer using n bytes
  */
-func (pkt *packetFunctions) writeNumber(writer *bufio.Writer, num uint64, n uint8) (err os.Error) {
+func (pkt *packetFunctions) writeNumber(writer *bufio.Writer, num uint64, n uint8) (err error) {
 	p := make([]byte, n)
 	for i := uint8(0); i < n; i++ {
 		p[i] = byte(num >> (i * 8))
@@ -1401,7 +1401,7 @@ func (pkt *packetFunctions) writeNumber(writer *bufio.Writer, num uint64, n uint
 /**
  * Write n 0x00 bytes to the buffer
  */
-func (pkt *packetFunctions) writeFill(writer *bufio.Writer, n int) (err os.Error) {
+func (pkt *packetFunctions) writeFill(writer *bufio.Writer, n int) (err error) {
 	p := make([]byte, n)
 	_, err = writer.Write(p)
 	return

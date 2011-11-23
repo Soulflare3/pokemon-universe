@@ -17,7 +17,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
-	"os"
 	"fmt"
 	"net"
 	punet "network"
@@ -55,10 +54,10 @@ func (c *PU_Connection) Connect() bool {
 	ip := "127.0.0.1"
 	port := "1337"
 
-	var err os.Error
+	var err error
 	c.socket, err = net.Dial("tcp", ip+":"+port)
 	if err != nil {
-		fmt.Printf("Connection error: %v\n", err.String())
+		fmt.Printf("Connection error: %v\n", err.Error())
 		return false
 	}
 

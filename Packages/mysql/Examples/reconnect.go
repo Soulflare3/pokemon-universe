@@ -4,11 +4,11 @@
 package main
 
 import (
-	"mysql"
+	"flag"
 	"fmt"
+	"mysql"
 	"os"
 	"time"
-	"flag"
 )
 
 var (
@@ -20,7 +20,7 @@ var (
 
 // Reconnect function, attempts to reconnect once per second
 func reconnect(db *mysql.MySQL, done chan bool) {
-	var err os.Error
+	var err error
 	attempts := 0
 
 	for {
@@ -47,7 +47,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	var err os.Error
+	var err error
 
 	// Create new instance
 	db := mysql.New()

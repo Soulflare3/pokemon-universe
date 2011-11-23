@@ -3,10 +3,10 @@
 package main
 
 import (
-	"mysql"
-	"fmt"
-	"os"
 	"flag"
+	"fmt"
+	"mysql"
+	"os"
 )
 
 var (
@@ -24,7 +24,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	var err os.Error
+	var err error
 	var res *mysql.MySQLResult
 	var row map[string]interface{}
 	var key string

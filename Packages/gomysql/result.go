@@ -5,8 +5,6 @@
 // license that can be found in the LICENSE file.
 package mysql
 
-import "os"
-
 // Result struct
 type Result struct {
 	// Pointer to the client
@@ -105,20 +103,6 @@ func (r *Result) FetchMap() Map {
 	row := r.FetchRow()
 	if row != nil {
 		rowMap := make(Map)
-		rowMapPtr := &rowMap
-		for key, val := range row {
-			(*rowMapPtr)[r.fields[key].Name] = val
-		}
-		return *rowMapPtr
-	}
-	return nil
-}
-/*
-func (r *Result) FetchMap() Map {
-	// Fetch row
-	row := r.FetchRow()
-	if row != nil {
-		rowMap := make(Map)
 		for key, val := range row {
 			rowMap[r.fields[key].Name] = val
 		}
@@ -126,7 +110,7 @@ func (r *Result) FetchMap() Map {
 	}
 	return nil
 }
-*/
+
 // Fetch all rows
 func (r *Result) FetchRows() []Row {
 	if r.mode == RESULT_STORED {
@@ -136,7 +120,7 @@ func (r *Result) FetchRows() []Row {
 }
 
 // Free the result
-func (r *Result) Free() (err os.Error) {
+func (r *Result) Free() (err error) {
 	err = r.c.FreeResult()
 	return
 }

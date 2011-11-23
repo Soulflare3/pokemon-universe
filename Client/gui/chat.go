@@ -77,7 +77,7 @@ func (c *PU_Chat) CloseChannel(_id int) {
 		}
 
 		channel.Close()
-		c.channels[_id] = channel, false
+		delete(c.channels, _id)
 	}
 }
 

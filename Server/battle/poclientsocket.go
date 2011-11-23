@@ -17,42 +17,42 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
-	"net"
-	"os"
-	"io"
 	"fmt"
+
+	"io"
+	"net"
 	pnet "network"
 )
 
 type POClientSocket struct {
-	socket		net.Conn
-	owner		*POClient
-	connected	bool
-	packetChan	chan *pnet.QTPacket
+	socket     net.Conn
+	owner      *POClient
+	connected  bool
+	packetChan chan *pnet.QTPacket
 }
 
 func NewPOClientSocket(_owner *POClient) *POClientSocket {
-	return &POClientSocket { owner: _owner,
-							 packetChan: make(chan *pnet.QTPacket, 1000) }
+	return &POClientSocket{owner: _owner,
+		packetChan: make(chan *pnet.QTPacket, 1000)}
 }
 
 func (s *POClientSocket) Connect(_inIpAddr string, _inPortNum string) bool {
-	var err os.Error
-	s.socket, err = net.Dial("tcp", _inIpAddr + ":" + _inPortNum)
+	var err error
+	s.socket, err = net.Dial("tcp", _inIpAddr+":"+_inPortNum)
 	if err != nil {
 		fmt.Println("[WARNING] Could not connect to PO battle server")
 		fmt.Printf("%v\n\r", err)
 		return false
 	}
-	
+
 	s.connected = true
 	go s.ReceiveMessages()
-	
+
 	loginPacket := s.owner.meLoginPlayer.WritePacket()
 	s.SendMessage(loginPacket, COMMAND_Login)
-	
+
 	//s.loginTest()
-	
+
 	return true
 }
 
@@ -138,7 +138,7 @@ func (s *POClientSocket) loginTest() {
 	packet.AddUint8(1)  // Ladder
 	packet.AddUint8(1)  // Show team
 	packet.AddUint32(1) // Colour
-	
+
 	s.SendMessage(packet, COMMAND_Login)
 }
 
@@ -146,7 +146,7 @@ func (s *POClientSocket) Disconnect() {
 	//
 	// TOOD: Send Logout message
 	//
-	
+
 	s.connected = false
 	s.socket.Close()
 	close(s.packetChan)
@@ -160,7 +160,7 @@ func (s *POClientSocket) SendMessage(_buffer pnet.IPacket, _header int) {
 		return
 	}
 	packet.SetHeader()
-	
+
 	// Send message to the big bad internetz and pray for it to arrive
 	s.socket.Write(packet.Buffer[0:packet.MsgSize])
 }
@@ -173,13 +173,13 @@ func (s *POClientSocket) ReceiveMessages() {
 			fmt.Println("[POCLIENTSOCKET] Disconnected")
 			break
 		}
-		
+
 		packet := pnet.NewQTPacket()
 		copy(packet.Buffer[0:2], headerbuffer[0:2])
 		packet.GetHeader()
-		
+
 		databuffer := make([]uint8, packet.MsgSize)
-		
+
 		reloop := false
 		bytesReceived := uint16(0)
 		for bytesReceived < packet.MsgSize {
@@ -194,16 +194,16 @@ func (s *POClientSocket) ReceiveMessages() {
 			}
 			bytesReceived += uint16(recv)
 		}
-		
+
 		if reloop {
 			continue
 		}
 		copy(packet.Buffer[2:], databuffer[:])
-			
+
 		s.owner.ProcessPacket(packet)
 	}
-	
+
 	fmt.Println("EXIT")
-	
+
 	s.connected = false
 }

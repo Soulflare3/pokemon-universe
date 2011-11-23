@@ -7,11 +7,12 @@
 package mysql
 
 import (
+	"errors"
 	"fmt"
-	"os"
+
+	"io"
 	"log"
 	"strconv"
-	"io"
 )
 
 const (
@@ -61,7 +62,7 @@ type MySQLParam struct {
 /**
  * Prepare sql statement
  */
-func (stmt *MySQLStatement) Prepare(sql string) (err os.Error) {
+func (stmt *MySQLStatement) Prepare(sql string) (err error) {
 	mysql := stmt.mysql
 	if mysql.Logging {
 		log.Print("Prepare statement called")
@@ -99,7 +100,7 @@ func (stmt *MySQLStatement) Prepare(sql string) (err os.Error) {
 /**
  * Bind params
  */
-func (stmt *MySQLStatement) BindParams(params ...interface{}) (err os.Error) {
+func (stmt *MySQLStatement) BindParams(params ...interface{}) (err error) {
 	mysql := stmt.mysql
 	if mysql.Logging {
 		log.Print("Bind params called")
@@ -107,12 +108,12 @@ func (stmt *MySQLStatement) BindParams(params ...interface{}) (err os.Error) {
 	// Check statement has been prepared
 	if !stmt.prepared {
 		stmt.error(CR_NO_PREPARE_STMT, CR_NO_PREPARE_STMT_STR)
-		err = os.NewError("Statement must be prepared to use this function")
+		err = errors.New("Statement must be prepared to use this function")
 		return
 	}
 	// Check param count
 	if uint16(len(params)) != stmt.ParamCount {
-		err = os.NewError("Param count mismatch, expecting " + strconv.Uitoa(uint(stmt.ParamCount)) + ", got " + strconv.Uitoa(uint(len(params))))
+		err = errors.New("Param count mismatch, expecting " + strconv.Uitoa(uint(stmt.ParamCount)) + ", got " + strconv.Uitoa(uint(len(params))))
 		return
 	}
 	// Save params
@@ -125,7 +126,7 @@ func (stmt *MySQLStatement) BindParams(params ...interface{}) (err os.Error) {
 /**
  * Send long data packet
  */
-func (stmt *MySQLStatement) SendLongData(num uint16, data string) (err os.Error) {
+func (stmt *MySQLStatement) SendLongData(num uint16, data string) (err error) {
 	mysql := stmt.mysql
 	if mysql.Logging {
 		log.Print("Send long data called")
@@ -133,7 +134,7 @@ func (stmt *MySQLStatement) SendLongData(num uint16, data string) (err os.Error)
 	// Check statement has been prepared
 	if !stmt.prepared {
 		stmt.error(CR_NO_PREPARE_STMT, CR_NO_PREPARE_STMT_STR)
-		err = os.NewError("Statement must be prepared to use this function")
+		err = errors.New("Statement must be prepared to use this function")
 		return
 	}
 	// Lock mutex and defer unlock
@@ -164,7 +165,7 @@ func (stmt *MySQLStatement) SendLongData(num uint16, data string) (err os.Error)
 /**
  * Execute statement
  */
-func (stmt *MySQLStatement) Execute() (res *MySQLResult, err os.Error) {
+func (stmt *MySQLStatement) Execute() (res *MySQLResult, err error) {
 	mysql := stmt.mysql
 	if mysql.Logging {
 		log.Print("Execute statement called")
@@ -172,13 +173,13 @@ func (stmt *MySQLStatement) Execute() (res *MySQLResult, err os.Error) {
 	// Check statement has been prepared
 	if !stmt.prepared {
 		stmt.error(CR_NO_PREPARE_STMT, CR_NO_PREPARE_STMT_STR)
-		err = os.NewError("Statement must be prepared to use this function")
+		err = errors.New("Statement must be prepared to use this function")
 		return
 	}
 	// Check params are bound
 	if stmt.ParamCount > 0 && !stmt.paramsBound {
 		stmt.error(CR_PARAMS_NOT_BOUND, CR_PARAMS_NOT_BOUND_STR)
-		err = os.NewError("Params must be bound to use this function")
+		err = errors.New("Params must be bound to use this function")
 		return
 	}
 	// Lock mutex and defer unlock
@@ -230,7 +231,7 @@ func (stmt *MySQLStatement) Execute() (res *MySQLResult, err os.Error) {
 /**
  * Close statement
  */
-func (stmt *MySQLStatement) Close() (err os.Error) {
+func (stmt *MySQLStatement) Close() (err error) {
 	mysql := stmt.mysql
 	if mysql.Logging {
 		log.Print("Close statement called")
@@ -241,7 +242,7 @@ func (stmt *MySQLStatement) Close() (err os.Error) {
 	// Check statement has been prepared
 	if !stmt.prepared {
 		stmt.error(CR_NO_PREPARE_STMT, CR_NO_PREPARE_STMT_STR)
-		err = os.NewError("Statement must be prepared to use this function")
+		err = errors.New("Statement must be prepared to use this function")
 		return
 	}
 	// Reset error/sequence vars
@@ -261,7 +262,7 @@ func (stmt *MySQLStatement) Close() (err os.Error) {
 /**
  * Reset statement
  */
-func (stmt *MySQLStatement) Reset() (err os.Error) {
+func (stmt *MySQLStatement) Reset() (err error) {
 	mysql := stmt.mysql
 	if mysql.Logging {
 		log.Print("Reset statement called")
@@ -272,7 +273,7 @@ func (stmt *MySQLStatement) Reset() (err os.Error) {
 	// Check statement has been prepared
 	if !stmt.prepared {
 		stmt.error(CR_NO_PREPARE_STMT, CR_NO_PREPARE_STMT_STR)
-		err = os.NewError("Statement must be prepared to use this function")
+		err = errors.New("Statement must be prepared to use this function")
 		return
 	}
 	// Reset error/sequence vars
@@ -305,17 +306,17 @@ func (stmt *MySQLStatement) reset() {
 /**
  * Function to read reset statment result packet
  */
-func (stmt *MySQLStatement) getResetResult() (err os.Error) {
+func (stmt *MySQLStatement) getResetResult() (err error) {
 	mysql := stmt.mysql
 	hdr := new(packetHeader)
 	err = hdr.read(mysql.reader)
 	if err != nil {
 		stmt.error(CR_SERVER_LOST, CR_SERVER_LOST_STR)
-		return os.NewError("An error occurred receiving packet from MySQL")
+		return errors.New("An error occurred receiving packet from MySQL")
 	}
 	if hdr.sequence != mysql.sequence {
 		stmt.error(CR_COMMANDS_OUT_OF_SYNC, CR_COMMANDS_OUT_OF_SYNC_STR)
-		return os.NewError("An error occurred receiving packet from MySQL")
+		return errors.New("An error occurred receiving packet from MySQL")
 	}
 	c, err := mysql.reader.ReadByte()
 	mysql.reader.UnreadByte()
@@ -325,9 +326,9 @@ func (stmt *MySQLStatement) getResetResult() (err os.Error) {
 		_, err = io.ReadFull(mysql.reader, bytes)
 		// Set error response
 		if err != nil {
-			err = os.NewError("An unknown packet was received from MySQL, in addition an error occurred when attempting to read the packet from the buffer: " + err.String())
+			err = errors.New("An unknown packet was received from MySQL, in addition an error occurred when attempting to read the packet from the buffer: " + err.Error())
 		} else {
-			err = os.NewError("An unknown packet was received from MySQL")
+			err = errors.New("An unknown packet was received from MySQL")
 		}
 		if mysql.Logging {
 			log.Print("[" + fmt.Sprint(mysql.sequence) + "] Received unknown packet from server with first byte: " + fmt.Sprint(c))
@@ -364,7 +365,7 @@ func (stmt *MySQLStatement) getResetResult() (err os.Error) {
 /**
  * Function to read prepare result packets
  */
-func (stmt *MySQLStatement) getPrepareResult() (err os.Error) {
+func (stmt *MySQLStatement) getPrepareResult() (err error) {
 	mysql := stmt.mysql
 	// Get header and validate header info
 	hdr := new(packetHeader)
@@ -373,12 +374,12 @@ func (stmt *MySQLStatement) getPrepareResult() (err os.Error) {
 	if err != nil {
 		// Assume lost connection to server
 		stmt.error(CR_SERVER_LOST, CR_SERVER_LOST_STR)
-		return os.NewError("An error occured receiving packet from MySQL")
+		return errors.New("An error occured receiving packet from MySQL")
 	}
 	// Check sequence number
 	if hdr.sequence != mysql.sequence {
 		stmt.error(CR_COMMANDS_OUT_OF_SYNC, CR_COMMANDS_OUT_OF_SYNC_STR)
-		return os.NewError("An error occured receiving packet from MySQL")
+		return errors.New("An error occured receiving packet from MySQL")
 	}
 	// Read the next byte to identify the type of packet
 	c, err := mysql.reader.ReadByte()
@@ -390,9 +391,9 @@ func (stmt *MySQLStatement) getPrepareResult() (err os.Error) {
 		_, err = io.ReadFull(mysql.reader, bytes)
 		// Set error response
 		if err != nil {
-			err = os.NewError("An unknown packet was received from MySQL, in addition an error occurred when attempting to read the packet from the buffer: " + err.String())
+			err = errors.New("An unknown packet was received from MySQL, in addition an error occurred when attempting to read the packet from the buffer: " + err.Error())
 		} else {
-			err = os.NewError("An unknown packet was received from MySQL")
+			err = errors.New("An unknown packet was received from MySQL")
 		}
 		if mysql.Logging {
 			log.Print("[" + fmt.Sprint(mysql.sequence) + "] Received unknown packet from server with first byte: " + fmt.Sprint(c))
@@ -434,7 +435,7 @@ func (stmt *MySQLStatement) getPrepareResult() (err os.Error) {
 			log.Print("[" + fmt.Sprint(mysql.sequence) + "] Received error packet from server")
 		}
 		// Return error response
-		err = os.NewError("An error was received from MySQL")
+		err = errors.New("An error was received from MySQL")
 	// Making assumption that statement packets follow similar format to result packets
 	// If param count > 0 then first will get parameter packets following EOF
 	// After this should get standard field packets followed by EOF
@@ -517,7 +518,7 @@ func (stmt *MySQLStatement) getPrepareResult() (err os.Error) {
 /**
  * Function to read execute result packets
  */
-func (stmt *MySQLStatement) getExecuteResult() (err os.Error) {
+func (stmt *MySQLStatement) getExecuteResult() (err error) {
 	mysql := stmt.mysql
 	// Get header and validate header info
 	hdr := new(packetHeader)
@@ -526,12 +527,12 @@ func (stmt *MySQLStatement) getExecuteResult() (err os.Error) {
 	if err != nil {
 		// Assume lost connection to server
 		stmt.error(CR_SERVER_LOST, CR_SERVER_LOST_STR)
-		return os.NewError("An error occured receiving packet from MySQL")
+		return errors.New("An error occured receiving packet from MySQL")
 	}
 	// Check sequence number
 	if hdr.sequence != mysql.sequence {
 		stmt.error(CR_COMMANDS_OUT_OF_SYNC, CR_COMMANDS_OUT_OF_SYNC_STR)
-		return os.NewError("An error occured receiving packet from MySQL")
+		return errors.New("An error occured receiving packet from MySQL")
 	}
 	// Read the next byte to identify the type of packet
 	c, err := mysql.reader.ReadByte()
@@ -543,9 +544,9 @@ func (stmt *MySQLStatement) getExecuteResult() (err os.Error) {
 		_, err = io.ReadFull(mysql.reader, bytes)
 		// Set error response
 		if err != nil {
-			err = os.NewError("An unknown packet was received from MySQL, in addition an error occurred when attempting to read the packet from the buffer: " + err.String())
+			err = errors.New("An unknown packet was received from MySQL, in addition an error occurred when attempting to read the packet from the buffer: " + err.Error())
 		} else {
-			err = os.NewError("An unknown packet was received from MySQL")
+			err = errors.New("An unknown packet was received from MySQL")
 		}
 		if mysql.Logging {
 			log.Print("[" + fmt.Sprint(mysql.sequence) + "] Received unknown packet from server with first byte: " + fmt.Sprint(c))
@@ -585,7 +586,7 @@ func (stmt *MySQLStatement) getExecuteResult() (err os.Error) {
 			log.Print("[" + fmt.Sprint(mysql.sequence) + "] Received error packet from server")
 		}
 		// Return error response
-		err = os.NewError("An error was received from MySQL")
+		err = errors.New("An error was received from MySQL")
 	// Result Set Packet 1-250 (first byte of Length-Coded Binary)
 	case c >= 0x01 && c <= 0xfa && !stmt.resExecuted:
 		pkt := new(packetResultSet)
@@ -690,7 +691,7 @@ func (stmt *MySQLStatement) getExecuteResult() (err os.Error) {
 /**
  * Send a command to the server
  */
-func (stmt *MySQLStatement) command(command byte, args ...interface{}) (err os.Error) {
+func (stmt *MySQLStatement) command(command byte, args ...interface{}) (err error) {
 	mysql := stmt.mysql
 	pkt := new(packetCommand)
 	pkt.command = command

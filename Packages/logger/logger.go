@@ -37,7 +37,7 @@ type Logger struct {
 
 // Create constructor for io.Writer
 // No need to close the log file because it will last untill the application exists
-func NewLogger(_filename string, _flag int) (log *Logger, err os.Error) {
+func NewLogger(_filename string, _flag int) (log *Logger, err error) {
 	log = &Logger{filename: _filename, flags: _flag}
 
 	if _flag&L_FILE == 0 {
@@ -53,7 +53,7 @@ func NewLogger(_filename string, _flag int) (log *Logger, err os.Error) {
 }
 
 // Use the io.Writer interface
-func (l *Logger) Write(p []byte) (n int, err os.Error) {
+func (l *Logger) Write(p []byte) (n int, err error) {
 	if l.flags&L_CONSOLE != 0 { // Print string to terminal before writing to file	
 		fmt.Printf("%v", string(p))
 	}
