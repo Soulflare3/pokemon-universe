@@ -139,6 +139,20 @@ func (b *Battle) ReceiveCommand(_packet *pnet.QTPacket) {
 			b.receivedChangeHp(_packet, player)
 		case BattleCommand_Ko: // 7
 			b.receivedKo(player)
+		case BattleCommand_Effective: // 8
+			b.receivedEffective(_packet)
+		case BattleCommand_Miss: // 9
+			b.receivedMiss(player)
+		case BattleCommand_CriticalHit: // 10
+			b.receivedCriticalHit()
+		case BattleCommand_Hit: // 11
+			b.receivedHit(_packet)
+		case BattleCommand_StatChange: // 12
+			b.receivedStatChange(_packet, player)
+		case BattleCommand_StatusChange: // 13
+			b.receivedStatusChange(_packet, player)
+		case BattleCommand_StatusMessage: // 14
+			b.receivedStatusMessage(_packet, player)
 		case BattleCommand_AbsStatusChange: // 25
 			b.receivedAbsStatusChange(_packet, player)
 		case BattleCommand_BlankMessage: // 28
@@ -257,6 +271,133 @@ func (b *Battle) receivedChangeHp(_packet *pnet.QTPacket, _player int) {
 
 func (b *Battle) receivedKo(_player int) {
 	b.WriteToHist(fmt.Sprintf("%s fainted!\n", b.currentPoke(_player).Nick))
+}
+
+func (b *Battle) receivedEffective(_packet *pnet.QTPacket) {
+	int eff := _packet.ReadUint8()
+	switch eff {
+		case 0:
+			b.WriteToHist("It had no effect!\n")
+		case 1:
+			fallthrough
+		case 2:
+			b.WriteToHist("It's not very effective...\n")
+		case 8:
+			fallthrough
+		case 16:
+			b.WriteToHist("It's super effective!\n")
+	}
+}
+
+func (b *Battle) receivedMiss(_player int) {
+	b.WriteToHist(fmt.Sprintf("The attack of %s missed!\n", b.currentPoke(_player).Nick))
+}
+
+func (b *Battle) receivedCriticalHit() {
+	b.WriteToHist("A critical hit!")
+}
+
+func (b *Battle) receivedHit(_packet *pnet.QTPacket) {
+	number := _packet.ReadUint8()
+	extraStr := "!"
+	if number > 1 {
+		extraStr = "s!"
+	}
+	b.WriteToHist(fmt.Sprintf("Hit %d time%s\n", nubmer, extraStr))
+}
+
+func (b *Battle) receivedStatChange(_packe *pnet.QTPacket, _player int) {
+	stat := int(_packet.ReadUint8())
+	boost := int(_packet.ReadUint8())
+	var statStr string
+	if stat == 0 {
+		statStr = STAT_HP
+	} else if stat == 1 {
+		statStr = STAT_ATTACK
+	} else if stat == 2 {
+		statStr = STAT_DEFENCE
+	} else if stat == 3 {
+		statStr = STAT_SPATTACK
+	} else if stat == 4 {
+		statStr = STAT_SPDEFENSE
+	} else if stat == 5 {
+		statStr = STAT_SPEED
+	} else if stat == 6 {
+		statStr = STAT_ACCURACY
+	} else if stat == 7 {
+		statStr = STAT_EVASION
+	} else if stat == 8 {
+		statStr = STAT_ALLSTATS
+	}
+	
+	var boostStr string
+	if boost > 0 {
+		boostStr = "rose!"
+	} else {
+		boostStr = "fell!"
+	}
+	
+	boostStrExt := ""
+	if boost > 1 {
+		boostStr = "sharply"
+	}
+	
+	b.WriteToHist(fmt.Sprintf("%s's %s %s%s\n", b.currentPoke(_player).Nick, statStr, boostStrExt, boostStr))
+}
+
+func (b *Battle) receivedStatusChange(_packet *pnet.QTPacket, player int) {
+	status := int(_packet.ReadUint8())
+	multipleTurns := _packet.ReadBool()
+	if status > STATUS_FINE && status <= STATUS_POISONED {
+		statusChangeMessages := make([]string, 6)
+		statusChangeMessages[0] = "is paralyzed! It may be unable to move!"
+		statusChangeMessages[1] = "fell asleep!"
+		statusChangeMessages[2] = "was frozen solid!"
+		statusChangeMessages[3] = "was burned!"
+		statusChangeMessages[4] = "was poisoned!"
+		statusChangeMessages[5] = "was badly poisoned!"
+		
+		statusIndex := status - 1
+		if status == STATUS_POISONED && multipleTurns {
+			statusIndex += 1
+		}
+		
+		b.WriteToHist(fmt.Sprintf("%s %s\n", b.currentPoke(player).Nick, statusChangeMessages[statusIndex]))
+	} else if status == STATUS_CONFUSED {
+		b.WriteToHist(fmt.Sprintf("%s became confused!", b.currentPoke(player).Nick))
+	}
+}
+
+func (b *Battle) receivedStatusMessage(_packet *pnet.QTPacket, _player int) {
+	status := int(_packet.ReadUint8())
+	var statusStr string
+	switch status {
+		case STATUSFEELING_FEELCONFUSION:
+			statusStr = fmt.Sprintf("%s is confused!\n", b.currentPoke(_player))
+		case STATUSFEELING_HURTCONFUSION:
+			statusStr = "It hurt itself in its confusion!\n"
+		case STATUSFEELING_FREECONFUSION:
+			statusStr = fmt.Sprintf("%s snapped out of its confusion!\n", b.currentPoke(_player))
+		case STATUSFEELING_PREVPARALYZED:
+			statusStr = fmt.Sprintf("%s is paralyzed! It can't move!\n", b.currentPoke(_player))
+		case STATUSFEELING_FEELALSEEP:
+			statusStr = fmt.Sprintf("%s is fast asleep!\n", b.currentPoke(_player))
+		case STATUSFEELING_FREEASLEEP:
+			statusStr = fmt.Sprintf("%s woke up!\n", b.currentPoke(_player))
+		case STATUSFEELING_HURTBURN:
+			statusStr = fmt.Sprintf("%s is hurt by its burn!\n", b.currentPoke(_player))
+		case STATUSFEELING_HURTPOISON:
+			statusStr = fmt.Sprintf("%s is hurt by poison!\n", b.currentPoke(_player))
+		case STATUSFEELING_PREVFROZEN:
+			statusStr = fmt.Sprintf("%s if frozen solid!\n", b.currentPoke(_player))
+		case STATUSFEELING_FREEFROZEN:
+			statusStr = fmt.Sprintf("%s thawed out!\n", b.currentPoke(_player))
+	}
+	b.WriteToHist(statStr)
+}
+
+func (b *Battle) receivedFailed() {
+	b.WriteToHist("But it failed!\n")
 }
 
 func (b *Battle) receivedAbsStatusChange(_packet *pnet.QTPacket, _player int) {
