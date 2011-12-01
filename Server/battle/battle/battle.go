@@ -274,7 +274,7 @@ func (b *Battle) receivedKo(_player int) {
 }
 
 func (b *Battle) receivedEffective(_packet *pnet.QTPacket) {
-	int eff := _packet.ReadUint8()
+	eff := _packet.ReadUint8()
 	switch eff {
 		case 0:
 			b.WriteToHist("It had no effect!\n")
@@ -303,10 +303,10 @@ func (b *Battle) receivedHit(_packet *pnet.QTPacket) {
 	if number > 1 {
 		extraStr = "s!"
 	}
-	b.WriteToHist(fmt.Sprintf("Hit %d time%s\n", nubmer, extraStr))
+	b.WriteToHist(fmt.Sprintf("Hit %d time%s\n", number, extraStr))
 }
 
-func (b *Battle) receivedStatChange(_packe *pnet.QTPacket, _player int) {
+func (b *Battle) receivedStatChange(_packet *pnet.QTPacket, _player int) {
 	stat := int(_packet.ReadUint8())
 	boost := int(_packet.ReadUint8())
 	var statStr string
@@ -315,7 +315,7 @@ func (b *Battle) receivedStatChange(_packe *pnet.QTPacket, _player int) {
 	} else if stat == 1 {
 		statStr = STAT_ATTACK
 	} else if stat == 2 {
-		statStr = STAT_DEFENCE
+		statStr = STAT_DEFENSE
 	} else if stat == 3 {
 		statStr = STAT_SPATTACK
 	} else if stat == 4 {
@@ -378,9 +378,9 @@ func (b *Battle) receivedStatusMessage(_packet *pnet.QTPacket, _player int) {
 			statusStr = "It hurt itself in its confusion!\n"
 		case STATUSFEELING_FREECONFUSION:
 			statusStr = fmt.Sprintf("%s snapped out of its confusion!\n", b.currentPoke(_player))
-		case STATUSFEELING_PREVPARALYZED:
+		case STATUSFEELING_PREVPARALYSED:
 			statusStr = fmt.Sprintf("%s is paralyzed! It can't move!\n", b.currentPoke(_player))
-		case STATUSFEELING_FEELALSEEP:
+		case STATUSFEELING_FEELASLEEP:
 			statusStr = fmt.Sprintf("%s is fast asleep!\n", b.currentPoke(_player))
 		case STATUSFEELING_FREEASLEEP:
 			statusStr = fmt.Sprintf("%s woke up!\n", b.currentPoke(_player))
@@ -393,7 +393,7 @@ func (b *Battle) receivedStatusMessage(_packet *pnet.QTPacket, _player int) {
 		case STATUSFEELING_FREEFROZEN:
 			statusStr = fmt.Sprintf("%s thawed out!\n", b.currentPoke(_player))
 	}
-	b.WriteToHist(statStr)
+	b.WriteToHist(statusStr)
 }
 
 func (b *Battle) receivedFailed() {
@@ -430,7 +430,7 @@ func (b *Battle) receiveDynamicStats(_packet *pnet.QTPacket, _player int) {
 func (b *Battle) clockStart(_packet *pnet.QTPacket, _player int) {
 	index := _player % 2
 	b.remainingTime[index] = int(_packet.ReadUint16())
-	b.startingTime[index] = time.Seconds()
+	b.startingTime[index] = time.Now().Unix()
 	b.ticking[index] = true
 }
 

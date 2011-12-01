@@ -78,12 +78,12 @@ func (the *Game) Load() (LostIt bool) {
 
 	// Load worldmap
 	g_logger.Println(" - Loading worldmap")
-	start := time.Nanoseconds()
+	start := time.Now().UnixNano()
 	if err := g_map.Load(); err != nil {
 		g_logger.Println(err)
 		LostIt = false
 	} else {
-		g_logger.Printf(" - Map loaded in %dms\n", (time.Nanoseconds()-start)/1e6)
+		g_logger.Printf(" - Map loaded in %dms\n", (time.Now().UnixNano()-start)/1e6)
 	}
 
 	return
