@@ -20,6 +20,7 @@ import (
 	"sync"
 	"fmt"
 	"time"
+	"strings"
 	pnet "network"
 )
 
@@ -106,7 +107,7 @@ func NewBattle(_owner *POClient, _bc *BattleConf, _packet *pnet.QTPacket, _p1 *P
 		battle.displayedMoves[i] = NewBattleMove()
 	}
 	
-	battle.WriteToHist(fmt.Sprintf("Battle between %v and %v started!", battle.players[0].Nick, battle.players[1].Nick))
+	battle.WriteToHist(fmt.Sprintf("Battle between %v and %v started!\n", battle.players[0].Nick, battle.players[1].Nick))
 	
 	return &battle
 }
@@ -153,6 +154,27 @@ func (b *Battle) ReceiveCommand(_packet *pnet.QTPacket) {
 			b.receivedStatusChange(_packet, player)
 		case BattleCommand_StatusMessage: // 14
 			b.receivedStatusMessage(_packet, player)
+		case BattleCommand_Failed: // 15
+			b.receivedFailed()
+		case BattleCommand_MoveMessage: // 17
+			b.receivedMoveMessage(_packet, player)
+		case BattleCommand_ItemMessage: // 18
+			// TODO: We don't have items yet, so do nothing for now
+		case BattleCommand_NoOpponent: // 19
+			b.WriteToHist("But there was no target...\n")
+		case BattleCommand_Flinch: // 20
+			b.WriteToHist(b.currentPoke(player).Nick + " flinched!\n")
+		case BattleCommand_Recoil: // 21
+			damaging := _packet.ReadBool()
+			if damaging {
+				b.WriteToHist(b.currentPoke(player).Nick + " is hit with recoil!\n")
+			} else {
+				b.WriteToHist(b.currentPoke(player).Nick + " had its energy drained!\n")
+			}
+		case BattleCommand_WeatherMessage: // 22
+			b.receivedWeatherMesage(_packet, player)
+		case BattleCommand_StraightDamage: // 23
+			b.receivedStraigthDamage(_packet, player)
 		case BattleCommand_AbsStatusChange: // 25
 			b.receivedAbsStatusChange(_packet, player)
 		case BattleCommand_BlankMessage: // 28
@@ -169,7 +191,7 @@ func (b *Battle) ReceiveCommand(_packet *pnet.QTPacket) {
 			b.receivedRated(_packet)
 		case BattleCommand_TierSection: // 40
 			tier := _packet.ReadString()
-			b.WriteToHist("Tier: " + tier)
+			b.WriteToHist("Tier: " + tier + "\n")
 		case BattleCommand_MakeYourChoice: // 43
 			b.receiveMakeYourCoice()
 		default:
@@ -294,7 +316,7 @@ func (b *Battle) receivedMiss(_player int) {
 }
 
 func (b *Battle) receivedCriticalHit() {
-	b.WriteToHist("A critical hit!")
+	b.WriteToHist("A critical hit!\n")
 }
 
 func (b *Battle) receivedHit(_packet *pnet.QTPacket) {
@@ -364,7 +386,7 @@ func (b *Battle) receivedStatusChange(_packet *pnet.QTPacket, player int) {
 		
 		b.WriteToHist(fmt.Sprintf("%s %s\n", b.currentPoke(player).Nick, statusChangeMessages[statusIndex]))
 	} else if status == STATUS_CONFUSED {
-		b.WriteToHist(fmt.Sprintf("%s became confused!", b.currentPoke(player).Nick))
+		b.WriteToHist(fmt.Sprintf("%s became confused!\n", b.currentPoke(player).Nick))
 	}
 }
 
@@ -398,6 +420,101 @@ func (b *Battle) receivedStatusMessage(_packet *pnet.QTPacket, _player int) {
 
 func (b *Battle) receivedFailed() {
 	b.WriteToHist("But it failed!\n")
+}
+
+func (b *Battle) receivedMoveMessage(_packet *pnet.QTPacket, _player int) {
+	move := int(_packet.ReadUint16())
+	part := int(_packet.ReadUint8())
+	msgType := int(_packet.ReadUint8())
+	foe := int(_packet.ReadUint8())
+	other := int(_packet.ReadUint16())
+	q := _packet.ReadString()
+	
+	s := g_PokemonManager.GetMoveMessage(move, part)
+	if len(s) == 0 {
+		fmt.Printf("Could not find message %d part %d\n", move, part)
+		return
+	}
+	
+	s = strings.Replace(s, "%s", b.currentPoke(_player).Nick, 0)
+	s = strings.Replace(s, "%ts", b.players[_player].Nick, 0)
+	var tmp int = 0
+	if _player == 0 { tmp = 1 }
+	s = strings.Replace(s, "%tf", b.players[tmp].Nick, 0)
+	
+	if msgType != -1 {
+		s = strings.Replace(s, "%t", g_PokemonManager.GetTypeValueById(msgType), 0)
+	}
+	if foe != -1 {
+		s = strings.Replace(s, "%f", b.currentPoke(foe).Nick, 0)
+	}
+	if other != -1 && strings.Contains(s, "%m") {
+		s = strings.Replace(s, "%m", g_PokemonManager.GetMoveNameById(other), 0)
+	}
+	s = strings.Replace(s, "%d", string(other), 0)
+	s = strings.Replace(s, "%q", q, 0)
+	if other != -1 && strings.Contains(s, "%i") {
+		s = strings.Replace(s, "%i", g_PokemonManager.GetItemNameById(other), 0)
+	}
+	if other != -1 && strings.Contains(s, "%a") {
+		s = strings.Replace(s, "%a", g_PokemonManager.GetAbilityNameById(other + 1), 0)
+	}
+	if other != -1 && strings.Contains(s, "%p") {
+		s = strings.Replace(s, "%p", g_PokemonManager.GetPokemonName(other, 0), 0)
+	}
+	
+	b.WriteToHist(s + "\n")
+}
+
+func (b *Battle) receivedWeatherMesage(_packet *pnet.QTPacket, _player int) {
+	wstatus := int(_packet.ReadUint8())
+	weather := int(_packet.ReadUint8())
+	if weather == WEATHER_NORMALWEATHER {
+		return
+	}
+	
+	var message string = ""
+	if wstatus == WEATHERSTATE_ENDWEATHER {
+		switch weather {
+			case WEATHER_HAIL:
+				message = "The hail subsided!"
+			case WEATHER_SANDSTORM:
+				message = "The sandstorm subsided!"
+			case WEATHER_SUNNY:
+				message = "The sunglight faded!"
+			case WEATHER_RAIN:
+				message = "The rain stopped!"
+		}
+	} else if wstatus == WEATHERSTATE_HURTWEATHER {
+		switch weather {
+			case WEATHER_HAIL:
+				message = fmt.Sprintf("%v is buffeted by the hail!", b.currentPoke(_player).Nick)
+			case WEATHER_SANDSTORM:
+				message = fmt.Sprintf("%v is buffeted by the sandstorm!", b.currentPoke(_player).Nick)
+		}
+	} else if wstatus == WEATHERSTATE_CONTINUEWEATHER {
+		switch weather {
+			case WEATHER_HAIL:
+				message = "Hail continues to fall!"
+			case WEATHER_SANDSTORM:
+				message = "The sandstorm rages!"
+			case WEATHER_SUNNY:
+				message = "The sunlight is strong!"
+			case WEATHER_RAIN:
+				message = "Rain continues to fall!"
+		}
+	}
+	
+	b.WriteToHist(message + "\n")
+}
+
+func (b *Battle) receivedStraigthDamage(_packet *pnet.QTPacket, _player int) {
+	damage := int(_packet.ReadUint16())
+	if _player == b.me {
+		b.WriteToHist(fmt.Sprintf("%v lost %d HP! (%d%% of its health)", b.currentPoke(_player).Nick, (damage * 100) / b.myTeam.Pokes[0].TotalHP))
+	} else {
+		b.WriteToHist(fmt.Sprintf("%v lost %d%% of its health!", b.currentPoke(_player).Nick, damage))
+	}
 }
 
 func (b *Battle) receivedAbsStatusChange(_packet *pnet.QTPacket, _player int) {
@@ -445,7 +562,7 @@ func (b *Battle) receivedRated(_packet *pnet.QTPacket) {
 	if _packet.ReadBool() {
 		rated = "Rated"
 	}
-	b.WriteToHist("Rule: " + rated)
+	b.WriteToHist("Rule: " + rated + "\n")
 	
 	// TODO: Print clauses
 }

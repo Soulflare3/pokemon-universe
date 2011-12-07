@@ -17,9 +17,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
+	"crypto/sha1"
 	"fmt"
 	"hash"
-	"crypto/sha1"
 	"strings"
 )
 
@@ -70,7 +70,7 @@ func PasswordTest(_plain string, _hash string) bool {
 	var h hash.Hash = sha1.New()
 	h.Write([]byte(_plain))
 
-	var sha1Hash string = strings.ToUpper(fmt.Sprintf("%x", h.Sum()))
+	var sha1Hash string = strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))
 	var original string = strings.ToUpper(_hash)
 
 	return (sha1Hash == original)

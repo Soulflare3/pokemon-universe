@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
 type PokemonList 			map[int]*Pokemon
@@ -28,19 +29,22 @@ type PokemonStatArray 		[]*PokemonStat
 type PokemonTypeArray		[]int
 type PokemonAbilityList 	map[int]*PokemonAbility
 type PokemonMoveList 		map[int]*PokemonMove
+type MoveMessageList		map[int]map[int]string
 
 type PokemonManager struct {
 	pokemon				PokemonList // All pokemon including different forms
 	pokemonSpecies		PokemonSpeciesList // All pokemon species
 	moves				MoveList
 	abilities			AbilityList
+	moveMessages		MoveMessageList
 }
 
 func NewPokemonManager() *PokemonManager {
 	return &PokemonManager { pokemon: make(PokemonList),
 							 pokemonSpecies: make(PokemonSpeciesList),
 							 moves: make(MoveList),
-							 abilities: make(AbilityList) }
+							 abilities: make(AbilityList),
+							 moveMessages: make(MoveMessageList) }
 }
 
 func (m *PokemonManager) Load() bool {
@@ -61,6 +65,11 @@ func (m *PokemonManager) Load() bool {
 	
 	// Load Pokemon
 	if !m.loadPokemon() {
+		return false
+	}
+	
+	// Load move messages
+	if !m.loadMoveMessages() {
 		return false
 	}
 	
@@ -255,6 +264,35 @@ func (m *PokemonManager) loadPokemon() bool {
 	return true
 }
 
+func (m *PokemonManager) loadMoveMessages() bool {
+	var query string = "SELECT `move_effect_id`, `message` FROM move_messages"
+	result, err := DBQuerySelect(query)
+	if err != nil {
+		return false
+	}
+	
+	g_logger.Println(" - Processing Move Messages")
+	for {
+		row := result.FetchRow()
+		if row == nil {
+			break
+		}
+		
+		effect_id := DBGetInt(row[0])
+		message := DBGetString(row[1])
+		
+		messages := strings.Split(message, "|")
+		messageMap := make(map[int]string)
+		for index, msg := range(messages) {
+			messageMap[index] = msg
+		}
+		
+		m.moveMessages[effect_id] = messageMap
+	}
+	
+	return true
+}
+
 func (m *PokemonManager) GetPokemon(_pokemonId int) *Pokemon {
 	return m.pokemon[_pokemonId]
 }
@@ -286,6 +324,86 @@ func (m *PokemonManager) GetAbilityById(_abilityId int) *Ability {
 	return m.abilities[_abilityId]
 }
 
+func (m *PokemonManager) GetAbilityNameById(_abilityId int) (toReturn string) {
+	ability := m.GetAbilityById(_abilityId)
+	if ability != nil {
+		toReturn = ability.Identifier
+	} else {
+		toReturn = "Unknown"
+	}
+	return
+}
+
 func (m *PokemonManager) GetMoveById(_moveId int) *Move {
 	return m.moves[_moveId]
+}
+
+func (m *PokemonManager) GetMoveNameById(_moveId int) (toReturn string) {
+	move := m.GetMoveById(_moveId)
+	if move != nil {
+		toReturn = move.Identifier
+	} else {
+		toReturn = "Unknown"
+	}
+	return
+}
+
+func (m *PokemonManager) GetMoveMessage(_id, _part int) string {
+	var toReturn string = ""
+	if value, found := m.moveMessages[_id]; found {
+		if _part < len(value) {
+			if partValue, ok := value[_part]; ok {
+				toReturn = partValue
+			}
+		}
+	}
+	
+	return toReturn
+}
+
+func (m *PokemonManager) GetTypeValueById(_id int) (toReturn string) {
+	toReturn = "Unknown"
+	switch _id {
+		case TYPE_NORMAL:
+			toReturn = "Normal"
+		case TYPE_FIGHTING:
+			toReturn = "Fighting"
+			case TYPE_FLYING:
+			toReturn = "Flying"
+		case TYPE_POISON:
+			toReturn = "Poison"
+		case TYPE_GROUND:
+			toReturn = "Ground"
+		case TYPE_ROCK:
+			toReturn = "Rock"
+		case TYPE_BUG:
+			toReturn = "Bug"
+		case TYPE_GHOST:
+			toReturn = "Ghost"
+		case TYPE_STEEL:
+			toReturn = "Steel"
+		case TYPE_FIRE:
+			toReturn = "Fire"
+		case TYPE_WATER:
+			toReturn = "Water"
+		case TYPE_GRASS:
+			toReturn = "Grass"
+		case TYPE_ELECTRIC:
+			toReturn = "Electric"
+		case TYPE_PSYCHIC:
+			toReturn = "Psychic"
+		case TYPE_ICE:
+			toReturn = "Ice"
+		case TYPE_DRAGON:
+			toReturn = "Dragon"
+		case TYPE_DARK:
+			toReturn = "Dark"
+	}
+	
+	return
+}
+
+func (m *PokemonManager) GetItemNameById(_id int) string {
+	// TODO: We don't have items yet, so return unknown
+	return "Unknown"
 }

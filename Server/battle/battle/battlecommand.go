@@ -33,7 +33,7 @@ const (
 	BattleCommand_StatusChange
 	BattleCommand_StatusMessage
 	BattleCommand_Failed
-	BattleCommand_BattleChat
+	BattleCommand_BattleChat // Obsolete, we use our own chat
 	BattleCommand_MoveMessage
 	BattleCommand_ItemMessage
 	BattleCommand_NoOpponent
