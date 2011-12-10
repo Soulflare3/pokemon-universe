@@ -175,14 +175,33 @@ func (b *Battle) ReceiveCommand(_packet *pnet.QTPacket) {
 			b.receivedWeatherMesage(_packet, player)
 		case BattleCommand_StraightDamage: // 23
 			b.receivedStraigthDamage(_packet, player)
+		case BattleCommand_AbilityMessage: // 24
+			b.receivedAbilityMessage(_packet, player)
 		case BattleCommand_AbsStatusChange: // 25
 			b.receivedAbsStatusChange(_packet, player)
+		case BattleCommand_Substitute: // 26
+			b.receivedSubstitute(_packet, player)
+		case BattleCommand_BattleEnd: // 27
+			b.receivedBattleEnd(_packet, player)
 		case BattleCommand_BlankMessage: // 28
-			fmt.Println("")
+			b.WriteToHist("\n")
+		case BattleCommand_CancelMove: // 29
+			b.receivedCancelMove()
+		case BattleCommand_Clause: // 30
+			// TODO: Do someting with this, it only writes to history so isn't that important
 		case BattleCommand_DynamicInfo: // 31
 			b.receiveDynamicInfo(_packet, player)
 		case BattleCommand_DynamicStats: // 32
 			b.receiveDynamicStats(_packet, player)
+		case BattleCommand_Spectating: // 33
+			// TODO: implement
+		case BattleCommand_SpectatorChat: // 34
+			// TODO: Implement? Or are we using our own chat (probably yes)
+		case BattleCommand_AlreadyStatusMessage: // 35
+			status := int(_packet.ReadUint8())
+			b.WriteToHist(fmt.Sprintf("%v is already %v\n", b.currentPoke(player), GetStatusById(status)))
+		case BattleCommand_TempPokeChange: // 36
+			b.receivedTempPokeChange(_packet, player)
 		case BattleCommand_ClockStart: // 37
 			b.clockStart(_packet, player)
 		case BattleCommand_ClockStop: // 38
@@ -192,8 +211,21 @@ func (b *Battle) ReceiveCommand(_packet *pnet.QTPacket) {
 		case BattleCommand_TierSection: // 40
 			tier := _packet.ReadString()
 			b.WriteToHist("Tier: " + tier + "\n")
+		case BattleCommand_EndMessage: // 41
+			endMessage := _packet.ReadString()
+			if len(endMessage) > 0 {
+				b.WriteToHist(fmt.Sprintf("%v: %v\n", b.players[player].Nick, endMessage))
+			}
+		case BattleCommand_PointEstimate: // 42
+			// NOT IMPLEMENTED
 		case BattleCommand_MakeYourChoice: // 43
 			b.receiveMakeYourCoice()
+		case BattleCommand_Avoid: // 44
+			b.WriteToHist(fmt.Sprintf("%v avoided the attack!\n", b.currentPoke(player).Nick))
+		case BattleCommand_RearrangeTeam: // 45
+			b.receivedRearrangeTeam(_packet)
+		case BattleCommand_SpotShifts: // 46
+			// TOOD
 		default:
 			fmt.Printf("Battle command unimplemented: %d\n", bc)	
 	}
@@ -205,6 +237,10 @@ func (b *Battle) isOut(_poke int) bool {
 
 func (b *Battle) currentPoke(_player int) *ShallowBattlePoke {
 	return b.pokes[_player][0]
+}
+
+func (b *Battle) slot(_player, _poke int) int {
+	return _player + _poke * 2
 }
 
 // -------------------- Received Messages ----------------------
@@ -443,7 +479,7 @@ func (b *Battle) receivedMoveMessage(_packet *pnet.QTPacket, _player int) {
 	s = strings.Replace(s, "%tf", b.players[tmp].Nick, 0)
 	
 	if msgType != -1 {
-		s = strings.Replace(s, "%t", g_PokemonManager.GetTypeValueById(msgType), 0)
+		s = strings.Replace(s, "%t", GetTypeValueById(msgType), 0)
 	}
 	if foe != -1 {
 		s = strings.Replace(s, "%f", b.currentPoke(foe).Nick, 0)
@@ -517,6 +553,42 @@ func (b *Battle) receivedStraigthDamage(_packet *pnet.QTPacket, _player int) {
 	}
 }
 
+func (b *Battle) receivedAbilityMessage(_packet *pnet.QTPacket, _player int) {
+	ab := int(_packet.ReadUint16())
+	part := int(_packet.ReadUint8())
+	msgType := int(_packet.ReadUint8())
+	foe := int(_packet.ReadUint8())
+	other := int(_packet.ReadUint16())
+	
+	s := g_PokemonManager.GetAbilityMessage((ab + 1), part)
+	if other != -1 && strings.Contains(s, "%st") {
+		s = strings.Replace(s, "%st", GetStatById(other), 0)
+	}
+	s = strings.Replace(s, "%s", b.currentPoke(_player).Nick, 0)
+	if msgType != -1 {
+		s = strings.Replace(s, "%t", GetTypeValueById(msgType), 0)
+	}
+	if foe != -1 {
+		s = strings.Replace(s, "%f", b.currentPoke(foe).Nick, 0)
+	}
+	if other != - 1 {
+		if strings.Contains(s, "%m") {
+			s = strings.Replace(s, "%m", g_PokemonManager.GetMoveNameById(other), 0)
+		}
+		if strings.Contains(s, "%i") {
+			s = strings.Replace(s, "%i", g_PokemonManager.GetItemNameById(other), 0)
+		}
+		if strings.Contains(s, "%a") {
+			s = strings.Replace(s, "%a", g_PokemonManager.GetAbilityNameById(other + 1), 0)
+		}
+		if strings.Contains(s, "%p") {
+			s = strings.Replace(s, "%p", g_PokemonManager.GetPokemonName(other, 0), 0)
+		}
+	}
+	
+	b.WriteToHist(s + "\n")
+}
+
 func (b *Battle) receivedAbsStatusChange(_packet *pnet.QTPacket, _player int) {
 	poke := int(_packet.ReadUint8())
 	status := uint(_packet.ReadUint8())
@@ -534,6 +606,30 @@ func (b *Battle) receivedAbsStatusChange(_packet *pnet.QTPacket, _player int) {
 	}
 }
 
+func (b *Battle) receivedSubstitute(_packet *pnet.QTPacket, _player int) {
+	isSub := _packet.ReadBool()
+	b.currentPoke(_player).Sub = isSub
+	if _player == b.me {
+		// TODO: Send updateMyPoke to PU client
+	} else {
+		// TODO: Send updateOppPoke to PU client
+	}
+}
+
+func (b *Battle) receivedBattleEnd(_packet *pnet.QTPacket, _player int) {
+	result := int(_packet.ReadUint8())
+	if result == BATTLERESULT_TIE {
+		b.WriteToHist(fmt.Sprintf("Tie between %v and %v.\n", b.players[0].Nick, b.players[1].Nick))
+	} else {
+		b.WriteToHist(fmt.Sprintf("%v won the battle!\n", b.players[_player].Nick))
+	}
+	b.gotEnd = true
+}
+
+func (b *Battle) receivedCancelMove() {
+	// TODO: Send updateButtons to PU client
+}
+
 func (b *Battle) receiveDynamicInfo(_packet *pnet.QTPacket, _player int) {
 	b.dynamicInfo[_player] = NewBattleDynamicInfoFromPacket(_packet)
 }
@@ -541,6 +637,44 @@ func (b *Battle) receiveDynamicInfo(_packet *pnet.QTPacket, _player int) {
 func (b *Battle) receiveDynamicStats(_packet *pnet.QTPacket, _player int) {
 	for i := 0; i < 5; i++ {
 		b.myTeam.Pokes[_player / 2].Stats[i] = int(_packet.ReadUint16())
+	}
+}
+
+func (b *Battle) receivedTempPokeChange(_packet *pnet.QTPacket, _player int) {
+	id := int(_packet.ReadUint8())
+	switch id {
+		case TEMPPOKECHANGE_TEMPMOVE:
+			fallthrough
+		case TEMPPOKECHANGE_DEFMOVE:
+			slot := int(_packet.ReadUint8())
+			newMove := NewBattleMoveFromId(int(_packet.ReadUint16()))
+			b.displayedMoves[slot] = newMove
+			if id == TEMPPOKECHANGE_DEFMOVE {
+				b.myTeam.Pokes[0].Moves[slot] = newMove
+			}
+			
+			// TODO: Send updatePokes(player) to PU client
+		case TEMPPOKECHANGE_TEMPPP:
+			slot := int(_packet.ReadUint8())
+			pp := int(_packet.ReadUint8())
+			b.displayedMoves[slot].CurrentPP = pp
+			
+			// TODO: Send updateMovePP(slot) to PU client
+		case TEMPPOKECHANGE_TEMPSPRITE:
+			// TODO: Implement
+		case TEMPPOKECHANGE_DEFINITEFORME:
+			poke := int(_packet.ReadUint8())
+			newForm := int(_packet.ReadUint16())
+			if b.isOut(poke) {
+				b.currentPoke(b.slot(_player, poke)).UID.PokeNum = newForm
+				
+				// TODO: Send updatePokes(player) to PU client
+			}
+		case TEMPPOKECHANGE_AESTHETICFORME:
+			newForm := int(_packet.ReadUint16())
+			b.currentPoke(_player).UID.SubNum = newForm
+			
+			// TODO: Send updatePokes(player) to PU client
 	}
 }
 
@@ -572,6 +706,13 @@ func (b *Battle) receiveMakeYourCoice() {
 	if b.allowSwitch && !b.allowAttack {
 		// TOOD: Send switchToPokeViewer to PU client
 	}
+}
+
+func (b *Battle) receivedRearrangeTeam(_packet *pnet.QTPacket) {
+	b.oppTeam = NewShallowShownTeamFromPacket(_packet)
+	b.shouldShowPreview = true
+	
+	// TODO: Send notifyRearrangeTeamDialog() to PU client
 }
 
 // -------------------- Send Messages ----------------------

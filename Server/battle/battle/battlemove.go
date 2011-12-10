@@ -38,7 +38,17 @@ func NewBattleMove() *BattleMove {
 }
 
 func NewBattleMoveFromId(_id int) *BattleMove {
+	move := g_PokemonManager.GetMoveById(_id)
 	battleMove := BattleMove{}
+	battleMove.CurrentPP = move.PP
+	battleMove.TotalPP = move.PP
+	battleMove.Num = move.MoveId
+	battleMove.Name = move.Identifier
+	battleMove.Type = move.TypeId
+	battleMove.power = string(move.Power)
+	battleMove.accuracy = string(move.Accuracy)
+	battleMove.description = ""
+	battleMove.effect = ""
 	
 	return &battleMove
 }

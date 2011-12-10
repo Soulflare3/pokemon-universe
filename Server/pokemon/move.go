@@ -21,6 +21,7 @@ type Move struct {
 	Identifier			string
 	TypeId				int
 	Power				int
+	PP					int
 	Accuracy			int
 	Priority			int
 	TargetId			int
