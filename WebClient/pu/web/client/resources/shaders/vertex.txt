@@ -1,0 +1,11 @@
+uniform mat4 u_projection;
+attribute vec4 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+
+void main()
+{
+	v_texCoord = a_texCoord;
+	gl_Position = u_projection * a_position;
+	gl_PointSize = 1.0;
+} 
