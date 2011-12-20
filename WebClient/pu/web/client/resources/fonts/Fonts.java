@@ -7,8 +7,10 @@ import com.google.gwt.resources.client.TextResource;
 
 public interface Fonts extends ClientBundle
 {
+	public static int FONT_COUNT = 1;
 	public static Fonts INSTANCE = GWT.create(Fonts.class);
 
+	public static int FONT_PURITAN_BOLD_14 = 0;
 	@Source(value = { "puritan_bold_14.fnt" })
 	TextResource puritanBold14Info();
 	

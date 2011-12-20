@@ -1,6 +1,8 @@
 package pu.web.client;
 
 import pu.web.client.gui.GUIManager;
+import pu.web.client.gui.TextField;
+import pu.web.client.resources.fonts.Fonts;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
@@ -14,9 +16,10 @@ public class PUWeb implements EntryPoint
 {
 	private static WebGLRenderingContext mGlContext;
 	private static PU_Engine mEngine;
+	private static GUIManager mGui;
 	
 	private PU_Events mEvents;
-	private GUIManager mGui;
+	private PU_Resources mResources;
 
 	public void onModuleLoad()
 	{
@@ -25,9 +28,8 @@ public class PUWeb implements EntryPoint
 		PUWeb.mGlContext.viewport(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT);
 		RootPanel.get("gwtGL").add(webGLCanvas);
 		
-		mGui = new GUIManager(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT, null/*default font*/);
-		mEvents = new PU_Events(Document.get().getElementById("gwtGL"), mGui);
-
+		mResources = new PU_Resources();
+		
 		PUWeb.mEngine = new PU_Engine(PUWeb.mGlContext);
 		PUWeb.mEngine.init();
 
@@ -39,7 +41,16 @@ public class PUWeb implements EntryPoint
 			@Override
 			public void onSuccess()
 			{
-				// Load our tiles, fonts etc.
+				mResources.loadFonts();
+				
+				PUWeb.mGui = new GUIManager(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT, mResources.getFont(Fonts.FONT_PURITAN_BOLD_14));
+				mEvents = new PU_Events(Document.get().getElementById("gwtGL"), PUWeb.mGui);
+				
+				TextField tf = new TextField(10, 10, 200, 40);
+				tf.setBorderColor(0, 0, 0);
+				tf.setFontColor(0, 255, 100);
+				PUWeb.mGui.getRoot().addChild(tf);
+				PUWeb.mGui.getRoot().focusElement(tf);
 			}
 
 			@Override
@@ -60,6 +71,11 @@ public class PUWeb implements EntryPoint
 	public static PU_Engine engine()
 	{
 		return PUWeb.mEngine;
+	}
+	
+	public static GUIManager gui()
+	{
+		return PUWeb.mGui;
 	}
 
 	private native void requestAnimationFrame() /*-{
@@ -91,7 +107,22 @@ public class PUWeb implements EntryPoint
 		requestAnimationFrame();
 		mEngine.clear();
 
-		/* drawing logic */
-		log("derp");
+		PU_Font font = mResources.getFont(Fonts.FONT_PURITAN_BOLD_14);
+		if(font != null)
+		{			
+			font.setColor(255, 255, 255);
+			font.drawBorderedText("Test bordered text", 10, 200);
+		}
+		
+		mEngine.setColor(255, 0, 0, 255);
+		mEngine.renderLine(10, 100, 110, 100);
+		
+		mEngine.renderRect(10, 150, 50, 50);
+		
+		// Render the GUI
+		if(mGui != null)
+		{
+			mGui.draw();
+		}
 	}
 }

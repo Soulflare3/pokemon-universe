@@ -107,4 +107,20 @@ public class PU_Image
 		
 		PUWeb.engine().renderTexture(this, inRect, dstRect);
 	}
+	
+	public void drawRectClipInRect(PU_Rect rect, PU_Rect clip, PU_Rect inRect)
+	{
+		//PUWeb.log("rect 1: " + rect.x + " " + rect.y + " " + rect.width + " " + rect.height);
+		//PUWeb.log("rect 2: " + clip.x + " " + clip.y + " " + clip.width + " " + clip.height);
+		//PUWeb.log("rect 3: " + inRect.x + " " + inRect.y + " " + inRect.width + " " + inRect.height);
+		inRect = inRect.intersection(new PU_Rect(rect.x, rect.y, clip.width, clip.height));
+		//PUWeb.log("rect 4: " + inRect.x + " " + inRect.y + " " + inRect.width + " " + inRect.height);
+		PU_Rect dstRect = new PU_Rect(inRect.x, inRect.y, inRect.width, inRect.height);
+		inRect.x -= rect.x;
+		inRect.y -= rect.y;
+		inRect.x += clip.x;
+		inRect.y += clip.y;
+		
+		PUWeb.engine().renderTexture(this, inRect, dstRect);
+	}
 }

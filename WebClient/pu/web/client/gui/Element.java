@@ -81,6 +81,11 @@ public class Element
 		mFocus = focus;
 	}
 	
+	public void setFocusable(boolean focusable)
+	{
+		mFocusable = focusable;
+	}
+	
 	public boolean isFocusable()
 	{
 		return mFocusable;

@@ -2,13 +2,10 @@ package pu.web.client;
 
 import pu.web.client.resources.shaders.Shaders;
 
+import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.ImageElement;
-import com.google.gwt.event.dom.client.LoadEvent;
-import com.google.gwt.event.dom.client.LoadHandler;
 import com.google.gwt.resources.client.ImageResource;
-import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.RootPanel;
 import com.googlecode.gwtgl.array.Float32Array;
 import com.googlecode.gwtgl.binding.WebGLBuffer;
 import com.googlecode.gwtgl.binding.WebGLProgram;
@@ -16,7 +13,7 @@ import com.googlecode.gwtgl.binding.WebGLRenderingContext;
 import com.googlecode.gwtgl.binding.WebGLShader;
 import com.googlecode.gwtgl.binding.WebGLTexture;
 
-public class PU_Engine implements LoadHandler
+public class PU_Engine
 {
 	private final int ATTRIBUTE_POSITION = 0;
 	private final int ATTRIBUTE_TEXCOORD = 1;
@@ -58,7 +55,7 @@ public class PU_Engine implements LoadHandler
 	
 	public void clear()
 	{
-		mGlContext.clearColor(0.0f, 0.0f, 0.0f, 255.0f);
+		mGlContext.clearColor(255.0f, 255.0f, 255.0f, 255.0f);
 		mGlContext.clear(WebGLRenderingContext.COLOR_BUFFER_BIT);
 	}
 
@@ -194,6 +191,56 @@ public class PU_Engine implements LoadHandler
 
 		mGlContext.uniform4fv(mCurrentShader.getUColor(), mColor);
 	}
+	
+	public void renderLine(int x1, int y1, int x2, int y2)
+	{
+		setPrimitiveDrawingState();
+
+		float vertices[] = new float[4];
+		
+		vertices[0] = (float)x1 + 0.5f;
+		vertices[1] = (float)y1 + 0.5f;
+		
+		vertices[2] = (float)x2 + 0.5f;
+		vertices[3] = (float)y2 + 0.5f;
+		
+
+		WebGLBuffer buffer = mGlContext.createBuffer();
+		mGlContext.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, buffer);
+		mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Float32Array.create(vertices), WebGLRenderingContext.STREAM_DRAW);
+
+		mGlContext.vertexAttribPointer(ATTRIBUTE_POSITION, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
+		mGlContext.drawArrays(WebGLRenderingContext.LINE_STRIP, 0, 2);
+	}
+	
+	public void renderRect(int x, int y, int width, int height)
+	{
+		setPrimitiveDrawingState();
+
+		float vertices[] = new float[10];
+		
+		vertices[0] = (float)x + 0.5f;
+		vertices[1] = (float)y + 0.5f;
+		
+		vertices[2] = (float)x+width + 0.5f;
+		vertices[3] = (float)y + 0.5f;
+		
+		vertices[4] = (float)x+width + 0.5f;
+		vertices[5] = (float)y+height + 0.5f;
+		
+		vertices[6] = (float)x + 0.5f;
+		vertices[7] = (float)y+height + 0.5f;
+		
+		vertices[8] = (float)x + 0.5f;
+		vertices[9] = (float)y + 0.5f;
+		
+		WebGLBuffer buffer = mGlContext.createBuffer();
+		mGlContext.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, buffer);
+		mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Float32Array.create(vertices), WebGLRenderingContext.STREAM_DRAW);
+
+		mGlContext.vertexAttribPointer(ATTRIBUTE_POSITION, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
+		mGlContext.drawArrays(WebGLRenderingContext.LINE_STRIP, 0, 5);
+	}
 
 	public void renderFillRect(int x, int y, int width, int height)
 	{
@@ -217,12 +264,12 @@ public class PU_Engine implements LoadHandler
 
 		WebGLBuffer buffer = mGlContext.createBuffer();
 		mGlContext.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, buffer);
-		mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Float32Array.create(vertices), WebGLRenderingContext.STATIC_DRAW);
+		mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Float32Array.create(vertices), WebGLRenderingContext.STREAM_DRAW);
 
 		mGlContext.vertexAttribPointer(ATTRIBUTE_POSITION, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
 		mGlContext.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4);
 	}
-	
+		
 	WebGLTexture createEmptyTexture()
 	{
 		WebGLTexture texture = mGlContext.createTexture();
@@ -312,46 +359,11 @@ public class PU_Engine implements LoadHandler
 		mGlContext.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4);
 		mGlContext.flush();
 	}
-
-	@Override
-	public void onLoad(LoadEvent event)
-	{
-		WebGLTexture texture = mGlContext.createTexture();
-        mGlContext.bindTexture(WebGLRenderingContext.TEXTURE_2D, texture);
-        
-        Image image = (Image) event.getSource();
-
-	    mGlContext.bindTexture(WebGLRenderingContext.TEXTURE_2D, texture);
-	    mGlContext.texParameteri(WebGLRenderingContext.TEXTURE_2D, WebGLRenderingContext.TEXTURE_MAG_FILTER, WebGLRenderingContext.LINEAR);
-	    mGlContext.texParameteri(WebGLRenderingContext.TEXTURE_2D, WebGLRenderingContext.TEXTURE_MIN_FILTER, WebGLRenderingContext.LINEAR);
-	    mGlContext.texParameteri(WebGLRenderingContext.TEXTURE_2D, WebGLRenderingContext.TEXTURE_WRAP_S, WebGLRenderingContext.CLAMP_TO_EDGE);
-	    mGlContext.texParameteri(WebGLRenderingContext.TEXTURE_2D, WebGLRenderingContext.TEXTURE_WRAP_T, WebGLRenderingContext.CLAMP_TO_EDGE);
-	    mGlContext.texImage2D(WebGLRenderingContext.TEXTURE_2D, 0, WebGLRenderingContext.RGBA, WebGLRenderingContext.RGBA, WebGLRenderingContext.UNSIGNED_BYTE, image.getElement());
-	    
-        mGlContext.bindTexture(WebGLRenderingContext.TEXTURE_2D, null);
-        
-        PU_Image newImage = new PU_Image(image.getWidth(), image.getHeight(), texture);
-       // do stuff
-	}
 	
-	public void loadTexture(ImageResource imageResource)
+	public ImageElement getImageElement(final ImageResource imageResource)
 	{
-		Image image = new Image();
-		image.setVisible(false);
-		image.setAltText("tile");
-        RootPanel.get().add(image);
-
-        image.setUrl(imageResource.getSafeUri());        
-	}
-	
-	public Image getImage(final ImageResource imageResource)
-	{
-		final Image img = new Image();
-		img.setVisible(false);
-		RootPanel.get().add(img);
-
-		img.setUrl(imageResource.getSafeUri());
-
-		return img;
+		ImageElement element = Document.get().createImageElement();
+		element.setSrc(imageResource.getSafeUri().asString());
+		return element;
 	}
 }
