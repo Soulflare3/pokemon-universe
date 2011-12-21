@@ -97,15 +97,23 @@ public class TextField extends TextElement
 					mText = mText.substring(0, mText.length()-1);
 				}
 			}
-			else if(button != 0 && button > 31)
-			{
-				mText += (char) button;
-			}
 		}
 		
 		if(hasFocus() && mKeyDownListener != null)
 		{
 			mKeyDownListener.OnKeyDown(button);
+		}
+	}
+	
+	@Override
+	public void textInput(int charCode)
+	{
+		if(!mReadOnly && hasFocus())
+		{
+			if(charCode != 0 && charCode > 31)
+			{
+				mText += (char) charCode;
+			}
 		}
 	}
 	

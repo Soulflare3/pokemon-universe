@@ -25,7 +25,7 @@ public class Window extends Container
 	
 	public void keyDown(int button)
 	{
-		if(button == 0/*TODO: TAB*/)
+		if(button == 9/*TODO: TAB keycode*/)
 		{
 			nextFocus();
 		} 

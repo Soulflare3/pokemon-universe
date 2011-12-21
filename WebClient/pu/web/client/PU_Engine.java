@@ -18,8 +18,8 @@ public class PU_Engine
 	private final int ATTRIBUTE_POSITION = 0;
 	private final int ATTRIBUTE_TEXCOORD = 1;
 
-	public static final int SCREEN_WIDTH = 800;
-	public static final int SCREEN_HEIGHT = 600;
+	public static final int SCREEN_WIDTH = 964;
+	public static final int SCREEN_HEIGHT = 720;
 
 	public static final int BLENDMODE_NONE = 0;
 	public static final int BLENDMODE_BLEND = 1;
@@ -55,7 +55,7 @@ public class PU_Engine
 	
 	public void clear()
 	{
-		mGlContext.clearColor(255.0f, 255.0f, 255.0f, 255.0f);
+		mGlContext.clearColor(0.0f, 0.0f, 0.0f, 255.0f);
 		mGlContext.clear(WebGLRenderingContext.COLOR_BUFFER_BIT);
 	}
 
@@ -273,7 +273,7 @@ public class PU_Engine
 	WebGLTexture createEmptyTexture()
 	{
 		WebGLTexture texture = mGlContext.createTexture();
-		mGlContext.bindTexture(WebGLRenderingContext.TEXTURE_2D, texture);
+		bindTexture(texture);
 		mGlContext.texParameteri(WebGLRenderingContext.TEXTURE_2D, WebGLRenderingContext.TEXTURE_MAG_FILTER, WebGLRenderingContext.LINEAR);
 		mGlContext.texParameteri(WebGLRenderingContext.TEXTURE_2D, WebGLRenderingContext.TEXTURE_MIN_FILTER, WebGLRenderingContext.LINEAR);
 		mGlContext.texParameteri(WebGLRenderingContext.TEXTURE_2D, WebGLRenderingContext.TEXTURE_WRAP_S, WebGLRenderingContext.CLAMP_TO_EDGE);
@@ -283,8 +283,17 @@ public class PU_Engine
 	
 	public void fillTexture(WebGLTexture texture, Element element)
 	{
-		mGlContext.bindTexture(WebGLRenderingContext.TEXTURE_2D, texture);
+		bindTexture(texture);
 		mGlContext.texImage2D(WebGLRenderingContext.TEXTURE_2D, 0, WebGLRenderingContext.RGBA, WebGLRenderingContext.RGBA, WebGLRenderingContext.UNSIGNED_BYTE, element.<ImageElement>cast());
+	}
+	
+	public void bindTexture(WebGLTexture texture)
+	{
+		if(mLastBoundTexture != texture)
+		{
+			mGlContext.bindTexture(WebGLRenderingContext.TEXTURE_2D, texture);
+			mLastBoundTexture = texture;
+		}
 	}
 	
 	public void renderText(PU_Font font, int x, int y, String text)

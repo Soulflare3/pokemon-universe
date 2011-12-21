@@ -17,9 +17,9 @@ public class PUWeb implements EntryPoint
 	private static WebGLRenderingContext mGlContext;
 	private static PU_Engine mEngine;
 	private static GUIManager mGui;
-	
-	private PU_Events mEvents;
-	private PU_Resources mResources;
+	private static PU_Resources mResources;
+	private static PU_Game mGame;
+	private static PU_Events mEvents;
 
 	public void onModuleLoad()
 	{
@@ -28,7 +28,8 @@ public class PUWeb implements EntryPoint
 		PUWeb.mGlContext.viewport(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT);
 		RootPanel.get("gwtGL").add(webGLCanvas);
 		
-		mResources = new PU_Resources();
+		PUWeb.mResources = new PU_Resources();
+		PUWeb.mGame = new PU_Game();
 		
 		PUWeb.mEngine = new PU_Engine(PUWeb.mGlContext);
 		PUWeb.mEngine.init();
@@ -41,16 +42,11 @@ public class PUWeb implements EntryPoint
 			@Override
 			public void onSuccess()
 			{
+				// Load fonts
 				mResources.loadFonts();
 				
-				PUWeb.mGui = new GUIManager(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT, mResources.getFont(Fonts.FONT_PURITAN_BOLD_14));
-				mEvents = new PU_Events(Document.get().getElementById("gwtGL"), PUWeb.mGui);
-				
-				TextField tf = new TextField(10, 10, 200, 40);
-				tf.setBorderColor(0, 0, 0);
-				tf.setFontColor(0, 255, 100);
-				PUWeb.mGui.getRoot().addChild(tf);
-				PUWeb.mGui.getRoot().focusElement(tf);
+				// Load GUI images
+				mResources.loadGuiImages();
 			}
 
 			@Override
@@ -62,6 +58,25 @@ public class PUWeb implements EntryPoint
 		PU_Connection connection = new PU_Connection("ws://127.0.0.1:12345/echo");
 		connection.connect();
 	}
+	
+	public static void resourcesLoaded()
+	{
+		PUWeb.mGui = new GUIManager(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT, mResources.getFont(Fonts.FONT_PURITAN_BOLD_14));
+		PUWeb.mEvents = new PU_Events(Document.get().getElementById("gwtGL"), PUWeb.mGui);
+		
+		mGame.setState(PU_Game.GAMESTATE_LOGIN);
+		
+		// TODO: move this to the appropriate place
+		TextField tfUsername = new TextField(453, 396, 160, 20);
+		tfUsername.setFontColor(57, 92, 196);
+		PUWeb.mGui.getRoot().addChild(tfUsername);
+		PUWeb.mGui.getRoot().focusElement(tfUsername);
+		
+		TextField tfPassword = new TextField(453, 424, 160, 20);
+		tfPassword.setFontColor(57, 92, 196);
+		tfPassword.setPassword(true);
+		PUWeb.mGui.getRoot().addChild(tfPassword);
+	}
 
 	public static WebGLRenderingContext gl()
 	{
@@ -71,6 +86,11 @@ public class PUWeb implements EntryPoint
 	public static PU_Engine engine()
 	{
 		return PUWeb.mEngine;
+	}
+	
+	public static PU_Resources resources()
+	{
+		return PUWeb.mResources;
 	}
 	
 	public static GUIManager gui()
@@ -107,17 +127,11 @@ public class PUWeb implements EntryPoint
 		requestAnimationFrame();
 		mEngine.clear();
 
-		PU_Font font = mResources.getFont(Fonts.FONT_PURITAN_BOLD_14);
-		if(font != null)
-		{			
-			font.setColor(255, 255, 255);
-			font.drawBorderedText("Test bordered text", 10, 200);
+		// Render the game
+		if(mGame != null)
+		{
+			mGame.draw();
 		}
-		
-		mEngine.setColor(255, 0, 0, 255);
-		mEngine.renderLine(10, 100, 110, 100);
-		
-		mEngine.renderRect(10, 150, 50, 50);
 		
 		// Render the GUI
 		if(mGui != null)

@@ -57,4 +57,9 @@ public class GUIManager
 	{
 		mRoot.keyUp(button);
 	}
+	
+	public void textInput(int charCode)
+	{
+		mRoot.textInput(charCode);
+	}
 }

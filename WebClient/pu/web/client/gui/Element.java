@@ -51,6 +51,11 @@ public class Element
 		
 	}
 	
+	public void textInput(int charCode)
+	{
+
+	}
+	
 	public boolean isVisible() 
 	{
 		return mVisible;

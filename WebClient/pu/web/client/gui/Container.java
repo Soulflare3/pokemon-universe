@@ -140,4 +140,16 @@ public class Container extends Element
 			}
 		}
 	}
+	
+	@Override
+	public void textInput(int charCode)
+	{
+		for(Element child : mChildren)
+		{
+			if(child.isVisible())
+			{
+				child.textInput(charCode);
+			}
+		}
+	}
 }

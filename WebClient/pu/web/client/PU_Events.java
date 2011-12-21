@@ -47,6 +47,10 @@ public class PU_Events
 			events.@pu.web.client.PU_Events::onKeyDown(Lcom/google/gwt/dom/client/NativeEvent;)(e);
 		}, true);
 		
+		root.addEventListener('keypress', function(e) {
+			events.@pu.web.client.PU_Events::onKeyPress(Lcom/google/gwt/dom/client/NativeEvent;)(e);
+		}, true);
+		
 		root.addEventListener('keyup', function(e) {
 			events.@pu.web.client.PU_Events::onKeyUp(Lcom/google/gwt/dom/client/NativeEvent;)(e);
 		}, true);
@@ -93,10 +97,23 @@ public class PU_Events
 	
 	public final void onKeyDown(NativeEvent event)
 	{
-		event.preventDefault();
-		
 		int keycode = event.getKeyCode(); 
-		mGui.keyDown(keycode);
+		if(keycode < 31)
+		{
+			mGui.keyDown(keycode);
+			event.preventDefault();
+		}
+	}
+	
+	public final void onKeyPress(NativeEvent event)
+	{
+		event.preventDefault();
+		 
+		int charCode = event.getCharCode();
+		if(charCode != 0 && charCode > 31)
+		{
+			mGui.textInput(charCode);
+		}
 	}
 
 	
