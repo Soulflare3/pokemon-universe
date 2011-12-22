@@ -277,42 +277,42 @@ func (p *Player) RemoveVisibleCreature(_creature ICreature) {
 // ------------------------------------------------------ //
 func (p *Player) sendMapData(_dir int) {
 	if p.Conn != nil {
-		p.Conn.Send_Tiles(_dir, p.GetPosition())
+		p.Conn.SendMapData(_dir, p.GetPosition())
 	}
 }
 
 func (p *Player) sendCreatureMove(_creature ICreature, _from, _to *Tile) {
 	if p.Conn != nil {
-		p.Conn.Send_CreatureWalk(_creature, _from, _to)
+		p.Conn.SendCreatureMove(_creature, _from, _to)
 	}
 }
 
 func (p *Player) sendCreatureTurn(_creature ICreature) {
 	if p.Conn != nil {
-		p.Conn.Send_CreatureTurn(_creature, p.GetDirection())
+		p.Conn.SendCreatureTurn(_creature, p.GetDirection())
 	}
 }
 
 func (p *Player) sendCreatureAdd(_creature ICreature) {
 	if p.Conn != nil {
-		p.Conn.Send_CreatureAdd(_creature)
+		p.Conn.SendCreatureAdd(_creature)
 	}
 }
 
 func (p *Player) sendCreatureRemove(_creature ICreature) {
 	if p.Conn != nil {
-		p.Conn.Send_CreatureRemove(_creature)
+		p.Conn.SendCreatureRemove(_creature)
 	}
 }
 
 func (p *Player) sendPlayerWarp() {
 	if p.Conn != nil {
-		p.Conn.Send_PlayerWarp(p.GetPosition())
+		p.Conn.SendPlayerWarp(p.GetPosition())
 	}
 }
 
 func (p *Player) sendCreatureSay(_creature ICreature, _speakType int, _message string, _channelId int) {
 	if p.Conn != nil {
-		p.Conn.Send_CreatureChat(_creature, _channelId, _speakType, _message)
+		//p.Conn.Send_CreatureChat(_creature, _channelId, _speakType, _message)
 	}
 }

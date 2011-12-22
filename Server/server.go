@@ -71,9 +71,28 @@ func (s *Server) Start() {
 			g_logger.Println("[WARNING] Could not accept new connection")
 			continue
 		}
+		
+		var headerbuffer [2]uint8
+		recv, err := clientsock.Read(headerbuffer[0:])
+		if (err != nil) || (recv == 0) {
+				g_logger.Printf("[Warning] Could not read packet header: %v\n\r", err)
+				continue
+		}
+		// Create new packet
+		packet := pnet.NewPacket()
+		copy(packet.Buffer[0:2], headerbuffer[0:2]) // Write header buffer to packet
+		packet.GetHeader()
+		
+		databuffer := make([]uint8, packet.MsgSize)
+		recv, err = clientsock.Read(databuffer[0:])
+		if recv == 0 || err != nil {    
+			g_logger.Printf("[Warning] Server connection read error: %v\n\r", err)
+			continue
+		}
+		copy(packet.Buffer[2:], databuffer[:]) // Write rest of the received data to packet
 
 		// Read and execute the first received packet
-		s.parseFirstMessage(clientsock)
+		s.parseFirstMessage(clientsock, packet)
 	}
 }
 
@@ -101,7 +120,7 @@ func (s *Server) timeoutLoop() {
 		defer g_game.mutexPlayerList.RUnlock()
 		for _, player := range g_game.Players {
 			if player.Conn != nil {
-				player.Conn.Send_Ping()
+				//TODO: send ping
 				if player.GetTimeSinceLastMove() > 9e5 { // (900000sec / 15 min)
 					go g_game.OnPlayerLoseConnection(player)
 				}
@@ -113,55 +132,48 @@ func (s *Server) timeoutLoop() {
 	go s.timeoutLoop()
 }
 
-func (s *Server) parseFirstMessage(conn net.Conn) {
+func (s *Server) parseFirstMessage(conn net.Conn, packet *pnet.Packet) {
+	// Read packet header
+	header := packet.ReadUint8()
+	if header != pnet.HEADER_LOGIN {
+		return
+	}
+	
 	// Make new Connection object to handle net.Conn
 	connection := NewConnection(conn)
-	var message *pnet.Message
-	var err string
-	if message, err = connection.Tranceiver.Receive(); err != "" {
-		fmt.Printf("Error receiving first message: %s\n", err)
-		return
-	}
-
-	// Read message header
-	if message.Header != pnet.HEADER_LOGIN {
-		return
-	}
-
-	//Get the login data
-	loginMessage := message.Login
-
-	//Create the login status message
-	statusMessage := pnet.NewData_LoginStatus()
+	// Parse packet
+	// We can use the same packet for sending the return status
+	firstMessage := &LoginMessage{}
+	firstMessage.ReadPacket(packet)
 
 	if g_game.State == GAME_STATE_CLOSING || g_game.State == GAME_STATE_CLOSED {
-		statusMessage.LoginStatus.Status = LOGINSTATUS_SERVERCLOSED
-	} else if loginMessage.Version < s.ClientVersion {
-		statusMessage.LoginStatus.Status = LOGINSTATUS_WRONGVERSION
+		firstMessage.Status = LOGINSTATUS_SERVERCLOSED
+	} else if firstMessage.ClientVersion < s.ClientVersion {
+		firstMessage.Status = LOGINSTATUS_WRONGVERSION
 	} else {
 		// Load account info
-		ret := CheckAccountInfo(loginMessage.Username, loginMessage.Password)
+		ret := CheckAccountInfo(firstMessage.Username, firstMessage.Password)
 		if !ret {
-			statusMessage.LoginStatus.Status = LOGINSTATUS_WRONGACCOUNT
+			firstMessage.Status = LOGINSTATUS_WRONGACCOUNT
 		} else {
 			// Account exists and password is correct
-			ret, player := LoadPlayerProfile(loginMessage.Username)
+			ret, player := LoadPlayerProfile(firstMessage.Username)
 
 			if !ret || player == nil {
-				statusMessage.LoginStatus.Status = LOGINSTATUS_FAILPROFILELOAD
-				g_logger.Printf("[LOGIN] Failed to load profile for %v", loginMessage.Username)
+				firstMessage.Status = LOGINSTATUS_FAILPROFILELOAD
+				g_logger.Printf("[LOGIN] Failed to load profile for %v", firstMessage.Username)
 			} else if player.Conn != nil {
-				statusMessage.LoginStatus.Status = LOGINSTATUS_ALREADYLOGGEDIN
+				firstMessage.Status = LOGINSTATUS_ALREADYLOGGEDIN
 				fmt.Println("Already logged in")
 			} else {
-				statusMessage.LoginStatus.Status = LOGINSTATUS_READY
+				firstMessage.Status = LOGINSTATUS_READY
 				g_logger.Printf("[LOGIN] %d - %v logged in", player.GetUID(), player.GetName())
 				// Assign Connection to Player object
 				player.SetConnection(connection)
 
 				// AddCreature sends few messages to the player so,
 				// quickly sending the status message before adding the player.
-				connection.SendMessage(statusMessage)
+				connection.SendMessage(firstMessage)
 				println("- Loaded all data, adding to Game")
 				g_game.AddCreature(player)
 				return
@@ -169,5 +181,5 @@ func (s *Server) parseFirstMessage(conn net.Conn) {
 		}
 	}
 
-	connection.SendMessage(statusMessage)
+	connection.SendMessage(firstMessage)
 }

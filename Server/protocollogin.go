@@ -23,19 +23,6 @@ import (
 	"strings"
 )
 
-const (
-	LOGINSTATUS_IDLE            = 0
-	LOGINSTATUS_WRONGACCOUNT    = 1
-	LOGINSTATUS_SERVERERROR     = 2
-	LOGINSTATUS_DATABASEERROR   = 3
-	LOGINSTATUS_ALREADYLOGGEDIN = 4
-	LOGINSTATUS_READY           = 5
-	LOGINSTATUS_CHARBANNED      = 6
-	LOGINSTATUS_SERVERCLOSED    = 7
-	LOGINSTATUS_WRONGVERSION    = 8
-	LOGINSTATUS_FAILPROFILELOAD = 9
-)
-
 func CheckAccountInfo(_username string, _password string) bool {
 	//_username = g_db.Escape(_username)
 	//_password = g_db.Escape(_password)
@@ -70,7 +57,7 @@ func PasswordTest(_plain string, _hash string) bool {
 	var h hash.Hash = sha1.New()
 	h.Write([]byte(_plain))
 
-	var sha1Hash string = strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))
+	var sha1Hash string = strings.ToUpper(fmt.Sprintf("%x", h.Sum()))
 	var original string = strings.ToUpper(_hash)
 
 	return (sha1Hash == original)
