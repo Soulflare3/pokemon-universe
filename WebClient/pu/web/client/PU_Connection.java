@@ -8,16 +8,29 @@ public class PU_Connection
 	
 	private String mServer;
 	private int mState = STATE_DISCONNECTED; 
+	
+	private PU_Protocol mProtocol;
 
 	public PU_Connection(String server)
 	{
 		mServer = server;
+		mProtocol = new PU_Protocol(this);
 	}
 	
 	public void connect()
 	{
 		mState = STATE_CONNECTING; 
 		nativeConnect(mServer);
+	}
+	
+	public int getState()
+	{
+		return mState;
+	}
+	
+	public PU_Protocol getProtocol()
+	{
+		return mProtocol;
 	}
 
 	private native boolean nativeConnect(String server) /*-{
@@ -75,14 +88,7 @@ public class PU_Connection
 	private final void onSocketReceive(String message)
 	{
 		PU_Packet packet = new PU_Packet(message);
-		byte header = packet.readUint8();
-		switch(header)
-		{
-			case 0x01:
-				String msg = packet.readString();
-				PUWeb.log("Received msg: " + msg);
-				break;
-		}
+		mProtocol.parsePacket(packet);
 	}
 	
 	public void sendPacket(PU_Packet packet)

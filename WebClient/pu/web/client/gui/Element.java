@@ -104,6 +104,8 @@ public class Element
 			{
 				return (Window)mParent;
 			}
+			
+			return mParent.getWindow();
 		}
 		return null;
 	}

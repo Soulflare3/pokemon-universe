@@ -297,9 +297,7 @@ public class PU_Engine
 	}
 	
 	public void renderText(PU_Font font, int x, int y, String text)
-	{	
-		setBlendMode(PU_Engine.BLENDMODE_BLEND);
-		setColor(255,255,255,255);
+	{
 		int drawX = x;
 		int drawY = y;
 		for(int i = 0; i < text.length(); i++)

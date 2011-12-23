@@ -2,6 +2,30 @@ package pu.web.client;
 
 public class PU_Packet
 {
+	// Headers
+    public static final byte HEADER_PING   = (byte)0x00;
+    public static final byte HEADER_LOGIN  = (byte)0x01;
+    public static final byte HEADER_LOGOUT = (byte)0x02;
+    
+    public static final byte HEADER_CHAT = (byte)0x10;
+
+    public static final byte HEADER_IDENTITY = (byte)0xAA;
+
+    public static final byte HEADER_WALK       = (byte)0xB1;
+    public static final byte HEADER_CANCELWALK = (byte)0xB2;
+    public static final byte HEADER_WARP       = (byte)0xB3;
+    public static final byte HEADER_TURN       = (byte)0xB4;
+
+    public static final byte HEADER_TILES          = (byte)0xC1;
+    public static final byte HEADER_ADDCREATURE    = (byte)0xC2;
+    public static final byte HEADER_REMOVECREATURE = (byte)0xC3;
+    
+    public static final byte HEADER_REFRESHCOMPLETE = (byte)0x03;
+    public static final byte HEADER_REFRESHWORLD    = (byte)0xC4;
+    
+    public static final byte HEADER_REFRESHPOKEMON    = (byte)0xD1;
+    //
+	
 	private int msgSize;
 	private int readPos;
 

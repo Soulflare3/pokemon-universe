@@ -1,7 +1,6 @@
 package pu.web.client;
 
 import pu.web.client.gui.GUIManager;
-import pu.web.client.gui.TextField;
 import pu.web.client.resources.fonts.Fonts;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -14,12 +13,15 @@ import com.googlecode.gwtgl.binding.WebGLRenderingContext;
 
 public class PUWeb implements EntryPoint
 {
+	public static final int CLIENT_VERSION = 4;
+			
 	private static WebGLRenderingContext mGlContext;
 	private static PU_Engine mEngine;
 	private static GUIManager mGui;
 	private static PU_Resources mResources;
 	private static PU_Game mGame;
 	private static PU_Events mEvents;
+	private static PU_Connection mConnection;
 
 	public void onModuleLoad()
 	{
@@ -55,8 +57,8 @@ public class PUWeb implements EntryPoint
 			}
 		});
 
-		PU_Connection connection = new PU_Connection("ws://127.0.0.1:12345/echo");
-		connection.connect();
+		mConnection = new PU_Connection("ws://127.0.0.1:12345/echo");
+		mConnection.connect();
 	}
 	
 	public static void resourcesLoaded()
@@ -67,15 +69,8 @@ public class PUWeb implements EntryPoint
 		mGame.setState(PU_Game.GAMESTATE_LOGIN);
 		
 		// TODO: move this to the appropriate place
-		TextField tfUsername = new TextField(453, 396, 160, 20);
-		tfUsername.setFontColor(57, 92, 196);
-		PUWeb.mGui.getRoot().addChild(tfUsername);
-		PUWeb.mGui.getRoot().focusElement(tfUsername);
-		
-		TextField tfPassword = new TextField(453, 424, 160, 20);
-		tfPassword.setFontColor(57, 92, 196);
-		tfPassword.setPassword(true);
-		PUWeb.mGui.getRoot().addChild(tfPassword);
+		PU_Login login = new PU_Login();
+		mGui.getRoot().addChild(login);
 	}
 
 	public static WebGLRenderingContext gl()
@@ -96,6 +91,16 @@ public class PUWeb implements EntryPoint
 	public static GUIManager gui()
 	{
 		return PUWeb.mGui;
+	}
+	
+	public static PU_Connection connection()
+	{
+		return mConnection;
+	}
+	
+	public static PU_Game game()
+	{
+		return mGame;
 	}
 
 	private native void requestAnimationFrame() /*-{

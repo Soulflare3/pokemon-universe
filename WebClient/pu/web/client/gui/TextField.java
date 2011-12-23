@@ -188,6 +188,7 @@ public class TextField extends TextElement
 	{
 		if(getRect().contains(x, y))
 		{
+			PUWeb.log("herpderp");
 			Window window = getWindow();
 			if(window != null)
 			{
