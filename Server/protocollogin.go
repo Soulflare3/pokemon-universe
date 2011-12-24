@@ -85,7 +85,7 @@ func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 	if row == nil {
 		return
 	}
-	idPlayer := row["idplayer"].(int)
+	idPlayer := DBGetInt(row["idplayer"])
 	name := row["name"].(string)
 	result.Free()
 
@@ -128,9 +128,9 @@ func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 		}
 
 		positionHash, _ := row["position"].(int64)
-		movement := row["movement"].(int)
-		money := row["money"].(int)
-		idlocation := row["idlocation"].(int)
+		movement := DBGetInt(row["movement"])
+		money := DBGetInt(row["money"])
+		idlocation := DBGetInt(row["idlocation"])
 		pcposition := row["pc_position"].(int64)
 
 		var ok bool
@@ -157,11 +157,11 @@ func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 		p.SetMoney(money)
 
 		// Load outfit
-		outfitHead := row["head"].(int)
-		outfitNek := row["nek"].(int)
-		outfitUpper := row["upper"].(int)
-		outfitLower := row["lower"].(int)
-		outfitFeet := row["feet"].(int)
+		outfitHead := DBGetInt(row["head"])
+		outfitNek := DBGetInt(row["nek"])
+		outfitUpper := DBGetInt(row["upper"])
+		outfitLower := DBGetInt(row["lower"])
+		outfitFeet := DBGetInt(row["feet"])
 
 		p.SetOutfitKey(OUTFIT_HEAD, outfitHead)
 		p.SetOutfitKey(OUTFIT_NEK, outfitNek)
