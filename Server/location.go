@@ -56,9 +56,9 @@ func (store *LocationStore) Load() (err error) {
 			break
 		}
 
-		idlocation := row["idlocation"].(int)
-		name := row["name"].(string)
-		music := row["idmusic"].(int)
+		idlocation := DBGetInt(row["idlocation"])
+		name := DBGetString(row["name"])
+		music := DBGetInt(row["idmusic"])
 		pokecenter, _ := row["position"].(int64) // Hash
 		pcposition := pos.NewPositionFromHash(pokecenter)
 

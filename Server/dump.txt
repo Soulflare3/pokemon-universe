@@ -1,0 +1,656 @@
+***********************************************
+**          Pokemon Universe Server          **
+**                                           **
+** http://code.google.com/p/pokemon-universe **
+**       GNU General Public License V2       **
+***********************************************
+ - Loading config file
+ - Setting up logging system
+ - Start logging to file: pulog.txt
+13:16:33 Connecting to databeast
+13:16:33 Loading pokemon data
+13:16:34  - Processing moves
+13:16:34  - Processing abilities
+13:16:34  - Processing pokemon species
+13:16:34  - Processing pokemon
+Player: 1 - Mr_Dark
+Loading player pokemon..
+Player pokemon: 1
+Load pokemon moves for: 0
+Player data loaded
+PlayerList: 69 - Derp
+[Message] <font color=blue><b>Welcome Message:</b></font> The updates are available at <a href="http://pokemon-online.eu/">pokemon-online.eu</a>. Report any bugs on the forum.
+Buffer[0] = 2
+Buffer[1] = 91
+Buffer[2] = 8
+Buffer[3] = 0
+Buffer[4] = 0
+Buffer[5] = 0
+Buffer[6] = 26
+Buffer[7] = 0
+Buffer[8] = 0
+Buffer[9] = 0
+Buffer[10] = 0
+Buffer[11] = 0
+Buffer[12] = 0
+Buffer[13] = 0
+Buffer[14] = 69
+Buffer[15] = 5
+Buffer[16] = 0
+Buffer[17] = 0
+Buffer[18] = 0
+Buffer[19] = 0
+Buffer[20] = 69
+Buffer[21] = 0
+Buffer[22] = 0
+Buffer[23] = 0
+Buffer[24] = 95
+Buffer[25] = 0
+Buffer[26] = 0
+Buffer[27] = 0
+Buffer[28] = 0
+Buffer[29] = 0
+Buffer[30] = 1
+Buffer[31] = 0
+Buffer[32] = 0
+Buffer[33] = 0
+Buffer[34] = 0
+Buffer[35] = 18
+Buffer[36] = 0
+Buffer[37] = 98
+Buffer[38] = 0
+Buffer[39] = 117
+Buffer[40] = 0
+Buffer[41] = 108
+Buffer[42] = 0
+Buffer[43] = 98
+Buffer[44] = 0
+Buffer[45] = 97
+Buffer[46] = 0
+Buffer[47] = 115
+Buffer[48] = 0
+Buffer[49] = 97
+Buffer[50] = 0
+Buffer[51] = 117
+Buffer[52] = 0
+Buffer[53] = 114
+Buffer[54] = 0
+Buffer[55] = 66
+Buffer[56] = 0
+Buffer[57] = 66
+Buffer[58] = 1
+Buffer[59] = 0
+Buffer[60] = 25
+Buffer[61] = 0
+Buffer[62] = 0
+Buffer[63] = 0
+Buffer[64] = 65
+Buffer[65] = 100
+Buffer[66] = 0
+Buffer[67] = 38
+Buffer[68] = 0
+Buffer[69] = 38
+Buffer[70] = 0
+Buffer[71] = 46
+Buffer[72] = 0
+Buffer[73] = 46
+Buffer[74] = 0
+Buffer[75] = 36
+Buffer[76] = 0
+Buffer[77] = 33
+Buffer[78] = 56
+Buffer[79] = 56
+Buffer[80] = 0
+Buffer[81] = 0
+Buffer[82] = 0
+Buffer[83] = 0
+Buffer[84] = 0
+Buffer[85] = 0
+Buffer[86] = 0
+Buffer[87] = 0
+Buffer[88] = 0
+Buffer[89] = 0
+Buffer[90] = 0
+Buffer[91] = 0
+Buffer[92] = 0
+Buffer[93] = 0
+Buffer[94] = 0
+Buffer[95] = 42
+Buffer[96] = 0
+Buffer[97] = 0
+Buffer[98] = 0
+Buffer[99] = 42
+Buffer[100] = 0
+Buffer[101] = 0
+Buffer[102] = 0
+Buffer[103] = 42
+Buffer[104] = 0
+Buffer[105] = 0
+Buffer[106] = 0
+Buffer[107] = 42
+Buffer[108] = 0
+Buffer[109] = 0
+Buffer[110] = 0
+Buffer[111] = 42
+Buffer[112] = 0
+Buffer[113] = 0
+Buffer[114] = 0
+Buffer[115] = 42
+Buffer[116] = 0
+Buffer[117] = 0
+Buffer[118] = 0
+Buffer[119] = 25
+Buffer[120] = 0
+Buffer[121] = 0
+Buffer[122] = 0
+Buffer[123] = 25
+Buffer[124] = 0
+Buffer[125] = 0
+Buffer[126] = 0
+Buffer[127] = 25
+Buffer[128] = 0
+Buffer[129] = 0
+Buffer[130] = 0
+Buffer[131] = 25
+Buffer[132] = 0
+Buffer[133] = 0
+Buffer[134] = 0
+Buffer[135] = 25
+Buffer[136] = 0
+Buffer[137] = 0
+Buffer[138] = 0
+Buffer[139] = 25
+Buffer[140] = 0
+Buffer[141] = 0
+Buffer[142] = 0
+Buffer[143] = 255
+Buffer[144] = 255
+Buffer[145] = 255
+Buffer[146] = 255
+Buffer[147] = 0
+Buffer[148] = 1
+Buffer[149] = 0
+Buffer[150] = 0
+Buffer[151] = 0
+Buffer[152] = 231
+Buffer[153] = 100
+Buffer[154] = 0
+Buffer[155] = 0
+Buffer[156] = 0
+Buffer[157] = 0
+Buffer[158] = 255
+Buffer[159] = 140
+Buffer[160] = 213
+Buffer[161] = 117
+Buffer[162] = 112
+Buffer[163] = 242
+Buffer[164] = 223
+Buffer[165] = 8
+Buffer[166] = 8
+Buffer[167] = 255
+Buffer[168] = 254
+Buffer[169] = 0
+Buffer[170] = 0
+Buffer[171] = 0
+Buffer[172] = 0
+Buffer[173] = 0
+Buffer[174] = 0
+Buffer[175] = 0
+Buffer[176] = 0
+Buffer[177] = 0
+Buffer[178] = 0
+Buffer[179] = 0
+Buffer[180] = 0
+Buffer[181] = 0
+Buffer[182] = 0
+Buffer[183] = 0
+Buffer[184] = 0
+Buffer[185] = 0
+Buffer[186] = 0
+Buffer[187] = 0
+Buffer[188] = 80
+Buffer[189] = 0
+Buffer[190] = 0
+Buffer[191] = 0
+Buffer[192] = 80
+Buffer[193] = 0
+Buffer[194] = 0
+Buffer[195] = 0
+Buffer[196] = 80
+Buffer[197] = 0
+Buffer[198] = 0
+Buffer[199] = 0
+Buffer[200] = 80
+Buffer[201] = 0
+Buffer[202] = 0
+Buffer[203] = 0
+Buffer[204] = 80
+Buffer[205] = 0
+Buffer[206] = 0
+Buffer[207] = 0
+Buffer[208] = 80
+Buffer[209] = 0
+Buffer[210] = 0
+Buffer[211] = 0
+Buffer[212] = 31
+Buffer[213] = 0
+Buffer[214] = 0
+Buffer[215] = 0
+Buffer[216] = 31
+Buffer[217] = 0
+Buffer[218] = 0
+Buffer[219] = 0
+Buffer[220] = 31
+Buffer[221] = 0
+Buffer[222] = 0
+Buffer[223] = 0
+Buffer[224] = 31
+Buffer[225] = 0
+Buffer[226] = 0
+Buffer[227] = 0
+Buffer[228] = 31
+Buffer[229] = 0
+Buffer[230] = 0
+Buffer[231] = 0
+Buffer[232] = 31
+Buffer[233] = 0
+Buffer[234] = 0
+Buffer[235] = 0
+Buffer[236] = 255
+Buffer[237] = 255
+Buffer[238] = 255
+Buffer[239] = 255
+Buffer[240] = 0
+Buffer[241] = 1
+Buffer[242] = 0
+Buffer[243] = 0
+Buffer[244] = 0
+Buffer[245] = 8
+Buffer[246] = 100
+Buffer[247] = 0
+Buffer[248] = 0
+Buffer[249] = 0
+Buffer[250] = 0
+Buffer[251] = 255
+Buffer[252] = 225
+Buffer[253] = 144
+Buffer[254] = 0
+Buffer[255] = 102
+Buffer[256] = 208
+Buffer[257] = 60
+Buffer[258] = 0
+Buffer[259] = 40
+Buffer[260] = 0
+Buffer[261] = 1
+Buffer[262] = 0
+Buffer[263] = 0
+Buffer[264] = 0
+Buffer[265] = 0
+Buffer[266] = 0
+Buffer[267] = 0
+Buffer[268] = 0
+Buffer[269] = 0
+Buffer[270] = 0
+Buffer[271] = 0
+Buffer[272] = 0
+Buffer[273] = 0
+Buffer[274] = 0
+Buffer[275] = 0
+Buffer[276] = 0
+Buffer[277] = 0
+Buffer[278] = 0
+Buffer[279] = 0
+Buffer[280] = 0
+Buffer[281] = 80
+Buffer[282] = 0
+Buffer[283] = 0
+Buffer[284] = 0
+Buffer[285] = 80
+Buffer[286] = 0
+Buffer[287] = 0
+Buffer[288] = 0
+Buffer[289] = 80
+Buffer[290] = 0
+Buffer[291] = 0
+Buffer[292] = 0
+Buffer[293] = 80
+Buffer[294] = 0
+Buffer[295] = 0
+Buffer[296] = 0
+Buffer[297] = 80
+Buffer[298] = 0
+Buffer[299] = 0
+Buffer[300] = 0
+Buffer[301] = 80
+Buffer[302] = 0
+Buffer[303] = 0
+Buffer[304] = 0
+Buffer[305] = 31
+Buffer[306] = 0
+Buffer[307] = 0
+Buffer[308] = 0
+Buffer[309] = 31
+Buffer[310] = 0
+Buffer[311] = 0
+Buffer[312] = 0
+Buffer[313] = 31
+Buffer[314] = 0
+Buffer[315] = 0
+Buffer[316] = 0
+Buffer[317] = 31
+Buffer[318] = 0
+Buffer[319] = 0
+Buffer[320] = 0
+Buffer[321] = 31
+Buffer[322] = 0
+Buffer[323] = 0
+Buffer[324] = 0
+Buffer[325] = 31
+Buffer[326] = 0
+Buffer[327] = 0
+Buffer[328] = 0
+Buffer[329] = 255
+Buffer[330] = 255
+Buffer[331] = 255
+Buffer[332] = 255
+Buffer[333] = 0
+Buffer[334] = 1
+Buffer[335] = 0
+Buffer[336] = 0
+Buffer[337] = 0
+Buffer[338] = 0
+Buffer[339] = 100
+Buffer[340] = 0
+Buffer[341] = 0
+Buffer[342] = 0
+Buffer[343] = 0
+Buffer[344] = 255
+Buffer[345] = 26
+Buffer[346] = 231
+Buffer[347] = 107
+Buffer[348] = 44
+Buffer[349] = 161
+Buffer[350] = 136
+Buffer[351] = 0
+Buffer[352] = 99
+Buffer[353] = 0
+Buffer[354] = 107
+Buffer[355] = 0
+Buffer[356] = 0
+Buffer[357] = 0
+Buffer[358] = 0
+Buffer[359] = 0
+Buffer[360] = 0
+Buffer[361] = 0
+Buffer[362] = 0
+Buffer[363] = 0
+Buffer[364] = 0
+Buffer[365] = 0
+Buffer[366] = 0
+Buffer[367] = 0
+Buffer[368] = 0
+Buffer[369] = 0
+Buffer[370] = 0
+Buffer[371] = 0
+Buffer[372] = 0
+Buffer[373] = 0
+Buffer[374] = 80
+Buffer[375] = 0
+Buffer[376] = 0
+Buffer[377] = 0
+Buffer[378] = 80
+Buffer[379] = 0
+Buffer[380] = 0
+Buffer[381] = 0
+Buffer[382] = 80
+Buffer[383] = 0
+Buffer[384] = 0
+Buffer[385] = 0
+Buffer[386] = 80
+Buffer[387] = 0
+Buffer[388] = 0
+Buffer[389] = 0
+Buffer[390] = 80
+Buffer[391] = 0
+Buffer[392] = 0
+Buffer[393] = 0
+Buffer[394] = 80
+Buffer[395] = 0
+Buffer[396] = 0
+Buffer[397] = 0
+Buffer[398] = 31
+Buffer[399] = 0
+Buffer[400] = 0
+Buffer[401] = 0
+Buffer[402] = 31
+Buffer[403] = 0
+Buffer[404] = 0
+Buffer[405] = 0
+Buffer[406] = 31
+Buffer[407] = 0
+Buffer[408] = 0
+Buffer[409] = 0
+Buffer[410] = 31
+Buffer[411] = 0
+Buffer[412] = 0
+Buffer[413] = 0
+Buffer[414] = 31
+Buffer[415] = 0
+Buffer[416] = 0
+Buffer[417] = 0
+Buffer[418] = 31
+Buffer[419] = 0
+Buffer[420] = 0
+Buffer[421] = 0
+Buffer[422] = 255
+Buffer[423] = 255
+Buffer[424] = 255
+Buffer[425] = 255
+Buffer[426] = 0
+Buffer[427] = 1
+Buffer[428] = 0
+Buffer[429] = 0
+Buffer[430] = 0
+Buffer[431] = 184
+Buffer[432] = 100
+Buffer[433] = 0
+Buffer[434] = 0
+Buffer[435] = 0
+Buffer[436] = 0
+Buffer[437] = 255
+Buffer[438] = 96
+Buffer[439] = 160
+Buffer[440] = 0
+Buffer[441] = 95
+Buffer[442] = 0
+Buffer[443] = 0
+Buffer[444] = 0
+Buffer[445] = 0
+Buffer[446] = 216
+Buffer[447] = 96
+Buffer[448] = 0
+Buffer[449] = 0
+Buffer[450] = 0
+Buffer[451] = 0
+Buffer[452] = 0
+Buffer[453] = 0
+Buffer[454] = 0
+Buffer[455] = 0
+Buffer[456] = 0
+Buffer[457] = 0
+Buffer[458] = 0
+Buffer[459] = 0
+Buffer[460] = 0
+Buffer[461] = 0
+Buffer[462] = 0
+Buffer[463] = 0
+Buffer[464] = 0
+Buffer[465] = 0
+Buffer[466] = 0
+Buffer[467] = 80
+Buffer[468] = 0
+Buffer[469] = 0
+Buffer[470] = 0
+Buffer[471] = 80
+Buffer[472] = 0
+Buffer[473] = 0
+Buffer[474] = 0
+Buffer[475] = 80
+Buffer[476] = 0
+Buffer[477] = 0
+Buffer[478] = 0
+Buffer[479] = 80
+Buffer[480] = 0
+Buffer[481] = 0
+Buffer[482] = 0
+Buffer[483] = 80
+Buffer[484] = 0
+Buffer[485] = 0
+Buffer[486] = 0
+Buffer[487] = 80
+Buffer[488] = 0
+Buffer[489] = 0
+Buffer[490] = 0
+Buffer[491] = 31
+Buffer[492] = 0
+Buffer[493] = 0
+Buffer[494] = 0
+Buffer[495] = 31
+Buffer[496] = 0
+Buffer[497] = 0
+Buffer[498] = 0
+Buffer[499] = 31
+Buffer[500] = 0
+Buffer[501] = 0
+Buffer[502] = 0
+Buffer[503] = 31
+Buffer[504] = 0
+Buffer[505] = 0
+Buffer[506] = 0
+Buffer[507] = 31
+Buffer[508] = 0
+Buffer[509] = 0
+Buffer[510] = 0
+Buffer[511] = 31
+Buffer[512] = 0
+Buffer[513] = 0
+Buffer[514] = 0
+Buffer[515] = 255
+Buffer[516] = 255
+Buffer[517] = 255
+Buffer[518] = 255
+Buffer[519] = 0
+Buffer[520] = 1
+Buffer[521] = 0
+Buffer[522] = 0
+Buffer[523] = 0
+Buffer[524] = 136
+Buffer[525] = 100
+Buffer[526] = 0
+Buffer[527] = 0
+Buffer[528] = 0
+Buffer[529] = 0
+Buffer[530] = 255
+Buffer[531] = 140
+Buffer[532] = 213
+Buffer[533] = 117
+Buffer[534] = 112
+Buffer[535] = 242
+Buffer[536] = 223
+Buffer[537] = 8
+Buffer[538] = 8
+Buffer[539] = 255
+Buffer[540] = 254
+Buffer[541] = 0
+Buffer[542] = 0
+Buffer[543] = 0
+Buffer[544] = 0
+Buffer[545] = 0
+Buffer[546] = 0
+Buffer[547] = 0
+Buffer[548] = 0
+Buffer[549] = 0
+Buffer[550] = 0
+Buffer[551] = 0
+Buffer[552] = 0
+Buffer[553] = 0
+Buffer[554] = 0
+Buffer[555] = 0
+Buffer[556] = 0
+Buffer[557] = 0
+Buffer[558] = 0
+Buffer[559] = 0
+Buffer[560] = 80
+Buffer[561] = 0
+Buffer[562] = 0
+Buffer[563] = 0
+Buffer[564] = 80
+Buffer[565] = 0
+Buffer[566] = 0
+Buffer[567] = 0
+Buffer[568] = 80
+Buffer[569] = 0
+Buffer[570] = 0
+Buffer[571] = 0
+Buffer[572] = 80
+Buffer[573] = 0
+Buffer[574] = 0
+Buffer[575] = 0
+Buffer[576] = 80
+Buffer[577] = 0
+Buffer[578] = 0
+Buffer[579] = 0
+Buffer[580] = 80
+Buffer[581] = 0
+Buffer[582] = 0
+Buffer[583] = 0
+Buffer[584] = 31
+Buffer[585] = 0
+Buffer[586] = 0
+Buffer[587] = 0
+Buffer[588] = 31
+Buffer[589] = 0
+Buffer[590] = 0
+Buffer[591] = 0
+Buffer[592] = 31
+Buffer[593] = 0
+Buffer[594] = 0
+Buffer[595] = 0
+Buffer[596] = 31
+Buffer[597] = 0
+Buffer[598] = 0
+Buffer[599] = 0
+Buffer[600] = 31
+Buffer[601] = 0
+Buffer[602] = 0
+Read pos: 29 - START
+Pokemon: bulbasaur | PokeNum: 1 | SubNum: 0
+Read pos: 140 - END
+Read pos: 140 - START
+Pokemon:  | PokeNum: 0 | SubNum: 0
+Read pos: 233 - END
+Read pos: 233 - START
+Pokemon:  | PokeNum: 0 | SubNum: 0
+Read pos: 326 - END
+Read pos: 326 - START
+Pokemon:  | PokeNum: 0 | SubNum: 0
+Read pos: 419 - END
+Read pos: 419 - START
+Pokemon:  | PokeNum: 0 | SubNum: 0
+Read pos: 512 - END
+Read pos: 512 - START
+Pokemon:  | PokeNum: 0 | SubNum: 0
+Read pos: 605 - END
+i: 0 | j: 0
+i: 0 | j: 1
+i: 0 | j: 2
+i: 0 | j: 3
+i: 0 | j: 4
+i: 0 | j: 5
+i: 1 | j: 0
+i: 1 | j: 1
+i: 1 | j: 2
+i: 1 | j: 3
+i: 1 | j: 4
+i: 1 | j: 5
+

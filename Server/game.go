@@ -36,12 +36,14 @@ const (
 )
 
 type Game struct {
-	State         GameState
-	Creatures     CreatureList
-	Players       PlayerList
-	PlayersDiscon PlayerList
+	State         		GameState
+	
+	Creatures     		CreatureList
+	Players       		PlayerList
+	PlayersDiscon		PlayerList
 
-	Locations *LocationStore
+	Chat				*Chat
+	Locations			*LocationStore
 
 	mutexCreatureList   *sync.RWMutex
 	mutexPlayerList     *sync.RWMutex
@@ -51,10 +53,13 @@ type Game struct {
 func NewGame() *Game {
 	game := Game{}
 	game.State = GAME_STATE_STARTUP
+	
 	// Initialize maps
 	game.Creatures = make(CreatureList)
 	game.Players = make(PlayerList)
 	game.PlayersDiscon = make(PlayerList)
+	
+	game.Chat = NewChat()
 
 	// Mutexes
 	game.mutexCreatureList = new(sync.RWMutex)
@@ -89,7 +94,12 @@ func (the *Game) Load() (LostIt bool) {
 	return
 }
 
-func (g *Game) GetPlayerByName(_name string) (ICreature, bool) {
+func (g *Game) GetPlayerByGuid(_guid uint64) (*Player, bool) {
+	v, ok := g.Players[_guid]
+	return v, ok
+}
+
+func (g *Game) GetPlayerByName(_name string) (*Player, bool) {
 	for _, value := range g.Players {
 		if value.GetName() == _name {
 			return value, true
@@ -171,12 +181,10 @@ func (g *Game) OnPlayerSay(_creature ICreature, _channelId int, _speakType int, 
 		case pnet.SPEAK_WHISPER:
 			g.internalCreatureWhisper(_creature, _message, _channelId)
 		}
-	} else if _channelId == pnet.CHANNEL_BATTLE {
-		// Battle chat
-	} else if _channelId == pnet.CHANNEL_PRIVATE {
-		g.internalPlayerPrivateMessage(_creature, _receiver, _message)
 	} else {
-		g.internalBroadcastMessage(_creature, _message)
+		if _creature.GetType() == CTYPE_PLAYER {
+			g.Chat.TalkToChannel(_creature.(*Player), _speakType, _message, _channelId)
+		}
 	}
 }
 
@@ -332,7 +340,7 @@ func (g *Game) internalCreatureWhisper(_creature ICreature, _message string, _ch
 
 func (g *Game) internalPlayerPrivateMessage(_creature ICreature, _receiver string, _message string) {
 	if player, found := g.GetPlayerByName(_receiver); found {
-		player.(*Player).sendCreatureSay(_creature, pnet.SPEAK_PRIVATE, _message, pnet.CHANNEL_PRIVATE)
+		player.sendCreatureSay(_creature, pnet.SPEAK_PRIVATE, _message, pnet.CHANNEL_PRIVATE)
 	}
 }
 

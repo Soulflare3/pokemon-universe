@@ -23,19 +23,19 @@ import (
 type PlayerList map[uint64]*Player
 
 type Player struct {
-	Creature     // Inherit generic creature data
-	dbid     int // database id
+	Creature     		// Inherit generic creature data
+	dbid     		int // database id
 
-	Conn *Connection
+	Conn 			*Connection
 
-	Pokemon      PlayerPokemonList
-	PokemonParty *PokemonParty
+	Pokemon			PlayerPokemonList
+	PokemonParty	*PokemonParty
 
-	Location       *Location
-	LastPokeCenter *Tile
+	Location       	*Location
+	LastPokeCenter 	*Tile
 
-	Money          int
-	TimeoutCounter int
+	Money          	int
+	TimeoutCounter	int
 }
 
 func NewPlayer(_name string) *Player {
@@ -91,25 +91,23 @@ func (p *Player) loadPlayerInfo() bool {
 		return false
 	}
 
-	fmt.Printf("Player: %d - %s\n\r", DBGetInt(row[0]), DBGetString(row[1]))
-
 	p.dbid = DBGetInt(row[0])
 	p.name = DBGetString(row[1])
-	//	tile, ok := g_map.GetTile(row[2].(int64))
-	//	if !ok {
-	//		g_logger.Printf("[Error] Could not load position info for player %s (%d)", p.name, p.dbid)
-	//		return false
-	//	}
-	//	p.Position = tile
+	tile, ok := g_map.GetTile(row[2].(int64))
+	if !ok {
+		g_logger.Printf("[Error] Could not load position info for player %s (%d)", p.name, p.dbid)
+		return false
+	}
+	p.Position = tile
 	p.Movement = DBGetInt(row[3])
 	// TODO: p.LastPokeCenter = row[4].(int)
 	p.Money = DBGetInt(row[5])
-	//	location, ok := g_game.Locations.GetLocation(DBGetInt(row[6]))
-	//	if !ok {
-	//		g_logger.Printf("[Error] Could not load location info for player %s (%d)", p.name, p.dbid)
-	//		return false
-	//	}
-	//	p.Location = location 
+	location, ok := g_game.Locations.GetLocation(DBGetInt(row[6]))
+	if !ok {
+		g_logger.Printf("[Error] Could not load location info for player %s (%d)", p.name, p.dbid)
+		return false
+	}
+	p.Location = location 
 
 	// Group/Right stuff : row[7].(int)
 
@@ -124,7 +122,7 @@ func (p *Player) loadPlayerInfo() bool {
 
 func (p *Player) loadPokemon() bool {
 	var query string = "SELECT idpokemon, nickname, bound, experience, iv_hp, iv_attack, iv_attack_spec, iv_defence, iv_defence_spec," +
-		" iv_speed, happiness, gender, in_party, party_slot, idplayer_pokemon, shiny, abilityId FROM player_pokemon WHERE idplayer='%d'"
+		" iv_speed, happiness, gender, in_party, party_slot, idplayer_pokemon, shiny, abilityId, damagedHp FROM player_pokemon, damagedHp WHERE idplayer='%d'"
 	result, err := DBQuerySelect(fmt.Sprintf(query, p.dbid))
 	if err != nil {
 		fmt.Println(err)
@@ -160,8 +158,9 @@ func (p *Player) loadPokemon() bool {
 		pokemon.Slot = DBGetInt(row[13])
 		pokemon.IsShiny = DBGetInt(row[15])
 		abilityId := DBGetInt(row[16])
+		pokemon.DamagedHp = DBGetInt(row[17])
+		
 		pokemon.Ability = g_PokemonManager.GetAbilityById(abilityId)
-
 		if pokemon.Ability == nil {
 			g_logger.Printf("[Warning] Pokemon (%d) has an invalid abilityId (%d)\n\r", pokemon.IdDb, abilityId)
 			pokemon.Ability = g_PokemonManager.GetAbilityById(96)
@@ -315,4 +314,20 @@ func (p *Player) sendCreatureSay(_creature ICreature, _speakType int, _message s
 	if p.Conn != nil {
 		//p.Conn.Send_CreatureChat(_creature, _channelId, _speakType, _message)
 	}
+}
+
+// --------------------- CHAT ----------------------------//
+func (p *Player) sendClosePrivateChat(_channelId int) {
+
+}
+
+func (p *Player) sendToChannel(_fromPlayer *Player, _type int, _text string, _channelId int, _time int) {
+
+}
+
+// ------------------------------------------------------ //
+func (p *Player) HealParty() {
+	p.PokemonParty.HealParty()
+	
+	// TODO: Send update to client
 }

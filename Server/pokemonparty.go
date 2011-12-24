@@ -38,3 +38,11 @@ func (p *PokemonParty) AddSlot(_pokemon *PlayerPokemon, _slot int) {
 		p.Party[_slot] = _pokemon
 	}
 }
+
+func (p *PokemonParty) HealParty() {
+	for i := 0; i < 6; i++ {
+		if p.Party[i] != nil {
+			p.Party[i].DamagedHp = 0
+		}
+	}
+}

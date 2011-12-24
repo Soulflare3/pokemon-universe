@@ -29,19 +29,19 @@ var rowChan = make(chan mysql.Row)
 func processRows(_map *Map) {
 	for {
 		row := <-rowChan
-		x := row[0].(int)
-		y := row[1].(int)
-		z := row[2].(int)
+		x := DBGetInt(row[0])
+		y := DBGetInt(row[1])
+		z := DBGetInt(row[2])
 		position := pos.NewPositionFrom(x, y, z)
-		layer := row[8].(int)
-		sprite := row[7].(int)
-		blocking := row[5].(int)
+		layer := DBGetInt(row[8])
+		sprite := DBGetInt(row[7])
+		blocking := DBGetInt(row[5])
 		// row `idteleport` may be null sometimes.
 		var tp_id = 0
 		if row[6] != nil {
-			tp_id = row[6].(int)
+			tp_id = DBGetInt(row[6])
 		}
-		idlocation := row[3].(int)
+		idlocation := DBGetInt(row[3])
 
 		tile, found := _map.GetTile(position.Hash())
 		if found == false {
@@ -56,9 +56,9 @@ func processRows(_map *Map) {
 
 			// Teleport event
 			if tp_id > 0 {
-				tp_x := row[9].(int)
-				tp_y := row[10].(int)
-				tp_z := row[11].(int)
+				tp_x := DBGetInt(row[9])
+				tp_y := DBGetInt(row[10])
+				tp_z := DBGetInt(row[11])
 				tp_pos := pos.NewPositionFrom(tp_x, tp_y, tp_z)
 				tile.AddEvent(NewWarp(tp_pos))
 			}

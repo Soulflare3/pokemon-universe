@@ -42,7 +42,7 @@ func DBGetString(_row interface{}) string {
 
 func DBGetInt(_row interface{}) int {
 	if _row != nil {
-		return _row.(int)
+		return int(_row.(int64))
 	}
 	return 0
 }

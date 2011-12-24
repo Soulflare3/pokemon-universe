@@ -91,7 +91,7 @@ func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 
 	value, found := g_game.GetPlayerByName(name)
 	if found {
-		p = value.(*Player)
+		p = value
 		ret = true
 	} else {
 		p = NewPlayer(name)

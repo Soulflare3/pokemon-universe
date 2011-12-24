@@ -38,6 +38,8 @@ type PlayerPokemon struct {
 	InParty		int
 	Slot		int
 	Nature		int
+	TotalHp		int
+	DamagedHp	int
 }
 
 func NewPlayerPokemon(_playerId int) *PlayerPokemon {

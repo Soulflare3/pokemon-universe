@@ -100,7 +100,7 @@ func (m *PokemonManager) loadMoves() bool {
 		}
 		
 		move := NewMove()
-		move.MoveId = DBGetInt(row[0])
+		move.MoveId = int(row[0].(int64))
 		move.Identifier = DBGetString(row[1])
 		move.TypeId = DBGetInt(row[2])
 		move.Power = DBGetInt(row[3])
@@ -279,6 +279,7 @@ func (m *PokemonManager) loadMoveMessages() bool {
 	}
 	
 	g_logger.Println(" - Processing Move Messages")
+	defer result.Free()
 	for {
 		row := result.FetchRow()
 		if row == nil {
@@ -308,6 +309,7 @@ func (m *PokemonManager) loadAbilityMessages() bool {
 	}
 	
 	g_logger.Println(" - Processing Ability Messages")
+	defer result.Free()
 	for {
 		row := result.FetchRow()
 		if row == nil {

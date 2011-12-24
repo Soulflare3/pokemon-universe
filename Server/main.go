@@ -33,7 +33,7 @@ import (
 
 const (
 	IS_DEBUG = true
-	PO_DEBUG = true
+	PO_DEBUG = false
 )
 
 var (
@@ -47,6 +47,7 @@ var (
 	g_server         *Server
 	g_map            *Map
 	g_PokemonManager *PokemonManager
+	g_npcManager	 *NpcManager
 
 	// Client viewport variables. The Z position doesn't matter in this case
 	CLIENT_VIEWPORT        pos.Position = pos.Position{28, 22, 0}
@@ -159,11 +160,17 @@ func main() {
 
 	if !PO_DEBUG {
 		// Load data
-		g_logger.Println("Loading game data...")
+		g_logger.Println("Loading game data")
 		g_game = NewGame()
 		if !g_game.Load() {
 			g_logger.Println("Failed to load game data...")
 			return
+		}
+		
+		g_logger.Println("Loading NPCs and scripts")
+		g_npcManager = NewNpcManager()
+		if !g_npcManager.Load() {
+			g_logger.Println("Failed to load NPC data...")
 		}
 
 		// Start server
