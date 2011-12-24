@@ -18,8 +18,9 @@ package main
 
 import (
 	"fmt"
-	"net"
 	"time"
+	"websocket"
+	"http"
 
 	pnet "network" // PU Network package
 )
@@ -29,6 +30,8 @@ type Server struct {
 	ClientVersion int
 	TimeoutCount  int
 }
+
+var g_clientVersion int = 0
 
 func NewServer() *Server {
 	server := Server{}
@@ -44,6 +47,7 @@ func NewServer() *Server {
 		version = 0
 	}
 	server.ClientVersion = version
+	g_clientVersion = server.ClientVersion
 	server.TimeoutCount = 0
 
 	return &server
@@ -55,44 +59,26 @@ func (s *Server) Start() {
 	go s.timeoutLoop()
 
 	// Open new socket listener
-	g_logger.Println("Opening server socket on port " + s.Port)
-	socket, err := net.Listen("tcp", ":"+s.Port)
-	if err != nil {
-		g_logger.Printf("[ERROR] Could not open socket - %v\n", err)
-		return
-	}
-	defer socket.Close() // Defer the close function so that's get done automatically when this method breaks
-	defer g_logger.Println("[NOTICE] Server socket closed")
+	g_logger.Println("Opening websocket server on :" + s.Port + "/puserver")
 
 	g_logger.Println("Server ready to accept new connections")
-	for {
-		clientsock, err := socket.Accept()
-		if err != nil {
-			g_logger.Println("[WARNING] Could not accept new connection")
-			continue
-		}
-		
-		var headerbuffer [2]uint8
-		recv, err := clientsock.Read(headerbuffer[0:])
-		if (err != nil) || (recv == 0) {
-				g_logger.Printf("[Warning] Could not read packet header: %v\n\r", err)
-				continue
-		}
-		// Create new packet
-		packet := pnet.NewPacket()
-		copy(packet.Buffer[0:2], headerbuffer[0:2]) // Write header buffer to packet
-		packet.GetHeader()
-		
-		databuffer := make([]uint8, packet.MsgSize)
-		recv, err = clientsock.Read(databuffer[0:])
-		if recv == 0 || err != nil {    
-			g_logger.Printf("[Warning] Server connection read error: %v\n\r", err)
-			continue
-		}
-		copy(packet.Buffer[2:], databuffer[:]) // Write rest of the received data to packet
+	http.Handle("/puserver", websocket.Handler(ClientConnection));
+	err := http.ListenAndServe(":" + s.Port, nil);
+	if err != nil {
+		panic("ListenAndServe: " + err.Error())
+	}
+}
 
-		// Read and execute the first received packet
-		s.parseFirstMessage(clientsock, packet)
+func ClientConnection(clientsock *websocket.Conn) {
+	packet := pnet.NewPacket()
+	buffer := make([]uint8, pnet.PACKET_MAXSIZE)
+	recv, err := clientsock.Read(buffer)
+	if err == nil {
+		copy(packet.Buffer[0:recv], buffer[0:recv])
+		packet.GetHeader()
+		parseFirstMessage(clientsock, packet)
+	} else {
+		println("Client connection error: " + err.Error())
 	}
 }
 
@@ -132,7 +118,7 @@ func (s *Server) timeoutLoop() {
 	go s.timeoutLoop()
 }
 
-func (s *Server) parseFirstMessage(conn net.Conn, packet *pnet.Packet) {
+func parseFirstMessage(conn *websocket.Conn, packet *pnet.Packet) {
 	// Read packet header
 	header := packet.ReadUint8()
 	if header != pnet.HEADER_LOGIN {
@@ -148,7 +134,7 @@ func (s *Server) parseFirstMessage(conn net.Conn, packet *pnet.Packet) {
 
 	if g_game.State == GAME_STATE_CLOSING || g_game.State == GAME_STATE_CLOSED {
 		firstMessage.Status = LOGINSTATUS_SERVERCLOSED
-	} else if firstMessage.ClientVersion < s.ClientVersion {
+	} else if firstMessage.ClientVersion < g_clientVersion {
 		firstMessage.Status = LOGINSTATUS_WRONGVERSION
 	} else {
 		// Load account info

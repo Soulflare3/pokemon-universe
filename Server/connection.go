@@ -17,47 +17,37 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
-	"net"
 	pnet "network" // PU Network packet
 	pos "position"
+	"websocket"
 )
 
 type Connection struct {
-	Socket     net.Conn
+	Socket     *websocket.Conn
 	Tranceiver *pnet.Tranceiver
 	IsOpen     bool
 	Owner      *Player
 }
 
-func NewConnection(_socket net.Conn) *Connection {
+func NewConnection(_socket *websocket.Conn) *Connection {
 	return &Connection{Socket: _socket}
 }
 
 func (c *Connection) HandleConnection() {
 	c.IsOpen = true
-
+	
 	for {
-		var headerbuffer [2]uint8
-		recv, err := c.Socket.Read(headerbuffer[0:])
-		if err != nil || recv == 0 {
-			break
-		}
-
 		packet := pnet.NewPacket()
-		copy(packet.Buffer[0:2], headerbuffer[0:2])
-		packet.GetHeader()
-
-		databuffer := make([]uint8, packet.MsgSize)
-		recv, err = c.Socket.Read(databuffer[0:])
-		if recv == 0 {
-			continue
-		} else if err != nil {
-			g_logger.Printf("Connection read error: %v\n\r", err)
-			continue
+		buffer := make([]uint8, pnet.PACKET_MAXSIZE)
+		recv, err := c.Socket.Read(buffer)
+		if err == nil {
+			copy(packet.Buffer[0:recv], buffer[0:recv])
+			packet.GetHeader()
+			c.ProcessPacket(packet)
+		} else {
+			println(err.Error())
+			break;
 		}
-
-		copy(packet.Buffer[2:], databuffer[:])
-		c.ProcessPacket(packet)
 	}
 
 	c.IsOpen = false
