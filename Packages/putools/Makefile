@@ -7,6 +7,7 @@ include $(GOROOT)/src/Make.inc
 TARG=putools
 GOFILES=\
 	iabs.go\
+	idim.go\
 
 include $(GOROOT)/src/Make.pkg
 

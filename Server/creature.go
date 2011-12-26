@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
+	"container/list"
 	pos "position"
 )
 
@@ -64,10 +65,13 @@ type ICreature interface {
 	GetTimeSinceLastMove() int
 
 	// Methods for all moving creatures
+	OnThink(_interval int)
 	OnCreatureMove(_creature ICreature, _from *Tile, _to *Tile, _teleport bool)
 	OnCreatureTurn(_creature ICreature)
 	OnCreatureAppear(_creature ICreature, _isLogin bool)
 	OnCreatureDisappear(_creature ICreature, _isLogout bool)
+	
+	OnTickCondition(_type int, _interval int, _remove bool)
 
 	// Methods for all creatures who need to see other creatures	
 	AddVisibleCreature(_creature ICreature)
@@ -112,6 +116,7 @@ type Creature struct {
 	Outfit
 
 	VisibleCreatures CreatureList
+	ConditionList	*list.List
 }
 
 func (c *Creature) GetUID() uint64 {
@@ -120,6 +125,10 @@ func (c *Creature) GetUID() uint64 {
 
 func (c *Creature) GetName() string {
 	return c.name
+}
+
+func (c *Creature) GetType() int {
+	return -1
 }
 
 func (c *Creature) GetTile() *Tile {
@@ -158,6 +167,34 @@ func (c *Creature) GetTimeSinceLastMove() int {
 	return int(PUSYS_TIME() - c.lastStep)
 }
 
+func (c *Creature) OnThink(_interval int) {
+	c.ExecuteConditions(_interval)
+}
+
+func (c *Creature) OnCreatureMove(_creature ICreature, _from *Tile, _to *Tile, _teleport bool) {
+}
+
+func (c *Creature) OnCreatureTurn(_creature ICreature) {
+}
+
+func (c *Creature) OnCreatureAppear(_creature ICreature, _isLogin bool) {
+}
+
+func (c *Creature) OnCreatureDisappear(_creature ICreature, _isLogout bool) {
+}
+
+func (c *Creature) AddVisibleCreature(_creature ICreature) {
+	if _, found := c.VisibleCreatures[_creature.GetUID()]; !found {
+		c.VisibleCreatures[_creature.GetUID()] = _creature
+	}
+}
+
+func (c *Creature) RemoveVisibleCreature(_creature ICreature) {
+	if _, found := c.VisibleCreatures[_creature.GetUID()]; !found {
+		c.VisibleCreatures[_creature.GetUID()] = _creature
+	}
+}
+
 func (c *Creature) KnowsVisibleCreature(_creature ICreature) (found bool) {
 	_, found = c.VisibleCreatures[_creature.GetUID()]
 	return
@@ -165,4 +202,82 @@ func (c *Creature) KnowsVisibleCreature(_creature ICreature) (found bool) {
 
 func (c *Creature) GetVisibleCreatures() CreatureList {
 	return c.VisibleCreatures
+}
+
+// --------------------- CONDITIONS ---------------------------- //
+func (c *Creature) OnTickCondition(_type int, _interval int, _remove bool) {
+	// ...
+}
+
+func (c *Creature) OnAddCondition(_type int, _hadCondition bool) {
+	if _type == CONDITION_INVISIBLE && !_hadCondition {
+		g_game.internalCreatureChangeVisible(c, false)
+	}
+}
+
+func (c *Creature) ExecuteConditions(_interval int) {
+	for e := c.ConditionList.Front(); e != nil; {
+		condition := e.Value.(ICondition)
+		var next *list.Element
+		if !condition.ExecuteCondition(c, _interval) {
+			next = e.Next()
+			condition.EndCondition(c, CONDITIONEND_TICKS)
+			lastCondition := !c.HasCondition(condition.GetType(), false)
+			c.OnEndCondition(condition.GetType(), lastCondition)
+			c.ConditionList.Remove(e)
+		} else {
+			next = e.Next()
+		}
+		e = next
+	}
+}
+
+func (c *Creature) AddCondition(_condition ICondition) bool {
+	if _condition == nil {
+		return false
+	}
+	
+	hadCondition := c.HasCondition(_condition.GetType(), false)
+	prevCond := c.GetCondition(_condition.GetType(), _condition.GetId(), _condition.GetSubId())
+	
+	if prevCond != nil {
+		prevCond.AddCondition(c, _condition)
+		return true
+	}
+	
+	if _condition.StartCondition(c) {
+		c.ConditionList.PushBack(_condition)
+		c.OnAddCondition(_condition.GetType(), hadCondition)
+		return true
+	}
+	
+	return false
+}
+
+func (c *Creature) GetCondition(_type int, _id int, _subId int) ICondition {
+	for e := c.ConditionList.Front(); e != nil; e = e.Next() {
+		condition := e.Value.(ICondition)
+		if condition.GetType() == _type && condition.GetId() == _id && condition.GetSubId() == _subId {
+			return condition
+		}
+	}
+	
+	return nil
+}
+
+func (c *Creature) HasCondition(_type int, _checkTime bool) bool {
+	for e := c.ConditionList.Front(); e != nil; e = e.Next() {
+		condition := e.Value.(ICondition)
+		if condition.GetType() == _type && (!_checkTime || condition.GetEndTime() == 0 || condition.GetEndTime() >= PUSYS_TIME()) {
+			return true
+		}
+	}
+	
+	return false
+}
+
+func (c *Creature) OnEndCondition(_type int, _lastCondition bool) {
+	if _type == CONDITION_INVISIBLE && _lastCondition {
+		g_game.internalCreatureChangeVisible(c, true);
+	}
 }

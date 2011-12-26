@@ -13,7 +13,7 @@ DIRS=\
 	position\
 	gomysql\
 	goconf\
-	SDL\
+	npclib\
 	
 clean.dirs: $(addsuffix .clean, $(DIRS))
 install.dirs: $(addsuffix .install, $(DIRS))

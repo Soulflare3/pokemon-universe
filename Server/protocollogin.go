@@ -57,7 +57,7 @@ func PasswordTest(_plain string, _hash string) bool {
 	var h hash.Hash = sha1.New()
 	h.Write([]byte(_plain))
 
-	var sha1Hash string = strings.ToUpper(fmt.Sprintf("%x", h.Sum()))
+	var sha1Hash string = strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))
 	var original string = strings.ToUpper(_hash)
 
 	return (sha1Hash == original)

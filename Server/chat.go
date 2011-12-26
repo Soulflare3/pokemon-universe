@@ -23,10 +23,7 @@ func NewChat() *Chat {
 				  GuildChannels: make(GuildChannelMap),
 				  PrivateChannels: make(PrivateChannelMap) }
 
-	// Create default channels
-	localChannel := NewChatChannel(pnet.CHANNEL_LOCAL, "Local")
-	chat.NormalChannels[pnet.CHANNEL_LOCAL] = localChannel
-	
+	// Create default channels	
 	worldChannel := NewChatChannel(pnet.CHANNEL_WORLD, "World")
 	chat.NormalChannels[pnet.CHANNEL_WORLD] = worldChannel
 	

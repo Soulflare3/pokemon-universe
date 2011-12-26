@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"time"
 	"websocket"
-	"http"
+	"net/http"
 
 	pnet "network" // PU Network package
 )
@@ -57,6 +57,7 @@ func (s *Server) Start() {
 	// Start timeout loop here
 	g_logger.Println("[Message] Idle player checker goroutine started")
 	go s.timeoutLoop()
+	go g_game.CheckCreatures()
 
 	// Open new socket listener
 	g_logger.Println("Opening websocket server on :" + s.Port + "/puserver")
@@ -114,8 +115,11 @@ func (s *Server) timeoutLoop() {
 		}
 	}
 
-	time.Sleep(1e9)
-	go s.timeoutLoop()
+	// TODO: Change this to a scheduler
+	go func() {
+		time.Sleep(1e9)
+		s.timeoutLoop()
+	}()
 }
 
 func parseFirstMessage(conn *websocket.Conn, packet *pnet.Packet) {

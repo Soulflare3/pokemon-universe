@@ -46,6 +46,7 @@ const (
 	SPEAK_YELL 		= 2
 	SPEAK_WHISPER 	= 3
 	SPEAK_PRIVATE 	= 6
+	SPEAK_CHANNEL	= 7
 	SPEAK_BROADCAST = 255
 )
 
@@ -57,4 +58,11 @@ const (
 	CHANNEL_GUILD	= 4
 	CHANNEL_PARTY	= 5
 	CHANNEL_PRIVATE	= 65535
+)
+
+const (
+	MSG_STATUS_WARNING			= 0 // Red message in game window and in the console
+	MSG_STATUS_DEFAULT			= 1 // White message at the bottom of the game window and in the console
+	MSG_INFO_DESCR				= 2 // Green message in game window and in the console
+	MSG_STATUS_SMALL			= 3 // White message at the bottom of the game window
 )

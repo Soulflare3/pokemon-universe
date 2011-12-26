@@ -24,12 +24,23 @@ const (
 	RET_NOERROR ReturnValue = iota
 	RET_NOTPOSSIBLE
 	RET_PLAYERISTELEPORTED
+	RET_YOUAREEXHAUSTED
 )
 
 const NANOSECONDS_TO_MILLISECONDS = 0.000001
 
+const (
+	PlayerFlag_CannotUseCombat uint64	= iota	// 2^0 = 1
+	PlayerFlag_CanAlwaysLogin					// 2^1 = 2
+	PlayerFlag_CanBroadcast						// 2^2 = 4
+	PlayerFlag_CannotBeSeen						// 2^3 = 8
+	PlayerFlag_CanSenseInvisibility				// 2^4 = 16
+	// Add new flags here
+	PlayerFlag_LastFlag
+)
+
 func PUSYS_TIME() int64 {
-	timeNano := float64(time.Nanoseconds())
+	timeNano := float64(time.Now().UnixNano())
 	return int64(timeNano * NANOSECONDS_TO_MILLISECONDS)
 }
 

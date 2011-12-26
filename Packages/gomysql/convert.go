@@ -121,6 +121,7 @@ func ui32tob(n uint32) (b []byte) {
 	}
 	return
 }
+
 // bytes to int64
 func btoi64(b []byte) int64 {
 	return int64(btoui64(b))
@@ -229,7 +230,7 @@ func atoui64(i interface{}) (n uint64) {
 		return t
 	case string:
 		// Convert to int64 first for signing bit
-		in, err := strconv.Atoi64(t)
+		in, err := strconv.ParseInt(t, 10, 64)
 		if err != nil {
 			panic("Invalid string for integer conversion")
 		}
@@ -249,7 +250,7 @@ func atof64(i interface{}) (f float64) {
 		return t
 	case string:
 		var err error
-		f, err = strconv.Atof64(t)
+		f, err = strconv.ParseFloat(t, 64)
 		if err != nil {
 			panic("Invalid string for floating point conversion")
 		}
@@ -263,13 +264,13 @@ func atof64(i interface{}) (f float64) {
 func atos(i interface{}) (s string) {
 	switch t := i.(type) {
 	case int64:
-		s = strconv.Itoa64(t)
+		s = strconv.FormatInt(t, 10)
 	case uint64:
-		s = strconv.Uitoa64(t)
+		s = strconv.FormatUint(t, 10)
 	case float32:
-		s = strconv.Ftoa32(t, 'f', -1)
+		s = strconv.FormatFloat(float64(t), 'f', -1, 32)
 	case float64:
-		s = strconv.Ftoa64(t, 'f', -1)
+		s = strconv.FormatFloat(t, 'f', -1, 64)
 	case []byte:
 		s = string(t)
 	case Date:

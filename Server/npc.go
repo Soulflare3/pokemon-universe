@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/list"
 	"pu_npclib"
 )
 
@@ -18,6 +19,7 @@ func NewNpc() *Npc {
 	n.Outfit = NewOutfit()
 	n.moveSpeed = 280
 	n.VisibleCreatures = make(CreatureList)
+	n.ConditionList = list.New()
 	n.script = nil
 	
 	return &n

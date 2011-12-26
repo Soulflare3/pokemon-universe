@@ -108,6 +108,10 @@ func (c *Connection) SendPlayerData() {
 	c.SendMessage(readyMessage)
 }
 
+func (c *Connection) SendCancel(_message string) {
+
+}
+
 func (c *Connection) SendMapData(_direction int, _centerPosition pos.Position) {
 	xMin := 1
 	xMax := CLIENT_VIEWPORT.X

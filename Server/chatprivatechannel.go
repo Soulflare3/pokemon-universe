@@ -68,17 +68,17 @@ func (c *ChatPrivateChannel) RemoveInvited(_player *Player) bool {
 func (c *ChatPrivateChannel) InvitePlayer(_player *Player, _invitedPlayer *Player) {
 	if _player.GetUID() != _invitedPlayer.GetUID() && c.AddInvited(_invitedPlayer) {
 		msg := fmt.Sprintf("%v invites you to %v private chat channel.", _player.GetName(), "his") // TODO: His/Her
-		_invitedPlayer.sendCreatureSay(nil, pnet.SPEAK_NORMAL, msg, 0)
+		_invitedPlayer.sendTextMessage(pnet.MSG_INFO_DESCR, msg)
 		
 		msg = fmt.Sprintf("%v has been invited.", _invitedPlayer.GetName())
-		_player.sendCreatureSay(nil, pnet.SPEAK_NORMAL, msg, 0)
+		_player.sendTextMessage(pnet.MSG_INFO_DESCR, msg)
 	}
 }
 
 func (c *ChatPrivateChannel) ExcludePlayer(_player *Player, _excludePlayer *Player) {
 	if _player.GetUID() != _excludePlayer.GetUID() && c.RemoveInvited(_excludePlayer) {
 		msg := fmt.Sprintf("%v has been excluded.", _excludePlayer.GetName())
-		_player.sendCreatureSay(nil, pnet.SPEAK_NORMAL, msg, 0)
+		_player.sendTextMessage(pnet.MSG_INFO_DESCR, msg)
 		
 		c.RemoveUser(_excludePlayer, true)
 	}

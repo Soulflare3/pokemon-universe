@@ -185,7 +185,7 @@ func TestSimple(t *testing.T) {
 			break
 		}
 		id := row[0].(uint64)
-		num, str1, str2 := strconv.Itoa64(row[1].(int64)), row[2].(string), string(row[3].([]byte))
+		num, str1, str2 := strconv.FormatInt(row[1].(int64), 10), row[2].(string), string(row[3].([]byte))
 		if rowMap[id][0] != num || rowMap[id][1] != str1 || rowMap[id][2] != str2 {
 			t.Logf("String from database doesn't match local string")
 			t.Fail()
@@ -234,7 +234,7 @@ func TestSimple(t *testing.T) {
 			break
 		}
 		id := row[0].(uint64)
-		num, str1, str2 := strconv.Itoa64(row[1].(int64)), row[2].(string), string(row[3].([]byte))
+		num, str1, str2 := strconv.FormatInt(row[1].(int64), 10), row[2].(string), string(row[3].([]byte))
 		if rowMap[id][0] != num || rowMap[id][1] != str1 || rowMap[id][2] != str2 {
 			t.Logf("%#v %#v", rowMap[id], row)
 			t.Logf("String from database doesn't match local string")

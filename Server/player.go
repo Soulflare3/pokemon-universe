@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"container/list"
 )
 
 type PlayerList map[uint64]*Player
@@ -36,6 +37,7 @@ type Player struct {
 
 	Money          	int
 	TimeoutCounter	int
+	GroupFlags		int64
 }
 
 func NewPlayer(_name string) *Player {
@@ -50,6 +52,7 @@ func NewPlayer(_name string) *Player {
 	p.lastStep = PUSYS_TIME()
 	p.moveSpeed = 280
 	p.VisibleCreatures = make(CreatureList)
+	p.ConditionList = list.New()
 	p.TimeoutCounter = 0
 
 	return &p
@@ -272,7 +275,25 @@ func (p *Player) RemoveVisibleCreature(_creature ICreature) {
 	p.sendCreatureRemove(_creature)
 }
 
+
 // ------------------------------------------------------ //
+func (p *Player) sendCancelMessage(_message ReturnValue) {
+	switch _message {		
+		case RET_YOUAREEXHAUSTED:
+			p.Conn.SendCancel("You are exhausted.")
+		case RET_NOTPOSSIBLE:
+			fallthrough
+		default:
+			p.Conn.SendCancel("Sorry, not possible.")
+	}
+}
+
+func (p *Player) sendTextMessage(_mclass int, _message string) {
+	if p.Conn != nil {
+		// p.Conn.sendTextMessage(_mclass, _message)
+	}
+}
+
 func (p *Player) sendMapData(_dir int) {
 	if p.Conn != nil {
 		p.Conn.SendMapData(_dir, p.GetPosition())
@@ -309,9 +330,19 @@ func (p *Player) sendPlayerWarp() {
 	}
 }
 
-func (p *Player) sendCreatureSay(_creature ICreature, _speakType int, _message string, _channelId int) {
+func (p *Player) sendCreatureSay(_creature ICreature, _speakType int, _message string) {
 	if p.Conn != nil {
-		//p.Conn.Send_CreatureChat(_creature, _channelId, _speakType, _message)
+		//p.Conn.SendCreatureSay(_creature, _speakType, _message)
+	}
+}
+
+func (p *Player) sendCreatureChangeVisibility(_creature ICreature, _visible bool) {
+	if _creature.GetUID() != p.GetUID() {
+		if _visible {
+			p.AddVisibleCreature(_creature)
+		} else if !p.hasFlag(PlayerFlag_CanSenseInvisibility) {
+			p.RemoveVisibleCreature(_creature)
+		}
 	}
 }
 
@@ -329,4 +360,12 @@ func (p *Player) HealParty() {
 	p.PokemonParty.HealParty()
 	
 	// TODO: Send update to client
+}
+
+func (p *Player) setFlags(_flags int64) {
+	p.GroupFlags = _flags
+}
+
+func (p *Player) hasFlag(_value uint64) bool {
+	return (0 != (p.GroupFlags & (1 << _value)))
 }

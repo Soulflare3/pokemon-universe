@@ -132,35 +132,41 @@ func handleRow(p *packetRowData, c *Client, r *Result) (err error) {
 			// Signed/unsigned ints
 			case FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_YEAR, FIELD_TYPE_INT24, FIELD_TYPE_LONG, FIELD_TYPE_LONGLONG:
 				if f.Flags&FLAG_UNSIGNED > 0 {
-					field, err = strconv.Atoui64(string(p.row[i].([]byte)))
+					field, err = strconv.ParseUint(string(p.row[i].([]byte)), 10, 64)
 				} else {
-					field, err = strconv.Atoi64(string(p.row[i].([]byte)))
+					field, err = strconv.ParseInt(string(p.row[i].([]byte)), 10, 64)
 				}
 				if err != nil {
 					return
 				}
+
 			// Floats and doubles
 			case FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
-				field, err = strconv.Atof64(string(p.row[i].([]byte)))
+				field, err = strconv.ParseFloat(string(p.row[i].([]byte)), 64)
 				if err != nil {
 					return
 				}
+
 			// Strings
 			case FIELD_TYPE_DECIMAL, FIELD_TYPE_NEWDECIMAL, FIELD_TYPE_VARCHAR, FIELD_TYPE_VAR_STRING, FIELD_TYPE_STRING:
 				field = string(p.row[i].([]byte))
+
 			// Anything else
 			default:
 				field = p.row[i]
 			}
 		}
+
 		// Add to row
 		row = append(row, field)
 	}
+
 	// Stored result
 	if r.mode == RESULT_STORED {
 		// Cast and append the row
 		r.rows = append(r.rows, Row(row))
 	}
+
 	// Used result
 	if r.mode == RESULT_USED {
 		// Only save 1 row, overwrite previous

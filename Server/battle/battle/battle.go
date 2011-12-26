@@ -681,7 +681,7 @@ func (b *Battle) receivedTempPokeChange(_packet *pnet.QTPacket, _player int) {
 func (b *Battle) clockStart(_packet *pnet.QTPacket, _player int) {
 	index := _player % 2
 	b.remainingTime[index] = int(_packet.ReadUint16())
-	b.startingTime[index] = time.Nanoseconds()
+	b.startingTime[index] = time.Now().UnixNano()
 	b.ticking[index] = true
 }
 
