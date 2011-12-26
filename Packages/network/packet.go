@@ -114,6 +114,10 @@ func (p *Packet) ReadString() string {
 	return v
 }
 
+func (p *Packet) ReadBool() bool {
+	return (p.ReadUint8() == 1)
+}
+
 func (p *Packet) AddUint8(_value uint8) bool {
 	if !p.CanAdd(1) {
 		return false
