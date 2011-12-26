@@ -57,7 +57,7 @@ func (s *Server) Start() {
 	// Start timeout loop here
 	g_logger.Println("[Message] Idle player checker goroutine started")
 	go s.timeoutLoop()
-	go g_game.CheckCreatures()
+	// go g_game.CheckCreatures()
 
 	// Open new socket listener
 	g_logger.Println("Opening websocket server on :" + s.Port + "/puserver")
