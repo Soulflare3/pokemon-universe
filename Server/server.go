@@ -162,6 +162,8 @@ func parseFirstMessage(conn *websocket.Conn, packet *pnet.Packet) {
 				connection.SendMessage(firstMessage)
 				println("- Loaded all data, adding to Game")
 				g_game.AddCreature(player)
+				
+				player.Conn.HandleConnection()
 				return
 			}
 		}
