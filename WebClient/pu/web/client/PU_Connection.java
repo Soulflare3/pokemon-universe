@@ -1,5 +1,8 @@
 package pu.web.client;
 
+import com.google.gwt.core.client.JsArrayInteger;
+
+
 public class PU_Connection
 {
 	public static final int STATE_DISCONNECTED = 0;
@@ -48,7 +51,7 @@ public class PU_Connection
 			return false;
 		}
 
-		$wnd.socket = new websocket(server);
+		$wnd.socket = new WebSocket(server);
 		console.log("Websocket tried to connect to " + server + " Readystate: "  + $wnd.socket.readyState);
 
 		$wnd.socket.onopen = function() {
@@ -56,8 +59,10 @@ public class PU_Connection
 			connection.@pu.web.client.PU_Connection::onSocketOpen()();
 		};
 
+		$wnd.socket.binaryType = "arraybuffer";
 		$wnd.socket.onmessage = function(response) {
-			connection.@pu.web.client.PU_Connection::onSocketReceive(Ljava/lang/String;)(response.data);
+			var bytes = new Uint8Array(response.data);
+			connection.@pu.web.client.PU_Connection::onSocketReceive(Lcom/google/gwt/core/client/JsArrayInteger;)(bytes);
 		};
 
 		$wnd.socket.onclose = function(m) {
@@ -65,6 +70,10 @@ public class PU_Connection
 		};
 		
 		return true;
+	}-*/;
+	
+	public native void close() /*-{
+		$wnd.socket.close();
 	}-*/;
 
 	private final void onSocketOpen()
@@ -85,9 +94,14 @@ public class PU_Connection
 		mState = STATE_DISCONNECTED;
 	}
 
-	private final void onSocketReceive(String message)
+	private final void onSocketReceive(JsArrayInteger message)
 	{
-		PU_Packet packet = new PU_Packet(message);
+		byte[] buffer = new byte[message.length()];
+		for(int i = 0; i < message.length(); i++)
+		{
+			buffer[i] =  (byte)message.get(i);
+		}
+		PU_Packet packet = new PU_Packet(buffer);
 		mProtocol.parsePacket(packet);
 	}
 	
@@ -107,4 +121,16 @@ public class PU_Connection
 			console.log("Send error: Socket not created or opened.");
 		}
 	}-*/;
+	
+//	private native void nativeSend(String message) /*-{
+//		if ($wnd.socket) {
+//			if ($wnd.socket.readyState == 1) {
+//				$wnd.socket.send(message);
+//			} else {
+//				console.log("Send error: Socket is not ready to send data.");
+//			}
+//		} else {
+//			console.log("Send error: Socket not created or opened.");
+//		}
+//	}-*/;
 }

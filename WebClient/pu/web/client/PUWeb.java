@@ -20,8 +20,12 @@ public class PUWeb implements EntryPoint
 	private static GUIManager mGui;
 	private static PU_Resources mResources;
 	private static PU_Game mGame;
+	private static PU_Map mMap;
 	private static PU_Events mEvents;
 	private static PU_Connection mConnection;
+	
+	private static long mFrameTime = 0;
+	private long mLastFrameTime = System.currentTimeMillis();
 
 	public void onModuleLoad()
 	{
@@ -32,6 +36,7 @@ public class PUWeb implements EntryPoint
 		
 		PUWeb.mResources = new PU_Resources();
 		PUWeb.mGame = new PU_Game();
+		PUWeb.mMap = new PU_Map();
 		
 		PUWeb.mEngine = new PU_Engine(PUWeb.mGlContext);
 		PUWeb.mEngine.init();
@@ -49,6 +54,9 @@ public class PUWeb implements EntryPoint
 				
 				// Load GUI images
 				mResources.loadGuiImages();
+				
+				// Load tiles
+				mResources.loadTiles();
 			}
 
 			@Override
@@ -57,10 +65,11 @@ public class PUWeb implements EntryPoint
 			}
 		});
 
-		mConnection = new PU_Connection("ws://127.0.0.1:12345/echo");
+		mConnection = new PU_Connection("ws://127.0.0.1:6161/puserver");
 		mConnection.connect();
 	}
 	
+	static PU_Login login;
 	public static void resourcesLoaded()
 	{
 		PUWeb.mGui = new GUIManager(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT, mResources.getFont(Fonts.FONT_PURITAN_BOLD_14));
@@ -69,8 +78,13 @@ public class PUWeb implements EntryPoint
 		mGame.setState(PU_Game.GAMESTATE_LOGIN);
 		
 		// TODO: move this to the appropriate place
-		PU_Login login = new PU_Login();
+		login = new PU_Login();
 		mGui.getRoot().addChild(login);
+	}
+	
+	public static void hideLogin()
+	{
+		mGui.getRoot().removeChild(login);
 	}
 
 	public static WebGLRenderingContext gl()
@@ -102,6 +116,21 @@ public class PUWeb implements EntryPoint
 	{
 		return mGame;
 	}
+	
+	public static PU_Map map()
+	{
+		return mMap;
+	}
+	
+	public static PU_Events events()
+	{
+		return mEvents;
+	}
+	
+	public static long getFrameTime()
+	{
+		return mFrameTime;
+	}
 
 	private native void requestAnimationFrame() /*-{
 		var puweb = this;
@@ -129,6 +158,9 @@ public class PUWeb implements EntryPoint
 
 	private void drawScene()
 	{
+		mFrameTime = System.currentTimeMillis() - mLastFrameTime;
+		mLastFrameTime = System.currentTimeMillis();
+		
 		requestAnimationFrame();
 		mEngine.clear();
 

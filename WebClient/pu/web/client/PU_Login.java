@@ -157,14 +157,14 @@ public class PU_Login extends Panel
 				case LOGINSTATUS_WRONGVERSION:
 					loginFailed("This client version is outdated.");
 					return;
-
+					
 				case LOGINSTATUS_FAILPROFILELOAD:
 					loginFailed("Your profile could not be loaded. Please retry.");
 					return;
 				}
 				
-				lbStatus.setText("Loading gameworld...")
-				;
+				lbStatus.setText("Loading gameworld...");
+				
 				mLoginStatus = LOGINSTATUS_IDLE;
 				PUWeb.connection().getProtocol().sendRequestLogin();
 				
@@ -188,6 +188,7 @@ public class PU_Login extends Panel
 			if(mLoginStatus == LOGINSTATUS_READY)
 			{				
 				mPhase = LOGINPHASE_IDLE;
+				PUWeb.hideLogin();
 				PUWeb.game().setState(PU_Game.GAMESTATE_WORLD);
 			}
 			else
@@ -206,6 +207,7 @@ public class PU_Login extends Panel
 	
 	private void loginFailed(String message)
 	{
+		PUWeb.connection().close();
 		mPhase = LOGINPHASE_IDLE;
 		
 		lbStatus.setText(message);

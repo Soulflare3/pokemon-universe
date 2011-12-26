@@ -8,9 +8,15 @@ import com.google.gwt.dom.client.NativeEvent;
 
 public class PU_Events
 {
+	public static final int KEY_UP = 38;
+	public static final int KEY_DOWN = 40;
+	public static final int KEY_LEFT = 37;
+	public static final int KEY_RIGHT = 39;
+	
 	private Element mRoot = null;
 	private PU_Rect mRootRect = null;
 	private GUIManager mGui = null;
+	private boolean mKeyMap[] = new boolean[255];
 	
 	public PU_Events(Element root, GUIManager gui)
 	{
@@ -100,7 +106,13 @@ public class PU_Events
 		int keycode = event.getKeyCode(); 
 		if(keycode < 31)
 		{
+			mKeyMap[keycode] = true;
 			mGui.keyDown(keycode);
+			event.preventDefault();
+		}
+		else if(keycode >= KEY_LEFT && keycode <= KEY_DOWN)
+		{
+			PUWeb.game().keyDown(keycode);
 			event.preventDefault();
 		}
 	}
@@ -112,6 +124,7 @@ public class PU_Events
 		int charCode = event.getCharCode();
 		if(charCode != 0 && charCode > 31)
 		{
+			mKeyMap[charCode] = true;
 			mGui.textInput(charCode);
 		}
 	}
@@ -122,6 +135,12 @@ public class PU_Events
 		event.preventDefault();
 		
 		int keycode = event.getKeyCode(); 
+		mKeyMap[keycode] = false;
 		mGui.keyUp(keycode);
+	}
+	
+	public boolean isKeyDown(int keycode)
+	{
+		return mKeyMap[keycode];
 	}
 }

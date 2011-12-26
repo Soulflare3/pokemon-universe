@@ -51,6 +51,19 @@ public class PU_Packet
 		}
 		reset();
 	}
+	
+	public PU_Packet(byte[] data)
+	{
+		try
+		{
+			buffer = data;
+		}
+		catch(Exception e)
+		{
+			
+		}
+		reset();
+	}
 
 	public void reset()
 	{
@@ -80,7 +93,6 @@ public class PU_Packet
 		}
 		catch(Exception e)
 		{
-			
 		}
 		return message;
 	}
@@ -161,6 +173,21 @@ public class PU_Packet
 		long v = ((buffer[readPos] & 0xFF) | ((buffer[readPos + 1] & 0xFF) << 8) | ((buffer[readPos + 2] & 0xFF) << 16) | ((buffer[readPos + 3] & 0xFF) << 24));
 
 		readPos += 4;
+		return v;
+	}
+	
+	public long readUint64()
+	{
+		long v = ((buffer[readPos] & 0xFF) | 
+				((buffer[readPos + 1] & 0xFF) << 8) | 
+				((buffer[readPos + 2] & 0xFF) << 16) | 
+				((buffer[readPos + 3] & 0xFF) << 24) |
+				((buffer[readPos + 4] & 0xFF) << 32) |
+				((buffer[readPos + 5] & 0xFF) << 40) |
+				((buffer[readPos + 6] & 0xFF) << 48) |
+				((buffer[readPos + 7] & 0xFF) << 56));
+
+		readPos += 8;
 		return v;
 	}
 
