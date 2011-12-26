@@ -38,10 +38,10 @@ func (c *Connection) HandleConnection() {
 	
 	for {
 		packet := pnet.NewPacket()
-		buffer := make([]uint8, pnet.PACKET_MAXSIZE)
-		recv, err := c.Socket.Read(buffer)
+		var buffer []uint8
+		err := websocket.Message.Receive(c.Socket, &buffer)
 		if err == nil {
-			copy(packet.Buffer[0:recv], buffer[0:recv])
+			copy(packet.Buffer[0:len(buffer)], buffer[0:len(buffer)])
 			packet.GetHeader()
 			c.ProcessPacket(packet)
 		} else {
@@ -79,7 +79,9 @@ func (c *Connection) SendMessage(_message pnet.INetMessageWriter) {
 	packet.SetHeader()
 
 	buffer := packet.GetBuffer()
-	c.Socket.Write(buffer[0:packet.GetMsgSize()])
+	data := buffer[0:packet.GetMsgSize()]
+
+	websocket.Message.Send(c.Socket, data)
 }
 
 // ------------------------------------------------------ //

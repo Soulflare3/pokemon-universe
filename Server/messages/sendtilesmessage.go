@@ -59,6 +59,7 @@ func (m *SendTilesMessage) WritePacket() pnet.IPacket {
 		packet.AddUint16(uint16(tile.Position.Y))
 		packet.AddUint16(uint16(tile.Blocking))
 		
+		packet.AddUint16(uint16(len(tile.Layers)))
 		for id, layer := range tile.Layers {
 			if layer == nil {
 				continue
