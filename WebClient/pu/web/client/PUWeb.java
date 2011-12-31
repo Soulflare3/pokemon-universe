@@ -26,6 +26,10 @@ public class PUWeb implements EntryPoint
 	
 	private static long mFrameTime = 0;
 	private long mLastFrameTime = System.currentTimeMillis();
+	
+	private long mFPStime = 0;
+	private int mFPScount = 0;
+	private int mFPS = 0;
 
 	public void onModuleLoad()
 	{
@@ -65,7 +69,7 @@ public class PUWeb implements EntryPoint
 			}
 		});
 
-		mConnection = new PU_Connection("ws://127.0.0.1:6161/puserver");
+		mConnection = new PU_Connection("ws://82.171.114.203:6161/puserver");
 		mConnection.connect();
 	}
 	
@@ -161,6 +165,15 @@ public class PUWeb implements EntryPoint
 		mFrameTime = System.currentTimeMillis() - mLastFrameTime;
 		mLastFrameTime = System.currentTimeMillis();
 		
+		mFPScount++;
+		mFPStime += mFrameTime;
+		if(mFPStime >= 1000)
+		{
+			mFPS = mFPScount;
+			mFPScount = 0;
+			mFPStime = 0;
+		}
+		
 		requestAnimationFrame();
 		mEngine.clear();
 
@@ -174,6 +187,13 @@ public class PUWeb implements EntryPoint
 		if(mGui != null)
 		{
 			mGui.draw();
+		}
+		
+		PU_Font font = PUWeb.resources().getFont(Fonts.FONT_PURITAN_BOLD_14);
+		if(font != null)
+		{
+			font.setColor(255, 255, 255);
+			font.drawBorderedText("FPS: " + mFPS, 764, 30);
 		}
 	}
 }

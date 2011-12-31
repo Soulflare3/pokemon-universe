@@ -1,5 +1,9 @@
 package pu.web.client;
 
+import com.googlecode.gwtgl.array.ArrayBuffer;
+import com.googlecode.gwtgl.array.Uint8Array;
+
+
 public class PU_Packet
 {
 	// Headers
@@ -29,34 +33,21 @@ public class PU_Packet
 	private int msgSize;
 	private int readPos;
 
-	private byte[] buffer;
+	private Uint8Array buffer;
 
 	final int PACKET_MAXSIZE = 16384;
 
 	public PU_Packet()
 	{
-		buffer = new byte[PACKET_MAXSIZE];
+		buffer = Uint8Array.create(PACKET_MAXSIZE);
 		reset();
 	}
 	
-	public PU_Packet(String data)
+	public PU_Packet(ArrayBuffer data)
 	{
 		try
 		{
-			buffer = data.getBytes("UTF-8");
-		}
-		catch(Exception e)
-		{
-			
-		}
-		reset();
-	}
-	
-	public PU_Packet(byte[] data)
-	{
-		try
-		{
-			buffer = data;
+			buffer = Uint8Array.create(data);
 		}
 		catch(Exception e)
 		{
@@ -70,6 +61,16 @@ public class PU_Packet
 		msgSize = 0;
 		readPos = 2;
 	}
+	
+	public ArrayBuffer getBuffer()
+	{
+		Uint8Array data = Uint8Array.create(msgSize+2);
+		for(int i = 0; i < msgSize+2; i++)
+			data.set(i, buffer.get(i));
+		
+		PUWeb.log("data size: " + data.getLength());
+		return data.getBuffer();
+	}
 
 	public boolean canAdd(int size)
 	{
@@ -81,20 +82,11 @@ public class PU_Packet
 			return false;
 		}
 	}
-
-	public String buildMessage()
+	
+	public void setHeader()
 	{
-		String message = "";
-		buffer[0] = (byte) (msgSize);
-		buffer[1] = (byte) (msgSize >> 8);
-		try
-		{
-			message = new String(buffer, "UTF-8");
-		}
-		catch(Exception e)
-		{
-		}
-		return message;
+		buffer.set(0, (byte) (msgSize));
+		buffer.set(1, (byte) (msgSize >> 8));
 	}
 
 	public void addUInt8(byte value)
@@ -104,7 +96,7 @@ public class PU_Packet
 			return;
 		}
 
-		buffer[readPos++] = value;
+		buffer.set(readPos++, value);
 		msgSize++;
 	}
 
@@ -115,7 +107,7 @@ public class PU_Packet
 			return;
 		}
 
-		buffer[readPos++] = (byte) value;
+		buffer.set(readPos++, (byte) value);
 		msgSize++;
 	}
 
@@ -125,9 +117,9 @@ public class PU_Packet
 		{
 			return;
 		}
-
-		buffer[readPos++] = (byte) (value);
-		buffer[readPos++] = (byte) (value >> 8);
+		
+		buffer.set(readPos++, (byte) (value));
+		buffer.set(readPos++, (byte) (value >> 8));
 		msgSize += 2;
 	}
 
@@ -137,11 +129,11 @@ public class PU_Packet
 		{
 			return;
 		}
-
-		buffer[readPos++] = (byte) (value);
-		buffer[readPos++] = (byte) (value >> 8);
-		buffer[readPos++] = (byte) (value >> 16);
-		buffer[readPos++] = (byte) (value >> 24);
+		
+		buffer.set(readPos++, (byte) (value));
+		buffer.set(readPos++, (byte) (value >> 8));
+		buffer.set(readPos++, (byte) (value >> 16));
+		buffer.set(readPos++, (byte) (value >> 24));
 		msgSize += 4;
 	}
 
@@ -150,19 +142,19 @@ public class PU_Packet
 		addUint16(string.length());
 		for (int i = 0; i < string.length(); i++)
 		{
-			buffer[readPos++] = (byte) string.charAt(i);
+			buffer.set(readPos++, (byte) (byte) string.charAt(i));
 		}
 		msgSize += string.length();
 	}
 
 	public byte readUint8()
 	{
-		return buffer[readPos++];
+		return ((byte)buffer.get(readPos++));
 	}
 
 	public int readUint16()
 	{
-		int v = ((buffer[readPos] & 0xFF)) | ((buffer[readPos + 1] & 0xFF) << 8);
+		int v = ((((byte)buffer.get(readPos)) & 0xFF)) | ((((byte)buffer.get(readPos + 1)) & 0xFF) << 8);
 
 		readPos += 2;
 		return v;
@@ -170,7 +162,7 @@ public class PU_Packet
 
 	public long readUint32()
 	{
-		long v = ((buffer[readPos] & 0xFF) | ((buffer[readPos + 1] & 0xFF) << 8) | ((buffer[readPos + 2] & 0xFF) << 16) | ((buffer[readPos + 3] & 0xFF) << 24));
+		long v = ((((byte)buffer.get(readPos)) & 0xFF) | ((((byte)buffer.get(readPos + 1)) & 0xFF) << 8) | ((((byte)buffer.get(readPos + 2)) & 0xFF) << 16) | ((((byte)buffer.get(readPos + 3)) & 0xFF) << 24));
 
 		readPos += 4;
 		return v;
@@ -178,14 +170,14 @@ public class PU_Packet
 	
 	public long readUint64()
 	{
-		long v = ((buffer[readPos] & 0xFF) | 
-				((buffer[readPos + 1] & 0xFF) << 8) | 
-				((buffer[readPos + 2] & 0xFF) << 16) | 
-				((buffer[readPos + 3] & 0xFF) << 24) |
-				((buffer[readPos + 4] & 0xFF) << 32) |
-				((buffer[readPos + 5] & 0xFF) << 40) |
-				((buffer[readPos + 6] & 0xFF) << 48) |
-				((buffer[readPos + 7] & 0xFF) << 56));
+		long v = ((((byte)buffer.get(readPos)) & 0xFF) | 
+				((((byte)buffer.get(readPos + 1)) & 0xFF) << 8) | 
+				((((byte)buffer.get(readPos + 2)) & 0xFF) << 16) | 
+				((((byte)buffer.get(readPos + 3)) & 0xFF) << 24) |
+				((((byte)buffer.get(readPos + 4)) & 0xFF) << 32) |
+				((((byte)buffer.get(readPos + 5)) & 0xFF) << 40) |
+				((((byte)buffer.get(readPos + 6)) & 0xFF) << 48) |
+				((((byte)buffer.get(readPos + 7)) & 0xFF) << 56));
 
 		readPos += 8;
 		return v;
@@ -197,7 +189,7 @@ public class PU_Packet
 		int stringlength = readUint16();
 		for (int i = 0; i < stringlength; i++)
 		{
-			string = string + (char) buffer[readPos++];
+			string = string + (char) ((byte)buffer.get(readPos++));
 		}
 		return string;
 	}
