@@ -208,7 +208,7 @@ func (g *Game) OnPlayerSay(_creature *Player, _channelId int, _speakType int, _r
 		case pnet.SPEAK_CHANNEL:
 			if g.playerTalkToChannel(_creature, _speakType, _message, _channelId) {
 				toReturn = true
-			} else {
+			} else if _channelId != 0 {
 				// Resend in default channel
 				toReturn = g.OnPlayerSay(_creature, 0, pnet.SPEAK_NORMAL, _receiver, _message)
 			}

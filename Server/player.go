@@ -351,8 +351,8 @@ func (p *Player) sendClosePrivateChat(_channelId int) {
 
 }
 
-func (p *Player) sendToChannel(_fromPlayer *Player, _type int, _text string, _channelId int, _time int) {
-
+func (p *Player) sendToChannel(_fromPlayer ICreature, _type int, _text string, _channelId int, _time int) {
+	p.Conn.SendCreatureSay(_fromPlayer, _type, _text, _channelId, _time)
 }
 
 // ------------------------------------------------------ //

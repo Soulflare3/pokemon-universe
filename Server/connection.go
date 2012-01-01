@@ -70,7 +70,7 @@ func (c *Connection) ProcessPacket(_packet *pnet.Packet) {
 		c.ReceiveRefreshWorld()
 		
 	case pnet.HEADER_CHAT:
-		//c.Receive_Chat(_packet)
+		c.ReceiveChat(_packet)
 	}	
 }
 
@@ -187,6 +187,11 @@ func (c *Connection) SendPlayerWarp(_position pos.Position) {
 	c.SendMessage(msg)
 }
 
+func (c *Connection) SendCreatureSay(_creature ICreature, _speakType int, _text string, _channelId int, _time int) {
+	msg := NewChatMessageExt(_creature, _speakType, _text, _channelId, _time)
+	c.SendMessage(msg)
+}
+
 // ------------------------------------------------------ //
 //                     RECEIVE
 // ------------------------------------------------------ //
@@ -206,4 +211,9 @@ func (c *Connection) ReceiveRefreshWorld() {
 	
 	msg := NewRefreshWorldMessage()
 	c.SendMessage(msg)
+}
+
+func (c *Connection) ReceiveChat(_packet *pnet.Packet) {
+	msg := NewChatMessage(c.Owner)
+	msg.ReadPacket(_packet)
 }
