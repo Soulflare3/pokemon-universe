@@ -10,6 +10,9 @@ public class PU_Shader
 	private WebGLUniformLocation mUProjection;
 	private WebGLUniformLocation mUColor;
 	
+	private int mAPosition = 0;
+	private int mATexCoord = 0;
+	
 	private WebGLProgram mProgram;
 	
 	public PU_Shader(WebGLProgram program)
@@ -20,6 +23,9 @@ public class PU_Shader
 		mUModulation = PUWeb.gl().getUniformLocation(program, "u_modulation");
 		mUProjection = PUWeb.gl().getUniformLocation(program, "u_projection");
 		mUColor = PUWeb.gl().getUniformLocation(program, "u_color");
+		
+		mAPosition = PUWeb.gl().getAttribLocation(program,"a_position");
+		mATexCoord = PUWeb.gl().getAttribLocation(program,"a_texCoord");
 	}
 	
 	public WebGLProgram getProgram()
@@ -45,5 +51,15 @@ public class PU_Shader
 	public WebGLUniformLocation getUColor()
 	{
 		return mUColor;
+	}
+	
+	public int getAPosition()
+	{
+		return mAPosition;
+	}
+	
+	public int getATexCoord()
+	{
+		return mATexCoord;
 	}
 }

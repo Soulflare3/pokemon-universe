@@ -15,9 +15,6 @@ import com.googlecode.gwtgl.binding.WebGLTexture;
 
 public class PU_Engine
 {
-	private final int ATTRIBUTE_POSITION = 0;
-	private final int ATTRIBUTE_TEXCOORD = 1;
-
 	public static final int SCREEN_WIDTH = 964;
 	public static final int SCREEN_HEIGHT = 720;
 
@@ -25,6 +22,8 @@ public class PU_Engine
 	public static final int BLENDMODE_BLEND = 1;
 	public static final int BLENDMODE_ADD = 2;
 	public static final int BLENDMODE_MOD = 3;
+	
+	private static final int SPRITEBATCH_MAX_DATASIZE = 40000;
 
 	private int mBlendMode = BLENDMODE_NONE;
 	private PU_Shader mShaderSolid;
@@ -33,6 +32,9 @@ public class PU_Engine
 	private boolean mUseTexCoords = false;
 	private float mColor[] = new float[] { 0.0f, 0.0f, 0.0f, 1.0f };
 	private WebGLTexture mLastBoundTexture = null;
+	
+	private float[] mSpriteBatchData = new float[SPRITEBATCH_MAX_DATASIZE];
+	private int mSpriteBatchDrawCount = 0;
 	
 	private WebGLRenderingContext mGlContext;
 
@@ -46,9 +48,10 @@ public class PU_Engine
 	public void init()
 	{
 		initShaders();
+		useTextureShader();
 		
-		mGlContext.enableVertexAttribArray(ATTRIBUTE_POSITION);
-		mGlContext.disableVertexAttribArray(ATTRIBUTE_TEXCOORD);
+		mGlContext.enableVertexAttribArray(mCurrentShader.getAPosition());
+		mGlContext.disableVertexAttribArray(mCurrentShader.getATexCoord());
 
 		mGlContext.viewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 	}
@@ -103,7 +106,7 @@ public class PU_Engine
 		if (mCurrentShader != mShaderTex)
 		{
 			mCurrentShader = mShaderTex;
-			mGlContext.useProgram(mCurrentShader.getProgram());
+			mGlContext.useProgram(mShaderTex.getProgram());
 
 			setOrthographicProjection();
 		}
@@ -167,10 +170,10 @@ public class PU_Engine
 			mUseTexCoords = enabled;
 			if (enabled)
 			{
-				mGlContext.enableVertexAttribArray(ATTRIBUTE_TEXCOORD);
+				mGlContext.enableVertexAttribArray(mCurrentShader.getATexCoord());
 			} else
 			{
-				mGlContext.disableVertexAttribArray(ATTRIBUTE_TEXCOORD);
+				mGlContext.disableVertexAttribArray(mCurrentShader.getATexCoord());
 			}
 		}
 	}
@@ -209,7 +212,7 @@ public class PU_Engine
 		mGlContext.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, buffer);
 		mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Float32Array.create(vertices), WebGLRenderingContext.STREAM_DRAW);
 
-		mGlContext.vertexAttribPointer(ATTRIBUTE_POSITION, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
+		mGlContext.vertexAttribPointer(mCurrentShader.getAPosition(), 2, WebGLRenderingContext.FLOAT, false, 0, 0);
 		mGlContext.drawArrays(WebGLRenderingContext.LINE_STRIP, 0, 2);
 	}
 	
@@ -238,7 +241,7 @@ public class PU_Engine
 		mGlContext.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, buffer);
 		mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Float32Array.create(vertices), WebGLRenderingContext.STREAM_DRAW);
 
-		mGlContext.vertexAttribPointer(ATTRIBUTE_POSITION, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
+		mGlContext.vertexAttribPointer(mCurrentShader.getAPosition(), 2, WebGLRenderingContext.FLOAT, false, 0, 0);
 		mGlContext.drawArrays(WebGLRenderingContext.LINE_STRIP, 0, 5);
 	}
 
@@ -266,7 +269,7 @@ public class PU_Engine
 		mGlContext.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, buffer);
 		mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Float32Array.create(vertices), WebGLRenderingContext.STREAM_DRAW);
 
-		mGlContext.vertexAttribPointer(ATTRIBUTE_POSITION, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
+		mGlContext.vertexAttribPointer(mCurrentShader.getAPosition(), 2, WebGLRenderingContext.FLOAT, false, 0, 0);
 		mGlContext.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4);
 	}
 		
@@ -296,25 +299,6 @@ public class PU_Engine
 		}
 	}
 	
-	public void renderText(PU_Font font, int x, int y, String text)
-	{
-		int drawX = x;
-		int drawY = y;
-		for(int i = 0; i < text.length(); i++)
-		{
-			int id = text.charAt(i);
-			PU_FontCharacter character = font.getCharacter(id);
-			if(character != null)
-			{
-				PU_Rect srcRect = new PU_Rect(character.x, character.y, character.width, character.height);
-				PU_Rect dstRect = new PU_Rect(drawX+character.xOffset, drawY+character.yOffset, character.width, character.height);
-				renderTexture(font.getImage(), srcRect, dstRect);
-				
-				drawX += character.xAdvance;
-			}
-		}
-	}
-	
 	public void renderTexture(PU_Image image, PU_Rect srcRect, PU_Rect dstRect)
 	{
 		useTextureShader();
@@ -335,7 +319,22 @@ public class PU_Engine
 		
 		enableTexCoords(true);
 		
+		dstRect.x += image.getOffsetX();
+		dstRect.y += image.getOffsetY();
+		
 		float vertices[] = new float[8];
+		PU_Rect imageTexCoords = image.getTextureCoords();
+		if(imageTexCoords != null)
+		{
+			float scaleWidth = (float)dstRect.width/(float)image.getWidth();
+			float scaleHeight = (float)dstRect.height/(float)image.getHeight();
+			int trimmedWidth = (int)(scaleWidth * ((float)image.getWidth()-(float)imageTexCoords.width));
+			int trimmedHeight = (int)(scaleHeight * ((float)image.getHeight()-(float)imageTexCoords.height));
+			
+			dstRect.width -= trimmedWidth;
+			dstRect.height -= trimmedHeight;
+		}
+
 		vertices[0] = dstRect.x;
 		vertices[1] = dstRect.y;
 		vertices[2] = (dstRect.x + dstRect.width);
@@ -344,24 +343,51 @@ public class PU_Engine
 		vertices[5] = (dstRect.y + dstRect.height);
 		vertices[6] = (dstRect.x + dstRect.width);
 		vertices[7] = (dstRect.y + dstRect.height);
+		
 		WebGLBuffer buffer = mGlContext.createBuffer();
 		mGlContext.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, buffer);
 		mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Float32Array.create(vertices), WebGLRenderingContext.STREAM_DRAW);
-		mGlContext.vertexAttribPointer(ATTRIBUTE_POSITION, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
+		mGlContext.vertexAttribPointer(mCurrentShader.getAPosition(), 2, WebGLRenderingContext.FLOAT, false, 0, 0);
 		
 		float texCoords[] = new float[8];
-		texCoords[0] = (float)srcRect.x / (float)image.getWidth();
-		texCoords[1] = (float)srcRect.y / (float)image.getHeight();
-		texCoords[2] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getWidth();
-		texCoords[3] = (float)srcRect.y / (float)image.getHeight();
-		texCoords[4] = (float)srcRect.x / (float)image.getWidth();
-		texCoords[5] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getHeight();
-		texCoords[6] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getWidth();
-		texCoords[7] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getHeight();
+		if(imageTexCoords != null)
+		{
+			srcRect.x += imageTexCoords.x;
+			srcRect.y += imageTexCoords.y;
+			
+			float scaleWidth = (float)srcRect.width/(float)image.getWidth();
+			float scaleHeight = (float)srcRect.height/(float)image.getHeight();
+			int trimmedWidth = (int)(scaleWidth * ((float)image.getWidth()-(float)imageTexCoords.width));
+			int trimmedHeight = (int)(scaleHeight * ((float)image.getHeight()-(float)imageTexCoords.height));
+			
+			srcRect.width -= trimmedWidth;
+			srcRect.height -= trimmedHeight;
+			
+			texCoords[0] = (float)srcRect.x / (float)image.getTextureWidth();
+			texCoords[1] = (float)srcRect.y / (float)image.getTextureHeight();
+			texCoords[2] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getTextureWidth();
+			texCoords[3] = (float)srcRect.y / (float)image.getTextureHeight();
+			texCoords[4] = (float)srcRect.x / (float)image.getTextureWidth();
+			texCoords[5] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getTextureHeight();
+			texCoords[6] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getTextureWidth();
+			texCoords[7] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getTextureHeight();
+		}
+		else
+		{
+			texCoords[0] = (float)srcRect.x / (float)image.getWidth();
+			texCoords[1] = (float)srcRect.y / (float)image.getHeight();
+			texCoords[2] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getWidth();
+			texCoords[3] = (float)srcRect.y / (float)image.getHeight();
+			texCoords[4] = (float)srcRect.x / (float)image.getWidth();
+			texCoords[5] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getHeight();
+			texCoords[6] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getWidth();
+			texCoords[7] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getHeight();
+		}
+
 		buffer = mGlContext.createBuffer();
 		mGlContext.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, buffer);
 		mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Float32Array.create(texCoords), WebGLRenderingContext.STREAM_DRAW);
-		mGlContext.vertexAttribPointer(ATTRIBUTE_TEXCOORD, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
+		mGlContext.vertexAttribPointer(mCurrentShader.getATexCoord(), 2, WebGLRenderingContext.FLOAT, false, 0, 0);
 		
 		mGlContext.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4);
 		mGlContext.flush();
@@ -372,5 +398,112 @@ public class PU_Engine
 		ImageElement element = Document.get().createImageElement();
 		element.setSrc(imageResource.getSafeUri().asString());
 		return element;
+	}
+	
+	public void beginSpriteBatch()
+	{
+		mSpriteBatchDrawCount = 0;
+	}
+	
+	public void addToSpriteBatch(PU_Image image, int x, int y)
+	{
+		PU_Rect srcRect = image.getTextureCoords();
+		PU_Rect dstRect = new PU_Rect(x, y, image.getWidth(), image.getHeight());
+		dstRect.x += image.getOffsetX();
+		dstRect.y += image.getOffsetY();
+		
+		dstRect.width = srcRect.width;
+		dstRect.height = srcRect.height;
+		
+		int dataIdx = mSpriteBatchDrawCount * 16;
+		
+		if(dataIdx+32 > SPRITEBATCH_MAX_DATASIZE)
+		{
+			endSpriteBatch();
+			beginSpriteBatch();
+			
+			dataIdx = 0;
+		}
+		
+		if(mSpriteBatchDrawCount != 0)
+		{
+			float v = mSpriteBatchData[dataIdx-4];
+			mSpriteBatchData[dataIdx] = v;
+			dataIdx++;
+			v = mSpriteBatchData[dataIdx-4];
+			mSpriteBatchData[dataIdx] = v;
+			dataIdx++;
+			mSpriteBatchData[dataIdx++] = 0.0f;
+			mSpriteBatchData[dataIdx++] = 0.0f;
+			
+			mSpriteBatchData[dataIdx++] = (float)dstRect.x;
+			mSpriteBatchData[dataIdx++] = (float)dstRect.y;
+			mSpriteBatchData[dataIdx++] = 0.0f;
+			mSpriteBatchData[dataIdx++] = 0.0f;
+			
+			mSpriteBatchData[dataIdx++] = (float)dstRect.x;
+			mSpriteBatchData[dataIdx++] = (float)dstRect.y;
+			mSpriteBatchData[dataIdx++] = 0.0f;
+			mSpriteBatchData[dataIdx++] = 0.0f;
+			
+			mSpriteBatchData[dataIdx++] = (float)dstRect.x;
+			mSpriteBatchData[dataIdx++] = (float)dstRect.y;
+			mSpriteBatchData[dataIdx++] = 0.0f;
+			mSpriteBatchData[dataIdx++] = 0.0f;
+			
+			mSpriteBatchDrawCount++;
+		}
+		mSpriteBatchData[dataIdx++] = (float)dstRect.x;
+		mSpriteBatchData[dataIdx++] = (float)dstRect.y;
+		mSpriteBatchData[dataIdx++] = (float)srcRect.x / (float)image.getTextureWidth();
+		mSpriteBatchData[dataIdx++] = (float)srcRect.y / (float)image.getTextureHeight();
+		
+		mSpriteBatchData[dataIdx++] = (float)(dstRect.x + dstRect.width);
+		mSpriteBatchData[dataIdx++] = (float)dstRect.y;
+		mSpriteBatchData[dataIdx++] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getTextureWidth();
+		mSpriteBatchData[dataIdx++] = (float)srcRect.y / (float)image.getTextureHeight();
+		
+		mSpriteBatchData[dataIdx++] = (float)dstRect.x;
+		mSpriteBatchData[dataIdx++] = (float)(dstRect.y + dstRect.height);
+		mSpriteBatchData[dataIdx++] = (float)srcRect.x / (float)image.getTextureWidth();
+		mSpriteBatchData[dataIdx++] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getTextureHeight();
+		
+		mSpriteBatchData[dataIdx++] = (float)(dstRect.x + dstRect.width);
+		mSpriteBatchData[dataIdx++] = (float)(dstRect.y + dstRect.height);			
+		mSpriteBatchData[dataIdx++] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getTextureWidth();
+		mSpriteBatchData[dataIdx++] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getTextureHeight();
+		
+		mSpriteBatchDrawCount++;
+	}
+	
+	public void endSpriteBatch()
+	{
+		useTextureShader();
+		
+		mGlContext.activeTexture(WebGLRenderingContext.TEXTURE0);
+		mGlContext.bindTexture(WebGLRenderingContext.TEXTURE_2D, PUWeb.resources().getSpriteTexture());
+		mGlContext.uniform1i(mCurrentShader.getUTexture(), 0);
+		
+		mLastBoundTexture = PUWeb.resources().getSpriteTexture();
+		
+		setColor(255, 255, 255, 255);
+		mGlContext.uniform4fv(mCurrentShader.getUModulation(), mColor);
+		
+		setBlendMode(PU_Engine.BLENDMODE_BLEND);
+		
+		enableTexCoords(true);
+		
+		float[] mapData = new float[mSpriteBatchDrawCount * 16];
+		System.arraycopy(mSpriteBatchData, 0, mapData, 0, mapData.length);
+		
+		WebGLBuffer buffer = mGlContext.createBuffer();
+		mGlContext.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, buffer);
+		mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Float32Array.create(mapData), WebGLRenderingContext.STREAM_DRAW);
+		mGlContext.vertexAttribPointer(mCurrentShader.getAPosition(), 2, WebGLRenderingContext.FLOAT, false, 16, 0);
+		mGlContext.vertexAttribPointer(mCurrentShader.getATexCoord(), 2, WebGLRenderingContext.FLOAT, false, 16, 8);
+
+		mGlContext.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4 * mSpriteBatchDrawCount);
+
+		mGlContext.flush();
 	}
 }

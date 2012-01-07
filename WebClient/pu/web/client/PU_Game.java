@@ -53,7 +53,6 @@ public class PU_Game
 					
 					font.drawText("Fonts: " + PUWeb.resources().getFontLoadProgress() + "%", 10, 40);
 					font.drawText("GUI: " + PUWeb.resources().getGuiImageLoadProgress() + "%", 10, 70);
-					font.drawText("Tiles: " + PUWeb.resources().getTileLoadProgress() + "%", 10, 100);
 				}
 			}
 			break;
@@ -84,6 +83,7 @@ public class PU_Game
 		PU_Creature walkers[] = new PU_Creature[PUWeb.map().getCreatureCount()];
 		int walkerCount = 0;
 		
+		PUWeb.engine().beginSpriteBatch();
 		for(int x = 0; x < NUMTILES_X; x++)
 		{
 			for(int y = 0; y < NUMTILES_Y; y++)
@@ -116,6 +116,7 @@ public class PU_Game
 			
 			tile.drawLayer(2, screenx, screeny);
 		}
+		PUWeb.engine().endSpriteBatch();
 		
 		Collection<PU_Creature> creatures = PUWeb.map().getCreatures();
 		for(PU_Creature creature : creatures)

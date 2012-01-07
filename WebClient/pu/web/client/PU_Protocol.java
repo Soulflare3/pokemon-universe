@@ -12,7 +12,7 @@ public class PU_Protocol
 	public void parsePacket(PU_Packet packet)
 	{
 		byte header = packet.readUint8();
-		PUWeb.log("Received packet  with header: " + header);
+		//
 		switch(header)
 		{
 			case PU_Packet.HEADER_LOGIN:
@@ -34,6 +34,9 @@ public class PU_Protocol
 			case PU_Packet.HEADER_TURN:
 				receiveCreatureTurn(packet);
 				break;
+				
+			default:
+				PUWeb.log("Received packet with unknown header: " + header);
 		}
 	}
 	
@@ -110,7 +113,6 @@ public class PU_Protocol
 				receiveTile(packet);
 			}
 		}
-		PUWeb.log("Received " + tileCount + " tiles");
 	}
 	
 	public void receiveTile(PU_Packet packet)

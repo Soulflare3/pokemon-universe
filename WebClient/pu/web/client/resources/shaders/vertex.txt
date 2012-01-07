@@ -8,4 +8,4 @@ void main()
 	v_texCoord = a_texCoord;
 	gl_Position = u_projection * a_position;
 	gl_PointSize = 1.0;
-} 
+}

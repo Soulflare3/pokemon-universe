@@ -50,7 +50,7 @@ public class PU_Connection
 			return false;
 		}
 
-		$wnd.socket = new WebSocket(server);
+		$wnd.socket = new websocket(server);
 		console.log("Websocket tried to connect to " + server + " Readystate: "
 				+ $wnd.socket.readyState);
 
@@ -61,7 +61,7 @@ public class PU_Connection
 
 		$wnd.socket.binaryType = "arraybuffer";
 		$wnd.socket.onmessage = function(response) {
-			connection.@pu.web.client.PU_Connection::onSocketReceive(Lcom/googlecode/gwtgl/array/ArrayBuffer;)(response);
+			connection.@pu.web.client.PU_Connection::onSocketReceive(Lcom/googlecode/gwtgl/array/ArrayBuffer;)(response.data);
 			
 		};
 

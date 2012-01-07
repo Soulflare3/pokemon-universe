@@ -21,11 +21,16 @@ public class PU_Layer
 		return mId;
 	}
 	
+	public PU_Image getImage()
+	{
+		return mImage;
+	}
+	
 	public void draw(int x, int y)
 	{
 		if(mImage != null)
 		{
-			mImage.draw(x,  y);
+			PUWeb.engine().addToSpriteBatch(mImage, x, y);
 		}
 	}
 }

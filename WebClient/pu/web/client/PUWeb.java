@@ -59,8 +59,8 @@ public class PUWeb implements EntryPoint
 				// Load GUI images
 				mResources.loadGuiImages();
 				
-				// Load tiles
-				mResources.loadTiles();
+				// Load sprites
+				mResources.loadSprites();
 			}
 
 			@Override

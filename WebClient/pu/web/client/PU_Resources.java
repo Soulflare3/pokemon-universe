@@ -4,12 +4,16 @@ import java.util.HashMap;
 
 import pu.web.client.resources.fonts.Fonts;
 import pu.web.client.resources.gui.GuiImageBundle;
-import pu.web.client.resources.tiles.TilesBundle;
+import pu.web.client.resources.tiles.Tiles;
 import pu.web.shared.ImageLoadEvent;
 
 import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.resources.client.ResourcePrototype;
+import com.google.gwt.xml.client.Document;
+import com.google.gwt.xml.client.Element;
+import com.google.gwt.xml.client.NodeList;
+import com.google.gwt.xml.client.XMLParser;
 import com.googlecode.gwtgl.binding.WebGLTexture;
 
 public class PU_Resources
@@ -24,14 +28,14 @@ public class PU_Resources
 	private int mGuiImageCount = 0;
 	private int mGuiImageCountLoaded = 0;
 	
-	private int mTileCount = 0;
-	private int mTileCountLoaded = 0;
+	private WebGLTexture mSpriteTexture = null;
+	
+	private boolean mSpritesLoaded = false;
 	
 	public PU_Resources()
 	{
 		mFontCount = Fonts.FONT_COUNT;
 		mGuiImageCount = GuiImageBundle.INSTANCE.getResources().length;
-		mTileCount = TilesBundle.INSTANCE.getResources().length;
 	}
 	
 	public void checkComplete()
@@ -44,7 +48,7 @@ public class PU_Resources
 		if(mGuiImageCount != mGuiImageCountLoaded)
 			complete = false;
 		
-		if(mTileCount != mTileCountLoaded)
+		if(mSpritesLoaded)
 			complete = false;
 		
 		if(complete)
@@ -59,11 +63,6 @@ public class PU_Resources
 	public int getGuiImageLoadProgress()
 	{
 		return (int)((float)((float)mGuiImageCountLoaded/(float)mGuiImageCount)*100.0);
-	}
-	
-	public int getTileLoadProgress()
-	{
-		return (int)((float)((float)mTileCountLoaded/(float)mTileCount)*100.0);
 	}
 	
 	public native boolean imageLoaded(ImageElement image) /*-{
@@ -175,38 +174,92 @@ public class PU_Resources
 		return null;
 	}
 	
-	public void loadTiles()
+	public void loadSprites()
 	{
-		final ResourcePrototype[] resources = TilesBundle.INSTANCE.getResources();
-		for(ResourcePrototype resource : resources)
+		final ImageResource imageResource = Tiles.INSTANCE.getTilesBitmap();
+		final String imageInfo = Tiles.INSTANCE.getTilesInfo().getText();
+	
+		mSpriteTexture = PUWeb.engine().createEmptyTexture();
+		final ImageElement image = PUWeb.engine().getImageElement(imageResource);
+		loadImage(new ImageLoadEvent() 
 		{
-			String name = resource.getName();
-			final int id = Integer.parseInt(name.replace("res_", ""));
-			
-			final WebGLTexture texture = PUWeb.engine().createEmptyTexture();
-			final ImageElement image = PUWeb.engine().getImageElement((ImageResource)resource);
-			loadImage(new ImageLoadEvent() 
+			@Override
+			public void loaded()
 			{
-				@Override
-				public void loaded()
+				PUWeb.engine().fillTexture(mSpriteTexture, image);
+				
+				Document infoDom = XMLParser.parse(imageInfo);
+				
+				NodeList sprites = infoDom.getElementsByTagName("sprite");
+				for(int i = 0; i < sprites.getLength(); i++)
 				{
-					PUWeb.engine().fillTexture(texture, image);
-					mTiles.put(id, new PU_Image(image.getWidth(), image.getHeight(), texture));
+					Element element = (Element) sprites.item(i);
 					
-					mTileCountLoaded++;
-					checkComplete();
+					String name = element.getAttribute("n");
+					
+					PU_Rect texCoords = new PU_Rect();
+					texCoords.x = Integer.parseInt(element.getAttribute("x"));
+					texCoords.y = Integer.parseInt(element.getAttribute("y"));
+					texCoords.width = Integer.parseInt(element.getAttribute("w"));
+					texCoords.height = Integer.parseInt(element.getAttribute("h"));
+					
+					int offsetX = 0;
+					if(element.hasAttribute("oX"))
+						offsetX = Integer.parseInt(element.getAttribute("oX"));
+					
+					int offsetY = 0;
+					if(element.hasAttribute("oY"))
+						offsetY = Integer.parseInt(element.getAttribute("oY"));
+					
+					int width = texCoords.width;
+					if(element.hasAttribute("oW"))
+						width = Integer.parseInt(element.getAttribute("oW"));
+					
+					int height = texCoords.height;
+					if(element.hasAttribute("oH"))
+						height = Integer.parseInt(element.getAttribute("oH"));
+					
+					PU_Image spriteImage = new PU_Image(width, height, null);
+					spriteImage.setTextureCoords(texCoords, image.getWidth(), image.getHeight());
+					spriteImage.setOffsetX(offsetX);
+					spriteImage.setOffsetY(offsetY);
+					if(name.contains("creature/"))
+					{
+						// Creature sprite
+					}
+					else
+					{
+						// Tile sprite
+						parseTileSprite(name, spriteImage);
+					}
+					
 				}
+								
+				mSpritesLoaded = true;
+				checkComplete();
+			}
 
-				@Override
-				public void error()
-				{
-					mTileCountLoaded++;
-					checkComplete();
-				}
-			}, image);
-		}
+			@Override
+			public void error()
+			{
+				PUWeb.log("Error loading sprites");
+				mSpritesLoaded = false;
+				checkComplete();
+			}
+		}, image);
 	}
 	
+	public WebGLTexture getSpriteTexture()
+	{
+		return mSpriteTexture;
+	}
+	
+	public void parseTileSprite(String name, PU_Image image)
+	{
+		int id = Integer.parseInt(name);
+		mTiles.put(id, image);
+	}
+
 	public PU_Image getTileImage(int id)
 	{
 		return mTiles.get(id);

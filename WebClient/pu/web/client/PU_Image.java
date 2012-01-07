@@ -9,6 +9,11 @@ public class PU_Image
 	WebGLTexture mTexture;
 	private int mBlendMode = PU_Engine.BLENDMODE_BLEND;
 	private PU_Color mColorMod = new PU_Color();
+	private PU_Rect mTextureCoords = null;
+	private int mTextureWidth = 0;
+	private int mTextureHeight = 0;
+	private int mOffsetX = 0;
+	private int mOffsetY = 0;
 	
 	public PU_Image(int width, int height, WebGLTexture texture)
 	{
@@ -58,6 +63,48 @@ public class PU_Image
 		mColorMod.r = red;
 		mColorMod.g = green;
 		mColorMod.b = blue;
+	}
+	
+	public PU_Rect getTextureCoords()
+	{
+		return mTextureCoords;
+	}
+	
+	public void setTextureCoords(PU_Rect coords, int textureWidth, int textureHeight)
+	{
+		mTextureWidth = textureWidth;
+		mTextureHeight = textureHeight;
+		mTextureCoords = coords;
+	}
+	
+	public int getTextureWidth()
+	{
+		return mTextureWidth;
+	}
+	
+	public int getTextureHeight()
+	{
+		return mTextureHeight;
+	}
+	
+	public int getOffsetX()
+	{
+		return mOffsetX;
+	}
+	
+	public void setOffsetX(int offset)
+	{
+		mOffsetX = offset;
+	}
+	
+	public int getOffsetY()
+	{
+		return mOffsetY;
+	}
+	
+	public void setOffsetY(int offset)
+	{
+		mOffsetY = offset;
 	}
 	
 	public void draw(int x, int y)
@@ -110,11 +157,7 @@ public class PU_Image
 	
 	public void drawRectClipInRect(PU_Rect rect, PU_Rect clip, PU_Rect inRect)
 	{
-		//PUWeb.log("rect 1: " + rect.x + " " + rect.y + " " + rect.width + " " + rect.height);
-		//PUWeb.log("rect 2: " + clip.x + " " + clip.y + " " + clip.width + " " + clip.height);
-		//PUWeb.log("rect 3: " + inRect.x + " " + inRect.y + " " + inRect.width + " " + inRect.height);
 		inRect = inRect.intersection(new PU_Rect(rect.x, rect.y, clip.width, clip.height));
-		//PUWeb.log("rect 4: " + inRect.x + " " + inRect.y + " " + inRect.width + " " + inRect.height);
 		PU_Rect dstRect = new PU_Rect(inRect.x, inRect.y, inRect.width, inRect.height);
 		inRect.x -= rect.x;
 		inRect.y -= rect.y;

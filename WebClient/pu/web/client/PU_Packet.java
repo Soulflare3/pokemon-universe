@@ -67,8 +67,7 @@ public class PU_Packet
 		Uint8Array data = Uint8Array.create(msgSize+2);
 		for(int i = 0; i < msgSize+2; i++)
 			data.set(i, buffer.get(i));
-		
-		PUWeb.log("data size: " + data.getLength());
+
 		return data.getBuffer();
 	}
 
