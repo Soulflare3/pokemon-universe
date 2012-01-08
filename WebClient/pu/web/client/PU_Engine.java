@@ -464,7 +464,7 @@ public class PU_Engine
 		{
 			mTextureBatchAtlas = texture;
 			mTextureBatchTextureSize = textureSize;
-			mTextureBatchData = new int[count * 16 * 2 - 16];
+			mTextureBatchData = new int[count * 8 * 2 - 8];
 			mTextureBatchColorMod[0] = ((float) red / 255.0f);
 			mTextureBatchColorMod[1] = ((float) green / 255.0f);
 			mTextureBatchColorMod[2] = ((float) blue / 255.0f);
@@ -474,7 +474,7 @@ public class PU_Engine
 	
 	public void addToTextureBatch(PU_Image image, PU_Rect srcRect, PU_Rect dstRect)
 	{
-		int dataIdx = mTextureBatchDrawCount * 16;
+		int dataIdx = mTextureBatchDrawCount * 8;
 		if(dataIdx != 0)
 		{
 			int v = mTextureBatchData[dataIdx-4];
@@ -483,16 +483,6 @@ public class PU_Engine
 			v = mTextureBatchData[dataIdx-4];
 			mTextureBatchData[dataIdx] = v;
 			dataIdx++;
-			mTextureBatchData[dataIdx++] = 0;
-			mTextureBatchData[dataIdx++] = 0;
-			
-			mTextureBatchData[dataIdx++] = dstRect.x;
-			mTextureBatchData[dataIdx++] = dstRect.y;
-			mTextureBatchData[dataIdx++] = 0;
-			mTextureBatchData[dataIdx++] = 0;
-			
-			mTextureBatchData[dataIdx++] = dstRect.x;
-			mTextureBatchData[dataIdx++] = dstRect.y;
 			mTextureBatchData[dataIdx++] = 0;
 			mTextureBatchData[dataIdx++] = 0;
 			
@@ -575,7 +565,7 @@ public class PU_Engine
 			mTextureBatchData[dataIdx++] = (srcRect.y + srcRect.height);
 		}
 		
-		mTextureBatchDrawCount++;
+		mTextureBatchDrawCount += 2;
 	}
 	
 	public void endTextureBatch()
@@ -596,16 +586,15 @@ public class PU_Engine
 			
 			enableTexCoords(true);
 			
-			PUWeb.log("Tex size: " + mTextureBatchTextureSize);
 			mGlContext.uniform1f(mCurrentShader.getUTextureSize(), mTextureBatchTextureSize);
 			
 			WebGLBuffer buffer = mGlContext.createBuffer();
 			mGlContext.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, buffer);
-			mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Int16Array.create(mTextureBatchData), WebGLRenderingContext.DYNAMIC_DRAW);
+			mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Int16Array.create(mTextureBatchData), WebGLRenderingContext.STREAM_DRAW);
 			mGlContext.vertexAttribPointer(mCurrentShader.getAPosition(), 2, WebGLRenderingContext.SHORT, false, 8, 0);
 			mGlContext.vertexAttribPointer(mCurrentShader.getATexCoord(), 2, WebGLRenderingContext.SHORT, false, 8, 4);
 	
-			mGlContext.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4 * mTextureBatchDrawCount);
+			mGlContext.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 2 * mTextureBatchDrawCount);
 	
 			mGlContext.flush();
 		}
@@ -626,9 +615,9 @@ public class PU_Engine
 		dstRect.width = srcRect.width;
 		dstRect.height = srcRect.height;
 		
-		int dataIdx = mSpriteBatchDrawCount * 16;
-		
-		if(dataIdx+32 > SPRITEBATCH_MAX_DATASIZE)
+		int dataIdx = mSpriteBatchDrawCount * 8;
+
+		if(dataIdx+24 > SPRITEBATCH_MAX_DATASIZE)
 		{
 			endSpriteBatch();
 			beginSpriteBatch();
@@ -644,16 +633,6 @@ public class PU_Engine
 			v = mSpriteBatchData[dataIdx-4];
 			mSpriteBatchData[dataIdx] = v;
 			dataIdx++;
-			mSpriteBatchData[dataIdx++] = 0;
-			mSpriteBatchData[dataIdx++] = 0;
-			
-			mSpriteBatchData[dataIdx++] = dstRect.x;
-			mSpriteBatchData[dataIdx++] = dstRect.y;
-			mSpriteBatchData[dataIdx++] = 0;
-			mSpriteBatchData[dataIdx++] = 0;
-			
-			mSpriteBatchData[dataIdx++] = dstRect.x;
-			mSpriteBatchData[dataIdx++] = dstRect.y;
 			mSpriteBatchData[dataIdx++] = 0;
 			mSpriteBatchData[dataIdx++] = 0;
 			
@@ -684,7 +663,7 @@ public class PU_Engine
 		mSpriteBatchData[dataIdx++] = (srcRect.x + srcRect.width);
 		mSpriteBatchData[dataIdx++] = (srcRect.y + srcRect.height);
 		
-		mSpriteBatchDrawCount++;
+		mSpriteBatchDrawCount += 2;
 	}
 	
 	public void endSpriteBatch()
@@ -704,16 +683,16 @@ public class PU_Engine
 		
 		enableTexCoords(true);
 		
-		int[] mapData = new int[mSpriteBatchDrawCount * 16];
+		int[] mapData = new int[mSpriteBatchDrawCount * 8];
 		System.arraycopy(mSpriteBatchData, 0, mapData, 0, mapData.length);
 		
 		WebGLBuffer buffer = mGlContext.createBuffer();
 		mGlContext.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, buffer);
-		mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Int16Array.create(mapData), WebGLRenderingContext.DYNAMIC_DRAW);
+		mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Int16Array.create(mapData), WebGLRenderingContext.STREAM_DRAW);
 		mGlContext.vertexAttribPointer(mCurrentShader.getAPosition(), 2, WebGLRenderingContext.SHORT, false, 8, 0);
 		mGlContext.vertexAttribPointer(mCurrentShader.getATexCoord(), 2, WebGLRenderingContext.SHORT, false, 8, 4);
 
-		mGlContext.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4 * mSpriteBatchDrawCount);
+		mGlContext.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 2 * mSpriteBatchDrawCount);
 
 		mGlContext.flush();
 	}
