@@ -1,5 +1,6 @@
 package pu.web.client;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import pu.web.client.resources.fonts.Fonts;
@@ -24,6 +25,7 @@ public class PU_Game
 	private int mScreenOffsetY = 0;
 	private PU_Player mSelf = null;
 	private int mLastDirKey = 0;
+	private ArrayList<PU_PlayerName> mPlayerNames = new ArrayList<PU_PlayerName>();
 	
 	public PU_Game()
 	{
@@ -83,6 +85,8 @@ public class PU_Game
 		PU_Creature walkers[] = new PU_Creature[PUWeb.map().getCreatureCount()];
 		int walkerCount = 0;
 		
+		mPlayerNames.clear();
+		
 		PUWeb.engine().beginSpriteBatch();
 		for(int x = 0; x < NUMTILES_X; x++)
 		{
@@ -107,6 +111,20 @@ public class PU_Game
 			}
 		}
 		
+		Collection<PU_Creature> creatures = PUWeb.map().getCreatures();
+		for(PU_Creature creature : creatures)
+		{
+			int screenx = MID_X - (mSelf.getX() - creature.getX());
+			int screeny = MID_Y - (mSelf.getY() - creature.getY());
+			drawCreature(creature, screenx, screeny);
+			
+			if(creature.isWalking())
+			{
+				walkers[walkerCount] = creature;
+				walkerCount++;
+			}
+		}
+		
 		for(int i = 0; i < layer2tilesCount; i++)
 		{
 			PU_Tile tile = layer2tiles[i];
@@ -118,20 +136,69 @@ public class PU_Game
 		}
 		PUWeb.engine().endSpriteBatch();
 		
-		Collection<PU_Creature> creatures = PUWeb.map().getCreatures();
-		for(PU_Creature creature : creatures)
+		PU_Font nameFont = PUWeb.resources().getFont(Fonts.FONT_PURITAN_BOLD_14);
+		nameFont.setColor(255, 242, 0);
+		for(PU_PlayerName name : mPlayerNames)
 		{
-			if(creature.isWalking())
-			{
-				walkers[walkerCount] = creature;
-				walkerCount++;
-			}
+			nameFont.drawBorderedText(name.name, name.x, name.y);
 		}
+		
 		
 		for(int i = 0; i < walkerCount; i++)
 		{
 			if(walkers[i] instanceof PU_Player)
 				((PU_Player)walkers[i]).updateWalk();
+		}
+	}
+	
+	public void drawCreature(PU_Creature creature, int x, int y)
+	{
+		int[] offset = getScreenOffset();
+		int offsetX = offset[0];
+		int offsetY = offset[1];
+		
+		int drawX = 0;
+		int drawY = 0;
+		
+		if(creature.isWalking()) 
+		{
+            switch(creature.getDirection()) 
+            {
+            case PU_Player.DIR_NORTH:
+                    drawX = (x * PU_Tile.TILE_WIDTH) - PU_Tile.TILE_WIDTH - 22 + offsetX;
+                    drawY = ((y * PU_Tile.TILE_HEIGHT) + (PU_Tile.TILE_HEIGHT - creature.getOffset())) - PU_Tile.TILE_HEIGHT + offsetY;
+                    break;
+
+            case PU_Player.DIR_EAST:
+                    drawX = ((x * PU_Tile.TILE_WIDTH) - (PU_Tile.TILE_WIDTH - creature.getOffset())) - PU_Tile.TILE_WIDTH - 22 + offsetX;
+                    drawY = (y * PU_Tile.TILE_HEIGHT) - PU_Tile.TILE_HEIGHT + offsetY;
+                    break;
+
+            case PU_Player.DIR_SOUTH:
+                    drawX = (x * PU_Tile.TILE_WIDTH) - PU_Tile.TILE_WIDTH - 22 + offsetX;
+                    drawY = ((y * PU_Tile.TILE_HEIGHT) - (PU_Tile.TILE_HEIGHT - creature.getOffset())) - PU_Tile.TILE_HEIGHT + offsetY;
+                    break;
+
+            case PU_Player.DIR_WEST:
+                    drawX = ((x * PU_Tile.TILE_WIDTH) + (PU_Tile.TILE_WIDTH - creature.getOffset())) - PU_Tile.TILE_WIDTH - 22 + offsetX;
+                    drawY = (y * PU_Tile.TILE_HEIGHT) - PU_Tile.TILE_HEIGHT + offsetY;
+                    break;
+            }
+		} 
+		else 
+		{
+            drawX = (x * PU_Tile.TILE_WIDTH) - PU_Tile.TILE_WIDTH - 22 + mScreenOffsetX;
+            drawY = (y * PU_Tile.TILE_HEIGHT) - PU_Tile.TILE_HEIGHT + mScreenOffsetY;
+		}
+		creature.draw(drawX, drawY);
+		
+		if(creature instanceof PU_Player)
+		{
+			String name = ((PU_Player) creature).getName();
+			int posHalf = (drawX - 48) + (((drawX + 96) - (drawX - 48)) / 2);
+	        int nameHalf = PUWeb.resources().getFont(Fonts.FONT_PURITAN_BOLD_14).getStringWidth(name) / 2;
+            int centerPos = posHalf - nameHalf;
+            mPlayerNames.add(new PU_PlayerName(name, centerPos, drawY - 14));
 		}
 	}
 	

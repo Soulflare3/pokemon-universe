@@ -35,6 +35,10 @@ public class PU_Protocol
 				receiveCreatureTurn(packet);
 				break;
 				
+			case PU_Packet.HEADER_ADDCREATURE:
+				receiveAddCreature(packet);
+				break;
+				
 			default:
 				PUWeb.log("Received packet with unknown header: " + header);
 		}
@@ -98,6 +102,16 @@ public class PU_Protocol
 		player.setPosition(x, y);
 		player.setDirection(packet.readUint16());
 		player.setMoney(packet.readUint32());
+		
+		for(int part = PU_Player.BODY_UPPER; part <= PU_Player.BODY_LOWER; part++)
+		{
+			player.setBodyPart(part, packet.readUint8());
+			long color = packet.readUint32();
+			int blue = (int)((byte) (color));
+			int green = (int)((byte) (color >> 8));
+			int red = (int)((byte) (color >> 16));
+			player.getBodyPart(part).setColor(red, green, blue);
+		}
 		
 		PUWeb.map().addCreature(player);
 		PUWeb.game().setSelf(player);
@@ -214,5 +228,27 @@ public class PU_Protocol
 		{
 			creature.setDirection(direction);
 		}
+	}
+	
+	public void receiveAddCreature(PU_Packet packet)
+	{
+		PU_Player player = new PU_Player(packet.readUint64());
+		player.setName(packet.readString());
+		int x = packet.readUint16();
+		int y = packet.readUint16();
+		player.setPosition(x, y);
+		player.setDirection(packet.readUint16());
+		
+		for(int part = PU_Player.BODY_UPPER; part <= PU_Player.BODY_LOWER; part++)
+		{
+			player.setBodyPart(part, packet.readUint8());
+			long color = packet.readUint32();
+			int blue = (int)((byte) (color));
+			int green = (int)((byte) (color >> 8));
+			int red = (int)((byte) (color >> 16));
+			player.getBodyPart(part).setColor(red, green, blue);
+		}
+		
+		PUWeb.map().addCreature(player);
 	}
 }

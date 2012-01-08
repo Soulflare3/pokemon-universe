@@ -15,15 +15,18 @@ public class PU_Player extends PU_Creature
 	private String mName;
 	private long mMoney = 0;
 	
-	//bodyparts
+	private PU_BodyPart[] mBodyParts = new PU_BodyPart[NUM_BODYPARTS];
+	
 	//pokemon
 	
 	public PU_Player(long id)
 	{
 		mId = id;
 		
-		//bodyparts
-		
+		for(int i = 0; i < NUM_BODYPARTS; i++)
+		{
+			mBodyParts[i] = new PU_BodyPart(1);
+		}
 	}
 	
 	public void setMoney(long money)
@@ -59,7 +62,27 @@ public class PU_Player extends PU_Creature
 		}
 	}
 	
-	// draw
+	public void draw(int x, int y)
+	{
+		for(int part = BODY_BASE; part < BODY_LOWER; part++)
+		{
+			PU_Image image = PUWeb.resources().getCreatureImage(part, mBodyParts[part].id, mDirection, mFrame);
+			if(image != null)
+			{
+				PUWeb.engine().addToSpriteBatch(image, x, y);
+			}
+		}
+	}
+	
+	public void setBodyPart(int part, int id)
+	{
+		mBodyParts[part].id = id;
+	}
+	
+	public PU_BodyPart getBodyPart(int part)
+	{
+		return mBodyParts[part];
+	}
 	
 	public void walk(int direction)
 	{

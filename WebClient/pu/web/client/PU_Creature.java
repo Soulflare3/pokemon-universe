@@ -34,6 +34,11 @@ public class PU_Creature
 		
 	}
 	
+	public void draw(int x, int y)
+	{
+		
+	}
+	
 	public long getId()
 	{
 		return mId;

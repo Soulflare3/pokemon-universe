@@ -21,6 +21,7 @@ public class PU_Resources
 	private PU_Font[] mFonts = new PU_Font[Fonts.FONT_COUNT];
 	private PU_Image[] mGuiImages = null;
 	private HashMap<Integer, PU_Image> mTiles = new HashMap<Integer, PU_Image>();
+	private HashMap<Long, PU_Image> mCreatureImages = new HashMap<Long, PU_Image>();
 	
 	private int mFontCount = 0;
 	private int mFontCountLoaded = 0;
@@ -223,9 +224,10 @@ public class PU_Resources
 					spriteImage.setTextureCoords(texCoords, image.getWidth(), image.getHeight());
 					spriteImage.setOffsetX(offsetX);
 					spriteImage.setOffsetY(offsetY);
-					if(name.contains("creature/"))
+					if(name.contains("creatures/"))
 					{
 						// Creature sprite
+						parseCreatureSprite(name, spriteImage);
 					}
 					else
 					{
@@ -260,8 +262,27 @@ public class PU_Resources
 		mTiles.put(id, image);
 	}
 
+	public void parseCreatureSprite(String name, PU_Image image)
+	{
+		String ids = name.replace("creatures/", "");
+		String[] parts = ids.split("_");
+		long bodypart = Long.parseLong(parts[0]);
+		long id = Long.parseLong(parts[1]);
+		long dir = Long.parseLong(parts[2]);
+		long frame = Long.parseLong(parts[3]);
+		
+		long key = ((bodypart) | (id << 8) | (dir << 16) | (frame << 24));
+		mCreatureImages.put(key, image);
+	}
+	
 	public PU_Image getTileImage(int id)
 	{
 		return mTiles.get(id);
+	}
+	
+	public PU_Image getCreatureImage(int bodypart, int id, int dir, int frame)
+	{
+		long key = ((bodypart) | (id << 8) | (dir << 16) | (frame << 24));
+		return mCreatureImages.get(key);
 	}
 }

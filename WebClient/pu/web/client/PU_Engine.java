@@ -7,6 +7,7 @@ import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.resources.client.ImageResource;
 import com.googlecode.gwtgl.array.Float32Array;
+import com.googlecode.gwtgl.array.Int16Array;
 import com.googlecode.gwtgl.binding.WebGLBuffer;
 import com.googlecode.gwtgl.binding.WebGLProgram;
 import com.googlecode.gwtgl.binding.WebGLRenderingContext;
@@ -28,12 +29,13 @@ public class PU_Engine
 	private int mBlendMode = BLENDMODE_NONE;
 	private PU_Shader mShaderSolid;
 	private PU_Shader mShaderTex;
+	private PU_Shader mShaderSprite;
 	private PU_Shader mCurrentShader;
 	private boolean mUseTexCoords = false;
 	private float mColor[] = new float[] { 0.0f, 0.0f, 0.0f, 1.0f };
 	private WebGLTexture mLastBoundTexture = null;
 	
-	private float[] mSpriteBatchData = new float[SPRITEBATCH_MAX_DATASIZE];
+	private int[] mSpriteBatchData = new int[SPRITEBATCH_MAX_DATASIZE];
 	private int mSpriteBatchDrawCount = 0;
 	
 	private WebGLRenderingContext mGlContext;
@@ -66,6 +68,7 @@ public class PU_Engine
 	{
 		WebGLShader fragmentShaderSolid = getShader(WebGLRenderingContext.FRAGMENT_SHADER, Shaders.INSTANCE.fragmentShaderSolid().getText());
 		WebGLShader fragmentShaderTex = getShader(WebGLRenderingContext.FRAGMENT_SHADER, Shaders.INSTANCE.fragmentShaderTex().getText());
+		WebGLShader fragmentShaderSprite = getShader(WebGLRenderingContext.FRAGMENT_SHADER, Shaders.INSTANCE.fragmentShaderSprite().getText());
 		WebGLShader vertexShader = getShader(WebGLRenderingContext.VERTEX_SHADER, Shaders.INSTANCE.vertexShader().getText());
 
 		WebGLProgram program = mGlContext.createProgram();
@@ -88,6 +91,17 @@ public class PU_Engine
 			throw new RuntimeException("Could not initialise texture shader");
 		}
 		mShaderTex = new PU_Shader(program);
+		
+		program = mGlContext.createProgram();
+		mGlContext.attachShader(program, vertexShader);
+		mGlContext.attachShader(program, fragmentShaderSprite);
+		mGlContext.linkProgram(program);
+
+		if (!mGlContext.getProgramParameterb(program, WebGLRenderingContext.LINK_STATUS))
+		{
+			throw new RuntimeException("Could not initialise sprite shader");
+		}
+		mShaderSprite = new PU_Shader(program);
 	}
 
 	public void useSolidShader()
@@ -107,6 +121,17 @@ public class PU_Engine
 		{
 			mCurrentShader = mShaderTex;
 			mGlContext.useProgram(mShaderTex.getProgram());
+
+			setOrthographicProjection();
+		}
+	}
+	
+	public void useSpriteShader()
+	{
+		if (mCurrentShader != mShaderSprite)
+		{
+			mCurrentShader = mShaderSprite;
+			mGlContext.useProgram(mShaderSprite.getProgram());
 
 			setOrthographicProjection();
 		}
@@ -427,58 +452,58 @@ public class PU_Engine
 		
 		if(mSpriteBatchDrawCount != 0)
 		{
-			float v = mSpriteBatchData[dataIdx-4];
+			int v = mSpriteBatchData[dataIdx-4];
 			mSpriteBatchData[dataIdx] = v;
 			dataIdx++;
 			v = mSpriteBatchData[dataIdx-4];
 			mSpriteBatchData[dataIdx] = v;
 			dataIdx++;
-			mSpriteBatchData[dataIdx++] = 0.0f;
-			mSpriteBatchData[dataIdx++] = 0.0f;
+			mSpriteBatchData[dataIdx++] = 0;
+			mSpriteBatchData[dataIdx++] = 0;
 			
-			mSpriteBatchData[dataIdx++] = (float)dstRect.x;
-			mSpriteBatchData[dataIdx++] = (float)dstRect.y;
-			mSpriteBatchData[dataIdx++] = 0.0f;
-			mSpriteBatchData[dataIdx++] = 0.0f;
+			mSpriteBatchData[dataIdx++] = dstRect.x;
+			mSpriteBatchData[dataIdx++] = dstRect.y;
+			mSpriteBatchData[dataIdx++] = 0;
+			mSpriteBatchData[dataIdx++] = 0;
 			
-			mSpriteBatchData[dataIdx++] = (float)dstRect.x;
-			mSpriteBatchData[dataIdx++] = (float)dstRect.y;
-			mSpriteBatchData[dataIdx++] = 0.0f;
-			mSpriteBatchData[dataIdx++] = 0.0f;
+			mSpriteBatchData[dataIdx++] = dstRect.x;
+			mSpriteBatchData[dataIdx++] = dstRect.y;
+			mSpriteBatchData[dataIdx++] = 0;
+			mSpriteBatchData[dataIdx++] = 0;
 			
-			mSpriteBatchData[dataIdx++] = (float)dstRect.x;
-			mSpriteBatchData[dataIdx++] = (float)dstRect.y;
-			mSpriteBatchData[dataIdx++] = 0.0f;
-			mSpriteBatchData[dataIdx++] = 0.0f;
+			mSpriteBatchData[dataIdx++] = dstRect.x;
+			mSpriteBatchData[dataIdx++] = dstRect.y;
+			mSpriteBatchData[dataIdx++] = 0;
+			mSpriteBatchData[dataIdx++] = 0;
 			
 			mSpriteBatchDrawCount++;
 		}
-		mSpriteBatchData[dataIdx++] = (float)dstRect.x;
-		mSpriteBatchData[dataIdx++] = (float)dstRect.y;
-		mSpriteBatchData[dataIdx++] = (float)srcRect.x / (float)image.getTextureWidth();
-		mSpriteBatchData[dataIdx++] = (float)srcRect.y / (float)image.getTextureHeight();
+		mSpriteBatchData[dataIdx++] = dstRect.x;
+		mSpriteBatchData[dataIdx++] = dstRect.y;
+		mSpriteBatchData[dataIdx++] = srcRect.x;
+		mSpriteBatchData[dataIdx++] = srcRect.y;
 		
-		mSpriteBatchData[dataIdx++] = (float)(dstRect.x + dstRect.width);
-		mSpriteBatchData[dataIdx++] = (float)dstRect.y;
-		mSpriteBatchData[dataIdx++] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getTextureWidth();
-		mSpriteBatchData[dataIdx++] = (float)srcRect.y / (float)image.getTextureHeight();
+		mSpriteBatchData[dataIdx++] = dstRect.x + dstRect.width;
+		mSpriteBatchData[dataIdx++] = dstRect.y;
+		mSpriteBatchData[dataIdx++] = (srcRect.x + srcRect.width);
+		mSpriteBatchData[dataIdx++] = srcRect.y;
 		
-		mSpriteBatchData[dataIdx++] = (float)dstRect.x;
-		mSpriteBatchData[dataIdx++] = (float)(dstRect.y + dstRect.height);
-		mSpriteBatchData[dataIdx++] = (float)srcRect.x / (float)image.getTextureWidth();
-		mSpriteBatchData[dataIdx++] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getTextureHeight();
+		mSpriteBatchData[dataIdx++] = dstRect.x;
+		mSpriteBatchData[dataIdx++] = (dstRect.y + dstRect.height);
+		mSpriteBatchData[dataIdx++] = srcRect.x;
+		mSpriteBatchData[dataIdx++] = (srcRect.y + srcRect.height);
 		
-		mSpriteBatchData[dataIdx++] = (float)(dstRect.x + dstRect.width);
-		mSpriteBatchData[dataIdx++] = (float)(dstRect.y + dstRect.height);			
-		mSpriteBatchData[dataIdx++] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getTextureWidth();
-		mSpriteBatchData[dataIdx++] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getTextureHeight();
+		mSpriteBatchData[dataIdx++] = (dstRect.x + dstRect.width);
+		mSpriteBatchData[dataIdx++] = (dstRect.y + dstRect.height);			
+		mSpriteBatchData[dataIdx++] = (srcRect.x + srcRect.width);
+		mSpriteBatchData[dataIdx++] = (srcRect.y + srcRect.height);
 		
 		mSpriteBatchDrawCount++;
 	}
 	
 	public void endSpriteBatch()
 	{
-		useTextureShader();
+		useSpriteShader();
 		
 		mGlContext.activeTexture(WebGLRenderingContext.TEXTURE0);
 		mGlContext.bindTexture(WebGLRenderingContext.TEXTURE_2D, PUWeb.resources().getSpriteTexture());
@@ -493,14 +518,14 @@ public class PU_Engine
 		
 		enableTexCoords(true);
 		
-		float[] mapData = new float[mSpriteBatchDrawCount * 16];
+		int[] mapData = new int[mSpriteBatchDrawCount * 16];
 		System.arraycopy(mSpriteBatchData, 0, mapData, 0, mapData.length);
 		
 		WebGLBuffer buffer = mGlContext.createBuffer();
 		mGlContext.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, buffer);
-		mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Float32Array.create(mapData), WebGLRenderingContext.STREAM_DRAW);
-		mGlContext.vertexAttribPointer(mCurrentShader.getAPosition(), 2, WebGLRenderingContext.FLOAT, false, 16, 0);
-		mGlContext.vertexAttribPointer(mCurrentShader.getATexCoord(), 2, WebGLRenderingContext.FLOAT, false, 16, 8);
+		mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Int16Array.create(mapData), WebGLRenderingContext.DYNAMIC_DRAW);
+		mGlContext.vertexAttribPointer(mCurrentShader.getAPosition(), 2, WebGLRenderingContext.SHORT, false, 8, 0);
+		mGlContext.vertexAttribPointer(mCurrentShader.getATexCoord(), 2, WebGLRenderingContext.SHORT, false, 8, 4);
 
 		mGlContext.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4 * mSpriteBatchDrawCount);
 
