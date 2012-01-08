@@ -81,7 +81,7 @@ public class PU_Font
 		int drawX = x;
 		int drawY = y;
 		
-		PUWeb.engine().beginTextureBatch(mImage.getTexture(), text.length(), mColor.r, mColor.g, mColor.b, 255);
+		PUWeb.engine().beginTextureBatch(mImage.getTexture(), mImage.getWidth(), text.length(), mColor.r, mColor.g, mColor.b, 255);
 		for(int i = 0; i < text.length(); i++)
 		{
 			int id = text.charAt(i);
@@ -121,7 +121,7 @@ public class PU_Font
 	{
 		int drawX = x;
 		int drawY = y;
-		PUWeb.engine().beginTextureBatch(mImage.getTexture(), text.length(), mColor.r, mColor.g, mColor.b, 255);
+		PUWeb.engine().beginTextureBatch(mImage.getTexture(), mImage.getWidth(), text.length(), mColor.r, mColor.g, mColor.b, 255);
 		for(int i = 0; i < text.length(); i++)
 		{
 			int id = text.charAt(i);
@@ -145,7 +145,7 @@ public class PU_Font
 		int blue = mColor.b;
 		setColor(0, 0, 0);
 		
-		PUWeb.engine().beginTextureBatch(mImage.getTexture(), text.length(), 0, 0, 0, 255);
+		PUWeb.engine().beginTextureBatch(mImage.getTexture(), mImage.getWidth(), text.length(), 0, 0, 0, 255);
 		drawTextInBatch(text, x-1, y-1);
 		drawTextInBatch(text, x+1, y-1);
 		drawTextInBatch(text, x-1, y+1);

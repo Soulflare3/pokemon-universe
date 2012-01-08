@@ -16,6 +16,9 @@ public interface Shaders extends ClientBundle
 	
 	@Source(value = { "fragment_sprite.txt" })
 	TextResource fragmentShaderSprite();
+	
+	@Source(value = { "fragment_atlas.txt" })
+	TextResource fragmentShaderAtlas();
 
 	@Source(value = { "vertex.txt" })
 	TextResource vertexShader();

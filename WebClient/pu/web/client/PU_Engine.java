@@ -30,6 +30,7 @@ public class PU_Engine
 	private PU_Shader mShaderSolid;
 	private PU_Shader mShaderTex;
 	private PU_Shader mShaderSprite;
+	private PU_Shader mShaderAtlas;
 	private PU_Shader mCurrentShader;
 	private boolean mUseTexCoords = false;
 	private float mColor[] = new float[] { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -41,7 +42,8 @@ public class PU_Engine
 	
 	// Batch data for dynamic size textures (but from one single texture atlas)
 	private WebGLTexture mTextureBatchAtlas = null;
-	private float[] mTextureBatchData = null;
+	private float mTextureBatchTextureSize = 0.0f;
+	private int[] mTextureBatchData = null;
 	private int mTextureBatchDrawCount = 0;
 	private float[] mTextureBatchColorMod = new float[] { 1.0f, 1.0f, 1.0f, 1.0f };
 	
@@ -76,6 +78,7 @@ public class PU_Engine
 		WebGLShader fragmentShaderSolid = getShader(WebGLRenderingContext.FRAGMENT_SHADER, Shaders.INSTANCE.fragmentShaderSolid().getText());
 		WebGLShader fragmentShaderTex = getShader(WebGLRenderingContext.FRAGMENT_SHADER, Shaders.INSTANCE.fragmentShaderTex().getText());
 		WebGLShader fragmentShaderSprite = getShader(WebGLRenderingContext.FRAGMENT_SHADER, Shaders.INSTANCE.fragmentShaderSprite().getText());
+		WebGLShader fragmentShaderAtlas = getShader(WebGLRenderingContext.FRAGMENT_SHADER, Shaders.INSTANCE.fragmentShaderAtlas().getText());
 		WebGLShader vertexShader = getShader(WebGLRenderingContext.VERTEX_SHADER, Shaders.INSTANCE.vertexShader().getText());
 
 		WebGLProgram program = mGlContext.createProgram();
@@ -109,6 +112,17 @@ public class PU_Engine
 			throw new RuntimeException("Could not initialise sprite shader");
 		}
 		mShaderSprite = new PU_Shader(program);
+		
+		program = mGlContext.createProgram();
+		mGlContext.attachShader(program, vertexShader);
+		mGlContext.attachShader(program, fragmentShaderAtlas);
+		mGlContext.linkProgram(program);
+
+		if (!mGlContext.getProgramParameterb(program, WebGLRenderingContext.LINK_STATUS))
+		{
+			throw new RuntimeException("Could not initialise atlas shader");
+		}
+		mShaderAtlas = new PU_Shader(program);
 	}
 
 	public void useSolidShader()
@@ -139,6 +153,17 @@ public class PU_Engine
 		{
 			mCurrentShader = mShaderSprite;
 			mGlContext.useProgram(mShaderSprite.getProgram());
+
+			setOrthographicProjection();
+		}
+	}
+	
+	public void useAtlasShader()
+	{
+		if (mCurrentShader != mShaderAtlas)
+		{
+			mCurrentShader = mShaderAtlas;
+			mGlContext.useProgram(mShaderAtlas.getProgram());
 
 			setOrthographicProjection();
 		}
@@ -432,13 +457,14 @@ public class PU_Engine
 		return element;
 	}
 	
-	public void beginTextureBatch(WebGLTexture texture, int count, int red, int green, int blue, int alpha)
+	public void beginTextureBatch(WebGLTexture texture, float textureSize, int count, int red, int green, int blue, int alpha)
 	{
 		mTextureBatchDrawCount = 0;
-		if(count > 0)
+		if(count > 0 && texture != null)
 		{
 			mTextureBatchAtlas = texture;
-			mTextureBatchData = new float[count * 16 * 2 - 16];
+			mTextureBatchTextureSize = textureSize;
+			mTextureBatchData = new int[count * 16 * 2 - 16];
 			mTextureBatchColorMod[0] = ((float) red / 255.0f);
 			mTextureBatchColorMod[1] = ((float) green / 255.0f);
 			mTextureBatchColorMod[2] = ((float) blue / 255.0f);
@@ -451,7 +477,7 @@ public class PU_Engine
 		int dataIdx = mTextureBatchDrawCount * 16;
 		if(dataIdx != 0)
 		{
-			float v = mTextureBatchData[dataIdx-4];
+			int v = mTextureBatchData[dataIdx-4];
 			mTextureBatchData[dataIdx] = v;
 			dataIdx++;
 			v = mTextureBatchData[dataIdx-4];
@@ -508,45 +534,45 @@ public class PU_Engine
 			
 			mTextureBatchData[dataIdx++] = dstRect.x;
 			mTextureBatchData[dataIdx++] = dstRect.y;
-			mTextureBatchData[dataIdx++] = (float)srcRect.x / (float)image.getTextureWidth();
-			mTextureBatchData[dataIdx++] = (float)srcRect.y / (float)image.getTextureHeight();
+			mTextureBatchData[dataIdx++] = srcRect.x;
+			mTextureBatchData[dataIdx++] = srcRect.y;
 			
 			mTextureBatchData[dataIdx++] = (dstRect.x + dstRect.width);
 			mTextureBatchData[dataIdx++] = dstRect.y;
-			mTextureBatchData[dataIdx++] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getTextureWidth();
-			mTextureBatchData[dataIdx++] = (float)srcRect.y / (float)image.getTextureHeight();
+			mTextureBatchData[dataIdx++] = (srcRect.x + srcRect.width);
+			mTextureBatchData[dataIdx++] = srcRect.y;
 			
 			mTextureBatchData[dataIdx++] = dstRect.x;
 			mTextureBatchData[dataIdx++] = (dstRect.y + dstRect.height);
-			mTextureBatchData[dataIdx++] = (float)srcRect.x / (float)image.getTextureWidth();
-			mTextureBatchData[dataIdx++] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getTextureHeight();
+			mTextureBatchData[dataIdx++] = srcRect.x;
+			mTextureBatchData[dataIdx++] = (srcRect.y + srcRect.height);
 			
 			mTextureBatchData[dataIdx++] = (dstRect.x + dstRect.width);
 			mTextureBatchData[dataIdx++] = (dstRect.y + dstRect.height);
-			mTextureBatchData[dataIdx++] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getTextureWidth();
-			mTextureBatchData[dataIdx++] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getTextureHeight();
+			mTextureBatchData[dataIdx++] = (srcRect.x + srcRect.width);
+			mTextureBatchData[dataIdx++] = (srcRect.y +srcRect.height);
 		}
 		else
 		{
 			mTextureBatchData[dataIdx++] = dstRect.x;
 			mTextureBatchData[dataIdx++] = dstRect.y;
-			mTextureBatchData[dataIdx++] = (float)srcRect.x / (float)image.getWidth();
-			mTextureBatchData[dataIdx++] = (float)srcRect.y / (float)image.getHeight();
+			mTextureBatchData[dataIdx++] = srcRect.x;
+			mTextureBatchData[dataIdx++] = srcRect.y;
 			
 			mTextureBatchData[dataIdx++] = (dstRect.x + dstRect.width);
 			mTextureBatchData[dataIdx++] = dstRect.y;
-			mTextureBatchData[dataIdx++] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getWidth();
-			mTextureBatchData[dataIdx++] = (float)srcRect.y / (float)image.getHeight();
+			mTextureBatchData[dataIdx++] = (srcRect.x + srcRect.width);
+			mTextureBatchData[dataIdx++] = srcRect.y;
 			
 			mTextureBatchData[dataIdx++] = dstRect.x;
 			mTextureBatchData[dataIdx++] = (dstRect.y + dstRect.height);
-			mTextureBatchData[dataIdx++] = (float)srcRect.x / (float)image.getWidth();
-			mTextureBatchData[dataIdx++] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getHeight();
+			mTextureBatchData[dataIdx++] = srcRect.x;
+			mTextureBatchData[dataIdx++] = (srcRect.y + srcRect.height);
 			
 			mTextureBatchData[dataIdx++] = (dstRect.x + dstRect.width);
 			mTextureBatchData[dataIdx++] = (dstRect.y + dstRect.height);
-			mTextureBatchData[dataIdx++] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getWidth();
-			mTextureBatchData[dataIdx++] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getHeight();
+			mTextureBatchData[dataIdx++] = (srcRect.x + srcRect.width);
+			mTextureBatchData[dataIdx++] = (srcRect.y + srcRect.height);
 		}
 		
 		mTextureBatchDrawCount++;
@@ -556,7 +582,7 @@ public class PU_Engine
 	{
 		if(mTextureBatchDrawCount > 0)
 		{
-			useTextureShader();
+			useAtlasShader();
 			
 			mGlContext.activeTexture(WebGLRenderingContext.TEXTURE0);
 			mGlContext.bindTexture(WebGLRenderingContext.TEXTURE_2D, mTextureBatchAtlas);
@@ -570,11 +596,14 @@ public class PU_Engine
 			
 			enableTexCoords(true);
 			
+			PUWeb.log("Tex size: " + mTextureBatchTextureSize);
+			mGlContext.uniform1f(mCurrentShader.getUTextureSize(), mTextureBatchTextureSize);
+			
 			WebGLBuffer buffer = mGlContext.createBuffer();
 			mGlContext.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, buffer);
-			mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Float32Array.create(mTextureBatchData), WebGLRenderingContext.DYNAMIC_DRAW);
-			mGlContext.vertexAttribPointer(mCurrentShader.getAPosition(), 2, WebGLRenderingContext.FLOAT, false, 16, 0);
-			mGlContext.vertexAttribPointer(mCurrentShader.getATexCoord(), 2, WebGLRenderingContext.FLOAT, false, 16, 8);
+			mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Int16Array.create(mTextureBatchData), WebGLRenderingContext.DYNAMIC_DRAW);
+			mGlContext.vertexAttribPointer(mCurrentShader.getAPosition(), 2, WebGLRenderingContext.SHORT, false, 8, 0);
+			mGlContext.vertexAttribPointer(mCurrentShader.getATexCoord(), 2, WebGLRenderingContext.SHORT, false, 8, 4);
 	
 			mGlContext.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4 * mTextureBatchDrawCount);
 	
