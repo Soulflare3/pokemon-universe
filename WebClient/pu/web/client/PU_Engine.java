@@ -35,8 +35,15 @@ public class PU_Engine
 	private float mColor[] = new float[] { 0.0f, 0.0f, 0.0f, 1.0f };
 	private WebGLTexture mLastBoundTexture = null;
 	
+	// Batch data for sprites (pre-defined 48x48 textures from a 2048x2048 texture atlas)
 	private int[] mSpriteBatchData = new int[SPRITEBATCH_MAX_DATASIZE];
 	private int mSpriteBatchDrawCount = 0;
+	
+	// Batch data for dynamic size textures (but from one single texture atlas)
+	private WebGLTexture mTextureBatchAtlas = null;
+	private float[] mTextureBatchData = null;
+	private int mTextureBatchDrawCount = 0;
+	private float[] mTextureBatchColorMod = new float[] { 1.0f, 1.0f, 1.0f, 1.0f };
 	
 	private WebGLRenderingContext mGlContext;
 
@@ -423,6 +430,156 @@ public class PU_Engine
 		ImageElement element = Document.get().createImageElement();
 		element.setSrc(imageResource.getSafeUri().asString());
 		return element;
+	}
+	
+	public void beginTextureBatch(WebGLTexture texture, int count, int red, int green, int blue, int alpha)
+	{
+		mTextureBatchDrawCount = 0;
+		if(count > 0)
+		{
+			mTextureBatchAtlas = texture;
+			mTextureBatchData = new float[count * 16 * 2 - 16];
+			mTextureBatchColorMod[0] = ((float) red / 255.0f);
+			mTextureBatchColorMod[1] = ((float) green / 255.0f);
+			mTextureBatchColorMod[2] = ((float) blue / 255.0f);
+			mTextureBatchColorMod[3] = ((float) alpha / 255.0f);
+		}
+	}
+	
+	public void addToTextureBatch(PU_Image image, PU_Rect srcRect, PU_Rect dstRect)
+	{
+		int dataIdx = mTextureBatchDrawCount * 16;
+		if(dataIdx != 0)
+		{
+			float v = mTextureBatchData[dataIdx-4];
+			mTextureBatchData[dataIdx] = v;
+			dataIdx++;
+			v = mTextureBatchData[dataIdx-4];
+			mTextureBatchData[dataIdx] = v;
+			dataIdx++;
+			mTextureBatchData[dataIdx++] = 0;
+			mTextureBatchData[dataIdx++] = 0;
+			
+			mTextureBatchData[dataIdx++] = dstRect.x;
+			mTextureBatchData[dataIdx++] = dstRect.y;
+			mTextureBatchData[dataIdx++] = 0;
+			mTextureBatchData[dataIdx++] = 0;
+			
+			mTextureBatchData[dataIdx++] = dstRect.x;
+			mTextureBatchData[dataIdx++] = dstRect.y;
+			mTextureBatchData[dataIdx++] = 0;
+			mTextureBatchData[dataIdx++] = 0;
+			
+			mTextureBatchData[dataIdx++] = dstRect.x;
+			mTextureBatchData[dataIdx++] = dstRect.y;
+			mTextureBatchData[dataIdx++] = 0;
+			mTextureBatchData[dataIdx++] = 0;
+			
+			mTextureBatchDrawCount++;
+		}
+		
+		dstRect.x += image.getOffsetX();
+		dstRect.y += image.getOffsetY();
+		
+		PU_Rect imageTexCoords = image.getTextureCoords();
+		if(imageTexCoords != null)
+		{
+			float scaleWidth = (float)dstRect.width/(float)image.getWidth();
+			float scaleHeight = (float)dstRect.height/(float)image.getHeight();
+			int trimmedWidth = (int)(scaleWidth * ((float)image.getWidth()-(float)imageTexCoords.width));
+			int trimmedHeight = (int)(scaleHeight * ((float)image.getHeight()-(float)imageTexCoords.height));
+			
+			dstRect.width -= trimmedWidth;
+			dstRect.height -= trimmedHeight;
+		}
+		
+		if(imageTexCoords != null)
+		{
+			srcRect.x += imageTexCoords.x;
+			srcRect.y += imageTexCoords.y;
+			
+			float scaleWidth = (float)srcRect.width/(float)image.getWidth();
+			float scaleHeight = (float)srcRect.height/(float)image.getHeight();
+			int trimmedWidth = (int)(scaleWidth * ((float)image.getWidth()-(float)imageTexCoords.width));
+			int trimmedHeight = (int)(scaleHeight * ((float)image.getHeight()-(float)imageTexCoords.height));
+			
+			srcRect.width -= trimmedWidth;
+			srcRect.height -= trimmedHeight;
+			
+			mTextureBatchData[dataIdx++] = dstRect.x;
+			mTextureBatchData[dataIdx++] = dstRect.y;
+			mTextureBatchData[dataIdx++] = (float)srcRect.x / (float)image.getTextureWidth();
+			mTextureBatchData[dataIdx++] = (float)srcRect.y / (float)image.getTextureHeight();
+			
+			mTextureBatchData[dataIdx++] = (dstRect.x + dstRect.width);
+			mTextureBatchData[dataIdx++] = dstRect.y;
+			mTextureBatchData[dataIdx++] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getTextureWidth();
+			mTextureBatchData[dataIdx++] = (float)srcRect.y / (float)image.getTextureHeight();
+			
+			mTextureBatchData[dataIdx++] = dstRect.x;
+			mTextureBatchData[dataIdx++] = (dstRect.y + dstRect.height);
+			mTextureBatchData[dataIdx++] = (float)srcRect.x / (float)image.getTextureWidth();
+			mTextureBatchData[dataIdx++] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getTextureHeight();
+			
+			mTextureBatchData[dataIdx++] = (dstRect.x + dstRect.width);
+			mTextureBatchData[dataIdx++] = (dstRect.y + dstRect.height);
+			mTextureBatchData[dataIdx++] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getTextureWidth();
+			mTextureBatchData[dataIdx++] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getTextureHeight();
+		}
+		else
+		{
+			mTextureBatchData[dataIdx++] = dstRect.x;
+			mTextureBatchData[dataIdx++] = dstRect.y;
+			mTextureBatchData[dataIdx++] = (float)srcRect.x / (float)image.getWidth();
+			mTextureBatchData[dataIdx++] = (float)srcRect.y / (float)image.getHeight();
+			
+			mTextureBatchData[dataIdx++] = (dstRect.x + dstRect.width);
+			mTextureBatchData[dataIdx++] = dstRect.y;
+			mTextureBatchData[dataIdx++] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getWidth();
+			mTextureBatchData[dataIdx++] = (float)srcRect.y / (float)image.getHeight();
+			
+			mTextureBatchData[dataIdx++] = dstRect.x;
+			mTextureBatchData[dataIdx++] = (dstRect.y + dstRect.height);
+			mTextureBatchData[dataIdx++] = (float)srcRect.x / (float)image.getWidth();
+			mTextureBatchData[dataIdx++] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getHeight();
+			
+			mTextureBatchData[dataIdx++] = (dstRect.x + dstRect.width);
+			mTextureBatchData[dataIdx++] = (dstRect.y + dstRect.height);
+			mTextureBatchData[dataIdx++] = ((float)srcRect.x + (float)srcRect.width) / (float)image.getWidth();
+			mTextureBatchData[dataIdx++] = ((float)srcRect.y + (float)srcRect.height) / (float)image.getHeight();
+		}
+		
+		mTextureBatchDrawCount++;
+	}
+	
+	public void endTextureBatch()
+	{
+		if(mTextureBatchDrawCount > 0)
+		{
+			useTextureShader();
+			
+			mGlContext.activeTexture(WebGLRenderingContext.TEXTURE0);
+			mGlContext.bindTexture(WebGLRenderingContext.TEXTURE_2D, mTextureBatchAtlas);
+			mGlContext.uniform1i(mCurrentShader.getUTexture(), 0);
+			
+			mLastBoundTexture = mTextureBatchAtlas;
+			
+			mGlContext.uniform4fv(mCurrentShader.getUModulation(), mTextureBatchColorMod);
+			
+			setBlendMode(PU_Engine.BLENDMODE_BLEND);
+			
+			enableTexCoords(true);
+			
+			WebGLBuffer buffer = mGlContext.createBuffer();
+			mGlContext.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, buffer);
+			mGlContext.bufferData(WebGLRenderingContext.ARRAY_BUFFER, Float32Array.create(mTextureBatchData), WebGLRenderingContext.DYNAMIC_DRAW);
+			mGlContext.vertexAttribPointer(mCurrentShader.getAPosition(), 2, WebGLRenderingContext.FLOAT, false, 16, 0);
+			mGlContext.vertexAttribPointer(mCurrentShader.getATexCoord(), 2, WebGLRenderingContext.FLOAT, false, 16, 8);
+	
+			mGlContext.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4 * mTextureBatchDrawCount);
+	
+			mGlContext.flush();
+		}
 	}
 	
 	public void beginSpriteBatch()

@@ -80,7 +80,8 @@ public class PU_Font
 	{
 		int drawX = x;
 		int drawY = y;
-		mImage.setColorMod(mColor.r, mColor.g, mColor.b);
+		
+		PUWeb.engine().beginTextureBatch(mImage.getTexture(), text.length(), mColor.r, mColor.g, mColor.b, 255);
 		for(int i = 0; i < text.length(); i++)
 		{
 			int id = text.charAt(i);
@@ -89,7 +90,27 @@ public class PU_Font
 			{
 				PU_Rect srcRect = new PU_Rect(character.x, character.y, character.width, character.height);
 				PU_Rect dstRect = new PU_Rect(drawX+character.xOffset, drawY+character.yOffset, character.width, character.height);
-				mImage.drawRectClip(dstRect, srcRect);
+				mImage.drawRectClip(dstRect, srcRect, true);
+				
+				drawX += character.xAdvance;
+			}
+		}
+		PUWeb.engine().endTextureBatch();
+	}
+	
+	public void drawTextInBatch(String text, int x, int y)
+	{
+		int drawX = x;
+		int drawY = y;
+		for(int i = 0; i < text.length(); i++)
+		{
+			int id = text.charAt(i);
+			PU_FontCharacter character = mCharacters[id];
+			if(character != null)
+			{
+				PU_Rect srcRect = new PU_Rect(character.x, character.y, character.width, character.height);
+				PU_Rect dstRect = new PU_Rect(drawX+character.xOffset, drawY+character.yOffset, character.width, character.height);
+				mImage.drawRectClip(dstRect, srcRect, true);
 				
 				drawX += character.xAdvance;
 			}
@@ -100,7 +121,7 @@ public class PU_Font
 	{
 		int drawX = x;
 		int drawY = y;
-		mImage.setColorMod(mColor.r, mColor.g, mColor.b);
+		PUWeb.engine().beginTextureBatch(mImage.getTexture(), text.length(), mColor.r, mColor.g, mColor.b, 255);
 		for(int i = 0; i < text.length(); i++)
 		{
 			int id = text.charAt(i);
@@ -109,11 +130,12 @@ public class PU_Font
 			{
 				PU_Rect srcRect = new PU_Rect(character.x, character.y, character.width, character.height);
 				PU_Rect dstRect = new PU_Rect(drawX+character.xOffset, drawY+character.yOffset, character.width, character.height);
-				mImage.drawRectClipInRect(dstRect, srcRect, rect);
+				mImage.drawRectClipInRect(dstRect, srcRect, rect, true);
 				
 				drawX += character.xAdvance;
 			}
 		}
+		PUWeb.engine().endTextureBatch();
 	}
 	
 	public void drawBorderedText(String text, int x, int y)
@@ -122,10 +144,14 @@ public class PU_Font
 		int green = mColor.g;
 		int blue = mColor.b;
 		setColor(0, 0, 0);
-		drawText(text, x-1, y-1);
-		drawText(text, x+1, y-1);
-		drawText(text, x-1, y+1);
-		drawText(text, x+1, y+1);
+		
+		PUWeb.engine().beginTextureBatch(mImage.getTexture(), text.length(), 0, 0, 0, 255);
+		drawTextInBatch(text, x-1, y-1);
+		drawTextInBatch(text, x+1, y-1);
+		drawTextInBatch(text, x-1, y+1);
+		drawTextInBatch(text, x+1, y+1);
+		PUWeb.engine().endTextureBatch();
+		
 		setColor(red, green, blue);
 		drawText(text, x, y);
 	}
