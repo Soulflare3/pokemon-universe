@@ -22,6 +22,11 @@ public class PU_Tile
 	private int mMovement = TILE_WALK;
 	private PU_Layer mLayers[] = new PU_Layer[4];
 	
+	private PU_Tile mNorthNeighbour = null;
+	private PU_Tile mEastNeighbour = null;
+	private PU_Tile mSouthNeighbour = null;
+	private PU_Tile mWestNeighbour = null;
+	
 	public PU_Tile(int x, int y)
 	{
 		mPositionX = x;
@@ -116,5 +121,45 @@ public class PU_Tile
 		long index = (long)(x64 | y64 | z64);
 		
 		return index;
+	}
+	
+	public PU_Tile getNorthNeighbour()
+	{
+		return mNorthNeighbour;
+	}
+	
+	public void setNorthNeighbour(PU_Tile tile)
+	{
+		mNorthNeighbour = tile;
+	}
+	
+	public PU_Tile getEastNeighbour()
+	{
+		return mEastNeighbour;
+	}
+	
+	public void setEastNeighbour(PU_Tile tile)
+	{
+		mEastNeighbour = tile;
+	}
+	
+	public PU_Tile getSouthNeighbour()
+	{
+		return mSouthNeighbour;
+	}
+	
+	public void setSouthNeighbour(PU_Tile tile)
+	{
+		mSouthNeighbour = tile;
+	}
+	
+	public PU_Tile getWestNeighbour()
+	{
+		return mWestNeighbour;
+	}
+	
+	public void setWestNeighbour(PU_Tile tile)
+	{
+		mWestNeighbour = tile;
 	}
 }

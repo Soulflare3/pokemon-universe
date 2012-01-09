@@ -22,6 +22,40 @@ public class PU_Map
 			tile = new PU_Tile(x, y);
 			mTileMap.put(posIndex, tile);
 		}
+		
+		PU_Tile neighbour = null;
+		// Set north neighbour
+		neighbour = getTile(x, y - 1);
+		if(neighbour != null)
+		{
+			tile.setNorthNeighbour(neighbour);
+			neighbour.setSouthNeighbour(tile);
+		}
+		
+		// Set east neighbour
+		neighbour = getTile(x + 1, y);
+		if(neighbour != null)
+		{
+			tile.setEastNeighbour(neighbour);
+			neighbour.setWestNeighbour(tile);
+		}
+		
+		// Set south neighbour
+		neighbour = getTile(x, y + 1);
+		if(neighbour != null)
+		{
+			tile.setSouthNeighbour(neighbour);
+			neighbour.setNorthNeighbour(tile);
+		}
+		
+		// Set west neighbour
+		neighbour = getTile(x - 1, y);
+		if(neighbour != null)
+		{
+			tile.setWestNeighbour(neighbour);
+			neighbour.setEastNeighbour(tile);
+		}
+		
 		return tile;
 	}
 	

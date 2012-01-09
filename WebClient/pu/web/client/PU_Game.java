@@ -88,26 +88,46 @@ public class PU_Game
 		mPlayerNames.clear();
 		
 		PUWeb.engine().beginSpriteBatch();
+		PU_Tile currentXTile = null;
+		PU_Tile currentYTile = null;
 		for(int x = 0; x < NUMTILES_X; x++)
 		{
-			for(int y = 0; y < NUMTILES_Y; y++)
+			if(currentXTile == null)
 			{
 				int mapx = (mSelf.getX()-MID_X) + x;
-				int mapy = (mSelf.getY()-MID_Y) + y;
+				int mapy = (mSelf.getY()-MID_Y);
+				currentXTile = PUWeb.map().getTile(mapx, mapy);
+				currentYTile = currentXTile;
+			}
+			
+			for(int y = 0; y < NUMTILES_Y; y++)
+			{
+				if(currentYTile == null)
+				{
+					int mapx = (mSelf.getX()-MID_X) + x;
+					int mapy = (mSelf.getY()-MID_Y) + y;
+					currentYTile = PUWeb.map().getTile(mapx, mapy);
+				}
 				
-				PU_Tile tile = PUWeb.map().getTile(mapx, mapy);
-				if(tile != null)
+				if(currentYTile != null)
 				{
 					for(int i = 0; i < 2; i++)
 					{
-						tile.drawLayer(i, x, y);
+						currentYTile.drawLayer(i, x, y);
 					}
-					if(tile.getLayer(2) != null)
+					if(currentYTile.getLayer(2) != null)
 					{
-						layer2tiles[layer2tilesCount] = tile;
+						layer2tiles[layer2tilesCount] = currentYTile;
 						layer2tilesCount++;
 					}
+					
+					currentYTile = currentYTile.getSouthNeighbour();
 				}
+			}
+			if(currentXTile != null)
+			{
+				currentXTile = currentXTile.getEastNeighbour();
+				currentYTile = currentXTile;
 			}
 		}
 		
