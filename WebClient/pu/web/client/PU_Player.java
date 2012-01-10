@@ -258,11 +258,10 @@ public class PU_Player extends PU_Creature
 			mX = mPreWalkX;
 			mY = mPreWalkY;
 			
-			mWalking = false;
-			
 			if(!continueWalk())
 			{
 				stopAnimation();
+				mWalking = false;
 			}
 		}
 		else
@@ -304,6 +303,7 @@ public class PU_Player extends PU_Creature
 					walk(DIR_EAST);
 					break;
 				}
+				return true;
 			}
 		}
 		return false;

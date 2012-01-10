@@ -54,19 +54,19 @@ public class PU_Login extends Panel
 	
 	private void setupControls()
 	{
-		tfUsername = new TextField(451, 392, 160, 20);
-		tfUsername.setFontColor(57, 92, 196);
+		tfUsername = new TextField(451, 453, 160, 20);
+		tfUsername.setFontColor(0, 0, 0);
 		tfUsername.setOnKeyDownListener(mOnKeyDownListener);
 		addChild(tfUsername);
 		tfUsername.setFocus(true);
 		
-		tfPassword = new TextField(451, 420, 160, 20);
-		tfPassword.setFontColor(57, 92, 196);
+		tfPassword = new TextField(451, 515, 160, 20);
+		tfPassword.setFontColor(0, 0, 0);
 		tfPassword.setPassword(true);
 		tfPassword.setOnKeyDownListener(mOnKeyDownListener);
 		addChild(tfPassword);
 		
-		lbStatus = new Label(385, 494, "");
+		lbStatus = new Label(407, 389, "");
 		lbStatus.setFontColor(0, 185, 47);
 		addChild(lbStatus);
 	}
