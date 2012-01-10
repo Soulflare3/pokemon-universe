@@ -86,7 +86,12 @@ public class PU_Player extends PU_Creature
 	
 	public void walk(int direction)
 	{
-		if(!mWalking)
+		walk(direction, false);
+	}
+	
+	public void walk(int direction, boolean force)
+	{
+		if(!mWalking || force)
 		{
 			if(preWalk(direction))
 			{
@@ -288,19 +293,19 @@ public class PU_Player extends PU_Creature
 				switch(PUWeb.game().getLastDirKey())
 				{
 				case PU_Events.KEY_UP:
-					walk(DIR_NORTH);
+					walk(DIR_NORTH, true);
 					break;
 					
 				case PU_Events.KEY_DOWN:
-					walk(DIR_SOUTH);
+					walk(DIR_SOUTH, true);
 					break;
 					
 				case PU_Events.KEY_LEFT:
-					walk(DIR_WEST);
+					walk(DIR_WEST, true);
 					break;
 					
 				case PU_Events.KEY_RIGHT:
-					walk(DIR_EAST);
+					walk(DIR_EAST, true);
 					break;
 				}
 				return true;

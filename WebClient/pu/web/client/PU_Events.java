@@ -112,7 +112,8 @@ public class PU_Events
 		}
 		else if(keycode >= KEY_LEFT && keycode <= KEY_DOWN)
 		{
-			PUWeb.game().keyDown(keycode);
+			mKeyMap[keycode] = true;
+			PUWeb.game().keyDown(keycode);	
 			event.preventDefault();
 		}
 	}

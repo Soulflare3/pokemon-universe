@@ -293,8 +293,9 @@ public class PU_Game
 					}
 					else
 					{
-						mSelf.walk(PU_Creature.DIR_WEST);
 						mLastDirKey = keycode;
+						mSelf.walk(PU_Creature.DIR_WEST);
+						
 					}
 					break;
 					
@@ -308,8 +309,9 @@ public class PU_Game
 					}
 					else
 					{
-						mSelf.walk(PU_Creature.DIR_NORTH);
 						mLastDirKey = keycode;
+						mSelf.walk(PU_Creature.DIR_NORTH);
+						
 					}
 					break;
 					
@@ -323,8 +325,9 @@ public class PU_Game
 					}
 					else
 					{
-						mSelf.walk(PU_Creature.DIR_EAST);
 						mLastDirKey = keycode;
+						mSelf.walk(PU_Creature.DIR_EAST);
+						
 					}
 					break;
 					
@@ -338,8 +341,9 @@ public class PU_Game
 					}
 					else
 					{
-						mSelf.walk(PU_Creature.DIR_SOUTH);
 						mLastDirKey = keycode;
+						mSelf.walk(PU_Creature.DIR_SOUTH);
+						
 					}
 					break;
 				}
