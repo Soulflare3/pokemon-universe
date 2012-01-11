@@ -97,10 +97,11 @@ public class PU_Protocol
 	{
 		PU_Player player = new PU_Player(packet.readUint64());
 		player.setName(packet.readString());
-		int x = packet.readUint16();
-		int y = packet.readUint16();
+		int x = (short)packet.readUint16();
+		int y = (short)packet.readUint16();
 		player.setPosition(x, y);
-		player.setDirection(packet.readUint16());
+		//player.setDirection(packet.readUint16());
+		packet.readUint16();
 		player.setMoney(packet.readUint32());
 		
 		for(int part = PU_Player.BODY_UPPER; part <= PU_Player.BODY_LOWER; part++)
@@ -134,8 +135,8 @@ public class PU_Protocol
 		boolean tileExists = true;
 		int[] layers = new int[]{-1, -1, -1};
 		
-		int x = packet.readUint16();
-		int y = packet.readUint16();
+		int x = (short)packet.readUint16();
+		int y = (short)packet.readUint16();
 		int movement = packet.readUint16();
 		
 		PU_Tile tile = PUWeb.map().getTile(x, y);
@@ -197,11 +198,11 @@ public class PU_Protocol
 	
 	public void receiveCreatureMove(PU_Packet packet)
 	{
-		PU_Creature creature = PUWeb.map().getCreatureById(packet.readUint32());
-		int fromX = packet.readUint16();
-		int fromY = packet.readUint16();
-		int toX = packet.readUint16();
-		int toY = packet.readUint16();
+		PU_Creature creature = PUWeb.map().getCreatureById(packet.readUint64());
+		int fromX = (short)packet.readUint16();
+		int fromY = (short)packet.readUint16();
+		int toX = (short)packet.readUint16();
+		int toY = (short)packet.readUint16();
 		PU_Tile toTile = PUWeb.map().getTile(toX, toY);
 		PU_Tile fromTile = PUWeb.map().getTile(fromX, fromY);
 		if(creature != null)
@@ -234,8 +235,8 @@ public class PU_Protocol
 	{
 		PU_Player player = new PU_Player(packet.readUint64());
 		player.setName(packet.readString());
-		int x = packet.readUint16();
-		int y = packet.readUint16();
+		int x = (short)packet.readUint16();
+		int y = (short)packet.readUint16();
 		player.setPosition(x, y);
 		player.setDirection(packet.readUint16());
 		

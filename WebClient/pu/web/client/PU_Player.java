@@ -93,7 +93,7 @@ public class PU_Player extends PU_Creature
 	{
 		if(!mWalking || force)
 		{
-			if(preWalk(direction))
+			if(preWalk(direction, false))
 			{
 				PUWeb.connection().getProtocol().sendWalk(direction, true);
 			}
@@ -104,7 +104,7 @@ public class PU_Player extends PU_Creature
 		}
 	}
 	
-	public boolean preWalk(int direction)
+	public boolean preWalk(int direction, boolean continuing)
 	{
 		PU_Tile toTile = null;
 		switch(direction)
@@ -131,18 +131,25 @@ public class PU_Player extends PU_Creature
 			mPreWalkX = toTile.getX();
 			mPreWalkY = toTile.getY();
 			
-			turn(direction, false);
-			
-			if(!mAnimationRunning)
+			if(continuing && direction == mDirection)
 			{
-				startAnimation();
+				mWalkProgress = mWalkProgress - 1.0f;
+				mOffset = (int)Math.round(mWalkProgress * (float)PU_Tile.TILE_WIDTH);
 			}
-			
-			mWalkProgress = 0.0f;
-			mOffset = 0;
-			
-			mWalking = true;
-			
+			else
+			{
+				turn(direction, false);
+				
+				if(!mAnimationRunning)
+				{
+					startAnimation();
+				}
+				
+				mWalkProgress = 0.0f;
+				mOffset = 0;
+				
+				mWalking = true;
+			}
 			return true;
 		}
 		return false;
@@ -221,7 +228,6 @@ public class PU_Player extends PU_Creature
 			{
 				turn(DIR_WEST, false);
 			}
-			
 			mWalkProgress = 0.0f;
 			mOffset = 0;
 			startAnimation();
@@ -243,12 +249,11 @@ public class PU_Player extends PU_Creature
 			mWalkProgress += (1000.0f / (float)mSpeed) * ((float)PUWeb.getFrameTime() / 1000.0f);
 			if(mWalkProgress >= 1.0f)
 			{
-				mOffset = PU_Tile.TILE_WIDTH;
 				endWalk();
 			}
 			else
 			{
-				mOffset = (int)Math.ceil(mWalkProgress * (float)PU_Tile.TILE_WIDTH);
+				mOffset = (int)Math.round(mWalkProgress * (float)PU_Tile.TILE_WIDTH);
 			}
 			updateAnimation();
 		}
@@ -257,20 +262,19 @@ public class PU_Player extends PU_Creature
 	public void endWalk()
 	{
 		if(PUWeb.game().getSelf() == this)
-		{
-			mWalkEnded = true;
-			
+		{			
 			mX = mPreWalkX;
 			mY = mPreWalkY;
-			
 			if(!continueWalk())
-			{
+			{	
 				stopAnimation();
 				mWalking = false;
 			}
 		}
 		else
 		{
+			mOffset = PU_Tile.TILE_WIDTH;
+			
 			mX = mPreWalkX;
 			mY = mPreWalkY;
 			
@@ -290,25 +294,30 @@ public class PU_Player extends PU_Creature
 		{
 			if(PUWeb.events().isKeyDown(PUWeb.game().getLastDirKey()))
 			{
+				boolean continuing = false;
 				switch(PUWeb.game().getLastDirKey())
 				{
 				case PU_Events.KEY_UP:
-					walk(DIR_NORTH, true);
+					continuing = preWalk(DIR_NORTH, true);
 					break;
 					
 				case PU_Events.KEY_DOWN:
-					walk(DIR_SOUTH, true);
+					continuing = preWalk(DIR_SOUTH, true);
 					break;
 					
 				case PU_Events.KEY_LEFT:
-					walk(DIR_WEST, true);
+					continuing = preWalk(DIR_WEST, true);
 					break;
 					
 				case PU_Events.KEY_RIGHT:
-					walk(DIR_EAST, true);
+					continuing = preWalk(DIR_EAST, true);
 					break;
 				}
-				return true;
+				if(continuing)
+				{
+					PUWeb.connection().getProtocol().sendWalk(mDirection, true);
+				}
+				return continuing;
 			}
 		}
 		return false;

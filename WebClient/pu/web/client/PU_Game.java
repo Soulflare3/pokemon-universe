@@ -207,8 +207,8 @@ public class PU_Game
 		} 
 		else 
 		{
-            drawX = (x * PU_Tile.TILE_WIDTH) - PU_Tile.TILE_WIDTH - 22 + mScreenOffsetX;
-            drawY = (y * PU_Tile.TILE_HEIGHT) - PU_Tile.TILE_HEIGHT + mScreenOffsetY;
+            drawX = (x * PU_Tile.TILE_WIDTH) - PU_Tile.TILE_WIDTH - 22 + offsetX;
+            drawY = (y * PU_Tile.TILE_HEIGHT) - PU_Tile.TILE_HEIGHT + offsetY;
 		}
 		creature.draw(drawX, drawY);
 		
