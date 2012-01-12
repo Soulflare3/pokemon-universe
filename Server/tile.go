@@ -17,7 +17,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
-	"fmt"
 	list "container/list"
 	pos "position"
 )
@@ -126,9 +125,7 @@ func (t *Tile) AddCreature(_creature ICreature, _checkEvents bool) (ret ReturnVa
 		for e := t.Events.Front(); e != nil; e = e.Next() {
 			event, valid := e.Value.(ITileEvent)
 			if valid {
-				fmt.Printf("AddCreature - EVENT - START - %v - %v - %v\n", t.Position.X, t.Position.Y, i);
 				ret = event.OnCreatureEnter(_creature, ret)
-				println("AddCreature - EVENT - END");
 			}
 
 			if ret == RET_NOTPOSSIBLE {

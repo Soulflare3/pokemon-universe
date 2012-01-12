@@ -17,7 +17,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
-	"fmt"
 	pos "position"
 )
 
@@ -34,7 +33,6 @@ func (e *Warp) OnCreatureEnter(_creature ICreature, _prevRet ReturnValue) (ret R
 	destinationTile, found := g_map.GetTileFromPosition(e.destination)
 
 	if found {
-		fmt.Printf("Warp to: %v, %v\n", e.destination.X, e.destination.Y)
 		ret = g_game.internalCreatureTeleport(_creature, currentTile, destinationTile)
 	} else {
 		ret = RET_NOTPOSSIBLE

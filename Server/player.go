@@ -50,7 +50,7 @@ func NewPlayer(_name string) *Player {
 	p.Pokemon = make(PlayerPokemonList)
 	p.PokemonParty = NewPokemonParty()
 	p.lastStep = PUSYS_TIME()
-	p.moveSpeed = 280
+	p.moveSpeed = 250
 	p.VisibleCreatures = make(CreatureList)
 	p.ConditionList = list.New()
 	p.TimeoutCounter = 0

@@ -183,10 +183,8 @@ func (g *Game) OnPlayerMove(_creature ICreature, _direction int, _sendMap bool) 
 	if ret == RET_NOTPOSSIBLE {
 		player.sendCreatureMove(_creature, _creature.GetTile(), _creature.GetTile())
 	} else if ret == RET_PLAYERISTELEPORTED {
-		println("Player teleported - START")
 		player.sendPlayerWarp()
 		player.sendMapData(DIR_NULL)
-		println("Player teleported - END")
 	} else {
 		player.sendMapData(_direction)
 	}
@@ -258,7 +256,7 @@ func (g *Game) OnCreatureMove(_creature ICreature, _direction int) (ret ReturnVa
 	// Update position
 	_creature.SetTile(destinationTile)
 	
-	fmt.Printf("[%v] From (%v,%v) To (%v,%v)\n", _creature.GetName(), currentTile.Position.X, currentTile.Position.Y, destinationPosition.X, destinationPosition.Y)
+	// fmt.Printf("[%v] From (%v,%v) To (%v,%v)\n", _creature.GetName(), currentTile.Position.X, currentTile.Position.Y, destinationPosition.X, destinationPosition.Y)
 
 	// Tell creatures this creature has moved
 	g.mutexCreatureList.RLock()
@@ -296,32 +294,26 @@ func (g *Game) OnCreatureTurn(_creature ICreature, _direction int) {
 }
 
 func (g *Game) internalCreatureTeleport(_creature ICreature, _from *Tile, _to *Tile) (ret ReturnValue) {
-	ret = RET_PLAYERISTELEPORTED
+	ret = RET_NOERROR
 
-	println("internalCreatureTeleport - START");
 	if _from == nil || _to == nil {
 		ret = RET_NOTPOSSIBLE
 	} else {
 		// Move creature object to destination tile
-		fmt.Printf("internalCreatureTeleport - RemoveCreature - %v\n", _from.Position.String())
 		if ret = _from.RemoveCreature(_creature, true); ret == RET_NOTPOSSIBLE {
-			println("internalCreatureTeleport - Could not remove creature from current tile")
 			return
 		}
-		fmt.Printf("internalCreatureTeleport - AddCreature - %v\n", _to.Position.String())
+
 		if ret = _to.AddCreature(_creature, false); ret == RET_NOTPOSSIBLE {
-			println("internalCreatureTeleport - Could not add creature to destination tile")
 			_from.AddCreature(_creature, false) // Something went wrong, put creature back on old tile
 			return
 		}
 
-		println("internalCreatureTeleport - Assign the new tile to the creature")
 		_creature.SetTile(_to)
 
 		// Tell creatures this creature has been teleported
 		g.mutexCreatureList.RLock()
 		defer g.mutexCreatureList.RUnlock()
-		println("internalCreatureTeleport - Send the teleport to other clients")
 		for _, value := range g.Creatures {
 			if value != nil {
 				value.OnCreatureMove(_creature, _from, _to, true)
@@ -329,7 +321,10 @@ func (g *Game) internalCreatureTeleport(_creature ICreature, _from *Tile, _to *T
 		}
 	}
 	
-	println("internalCreatureTeleport - END");
+	// No error, played succesfully teleported
+	if ret == RET_NOERROR {
+		ret = RET_PLAYERISTELEPORTED
+	}
 
 	return
 }
