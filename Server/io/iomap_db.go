@@ -29,6 +29,10 @@ var rowChan = make(chan mysql.Row)
 func processRows(_map *Map) {
 	for {
 		row := <-rowChan
+		if row == nil {
+			fmt.Println("Map IO Channel closed!");
+			break;
+		}
 		x := DBGetInt(row[0])
 		y := DBGetInt(row[1])
 		z := DBGetInt(row[2])
@@ -106,5 +110,7 @@ func (io *IOMapDB) LoadMap(_map *Map) (err error) {
 		// Send the row to the processor!
 		rowChan <- row
 	}
+	rowChan <- nil
+	
 	return
 }

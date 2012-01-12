@@ -102,6 +102,7 @@ func (p *Player) loadPlayerInfo() bool {
 		return false
 	}
 	p.Position = tile
+	p.SetDirection(DIR_SOUTH)
 	p.Movement = DBGetInt(row[3])
 	// TODO: p.LastPokeCenter = row[4].(int)
 	p.Money = DBGetInt(row[5])

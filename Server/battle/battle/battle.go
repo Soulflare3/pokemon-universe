@@ -624,6 +624,11 @@ func (b *Battle) receivedBattleEnd(_packet *pnet.QTPacket, _player int) {
 		b.WriteToHist(fmt.Sprintf("%v won the battle!\n", b.players[_player].Nick))
 	}
 	b.gotEnd = true
+	
+	// Update pokemon data of player 
+	b.owner.UpdatePokemonData()
+	
+	// TODO: Send endBattle to PU client
 }
 
 func (b *Battle) receivedCancelMove() {

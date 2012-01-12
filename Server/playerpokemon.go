@@ -17,6 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
+	"math"
 	"fmt"
 )
 
@@ -33,7 +34,7 @@ type PlayerPokemon struct {
 	Happiness	int
 	Gender		int
 	Ability		*Ability
-	Moves		[]*Move
+	Moves		[]*PlayerPokemonMove
 	IsShiny		int
 	InParty		int
 	Slot		int
@@ -44,13 +45,13 @@ type PlayerPokemon struct {
 
 func NewPlayerPokemon(_playerId int) *PlayerPokemon {
 	return &PlayerPokemon{ Stats: make([]int, 6),
-							Moves: make([]*Move, 4),
+							Moves: make([]*PlayerPokemonMove, 4),
 							Nature: 0,
 							PlayerId: _playerId }
 }
 
 func (p *PlayerPokemon) LoadMoves() {
-	var query string = "SELECT idmove FROM player_pokemon_move WHERE idplayer_pokemon='%d'"
+	var query string = "SELECT idmove, current_pp FROM player_pokemon_move WHERE idplayer_pokemon='%d'"
 	derp := fmt.Sprintf(query, p.IdDb)
 	result, err := DBQuerySelect(derp)
 	if err != nil {
@@ -66,7 +67,7 @@ func (p *PlayerPokemon) LoadMoves() {
 		}
 		
 		moveId := DBGetInt(row[0])
-		p.Moves[index] = g_PokemonManager.GetMoveById(moveId)
+		p.Moves[index] = NewPlayerPokemonMove(moveId, DBGetInt(row[1]))
 		index++
 	}
 }
@@ -79,7 +80,5 @@ func (p *PlayerPokemon) GetNickname() string {
 }
 
 func (p *PlayerPokemon) GetLevel() int {
-	// TODO: Calculate pokemon level from exp
-	
-	return 25
+	return int(math.Sqrt(math.Sqrt(float64(p.Experience))))
 }

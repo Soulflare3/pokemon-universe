@@ -17,6 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
+	"fmt"
 	list "container/list"
 	pos "position"
 )
@@ -42,13 +43,13 @@ type TileLayer struct {
 
 type LayerMap map[int]*TileLayer
 type Tile struct {
-	Position pos.Position
-	Blocking int
-	Location *Location
+	Position 	pos.Position
+	Blocking 	int
+	Location 	*Location
 
-	Layers    LayerMap
-	Creatures CreatureList // List of creatures who are active on this tile
-	Events    *list.List
+	Layers    	LayerMap
+	Creatures 	CreatureList // List of creatures who are active on this tile
+	Events    	*list.List
 }
 
 // NewTile creates a Tile object with Position as parameter
@@ -120,16 +121,20 @@ func (t *Tile) CheckMovement(_creature ICreature, _dir int) ReturnValue {
 func (t *Tile) AddCreature(_creature ICreature, _checkEvents bool) (ret ReturnValue) {
 	ret = RET_NOERROR
 
-	if t.Events.Len() > 0 {
+	if _checkEvents && t.Events.Len() > 0 {
+		var i int = 0
 		for e := t.Events.Front(); e != nil; e = e.Next() {
 			event, valid := e.Value.(ITileEvent)
 			if valid {
+				fmt.Printf("AddCreature - EVENT - START - %v - %v - %v\n", t.Position.X, t.Position.Y, i);
 				ret = event.OnCreatureEnter(_creature, ret)
+				println("AddCreature - EVENT - END");
 			}
 
 			if ret == RET_NOTPOSSIBLE {
 				return
 			}
+			i++
 		}
 	}
 
@@ -145,7 +150,7 @@ func (t *Tile) AddCreature(_creature ICreature, _checkEvents bool) (ret ReturnVa
 func (t *Tile) RemoveCreature(_creature ICreature, _checkEvents bool) (ret ReturnValue) {
 	ret = RET_NOERROR
 
-	if t.Events.Len() > 0 {
+	if _checkEvents && t.Events.Len() > 0 {
 		for e := t.Events.Front(); e != nil; e = e.Next() {
 			event, valid := e.Value.(ITileEvent)
 			if valid {

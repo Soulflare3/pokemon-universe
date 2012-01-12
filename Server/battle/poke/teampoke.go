@@ -85,7 +85,7 @@ func NewTeamPokeFromPokemon(_pokemon *PlayerPokemon) *TeamPoke {
 	for i := 0; i < 4; i++ {
 		
 		if pmove := _pokemon.Moves[i]; pmove != nil {
-			teamPoke.Moves[i] = pmove.MoveId
+			teamPoke.Moves[i] = pmove.Move.MoveId
 		} else {
 			teamPoke.Moves[i] = 0
 		}

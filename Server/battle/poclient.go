@@ -46,6 +46,30 @@ func NewPOClient(_player *Player) (*POClient, error) {
 	return &poClient, nil
 }
 
+func (c *POClient) UpdatePokemonData() {
+	playerParty := c.player.PokemonParty
+	for i := 0; i < 6; i++ {
+		if poke := c.battle.myTeam.Pokes[i]; poke != nil {
+			if playerPokemon := playerParty.GetFromSlot(i); playerPokemon != nil {
+				playerPokemon.DamagedHp = poke.CurrentHP
+				
+				// Update pokemon moves
+				for j := 0; j < 4; j++ {
+					if move := poke.Moves[j]; move != nil {
+						if playerMove := playerPokemon.Moves[j]; playerMove != nil {
+							playerMove.CurrentPP = move.CurrentPP
+						} else {
+							fmt.Printf("COULD NOT UPDATE MOVE FOR %v IN SLOT %v\n", playerPokemon.GetNickname(), j)
+						}
+					}
+				}
+			} else {
+				fmt.Printf("COULD NOT UPDATE POKEMON FROM %v IN SLOT %v\n", c.player.GetName(), i)
+			}
+		}
+	}
+}
+
 func (c *POClient) Connect() {
 	c.socket = NewPOClientSocket(c)
 	c.socket.Connect("localhost", "5080") // TODO: Put this in server config

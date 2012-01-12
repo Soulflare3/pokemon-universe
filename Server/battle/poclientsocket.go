@@ -143,10 +143,10 @@ func (s *POClientSocket) loginTest() {
 }
 
 func (s *POClientSocket) Disconnect() {
-	//
-	// TOOD: Send Logout message
-	//
-
+	// Update pokemon data
+	s.owner.UpdatePokemonData()
+	
+	// Close network connection
 	s.connected = false
 	s.socket.Close()
 	close(s.packetChan)
