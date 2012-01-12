@@ -173,6 +173,11 @@ func (g *Game) RemoveCreature(_guid uint64) {
 			g_logger.Printf("[Logout] %d - %v logged out\n", object.GetUID(), object.GetName())
 			delete(g.Players, _guid)
 		}
+		
+		// Remove creature from all visible creature lists
+		for _, c := range g.Creatures {
+			c.RemoveVisibleCreature(object)
+		}
 	}
 }
 
