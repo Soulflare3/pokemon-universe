@@ -137,22 +137,4 @@ public class PU_Font
 		}
 		PUWeb.engine().endTextureBatch();
 	}
-	
-	public void drawBorderedText(String text, int x, int y)
-	{
-		int red = mColor.r;
-		int green = mColor.g;
-		int blue = mColor.b;
-		setColor(0, 0, 0);
-		
-		PUWeb.engine().beginTextureBatch(mImage.getTexture(), mImage.getWidth(), text.length(), 0, 0, 0, 255);
-		drawTextInBatch(text, x-1, y-1);
-		drawTextInBatch(text, x+1, y-1);
-		drawTextInBatch(text, x-1, y+1);
-		drawTextInBatch(text, x+1, y+1);
-		PUWeb.engine().endTextureBatch();
-		
-		setColor(red, green, blue);
-		drawText(text, x, y);
-	}
 }

@@ -89,6 +89,14 @@ public class PU_Map
 		}
 	}
 	
+	public void removeCreature(long id)
+	{
+		if(mCreatureMap.containsKey(id))
+		{
+			mCreatureMap.remove(id);
+		}
+	}
+	
 	public int getCreatureCount()
 	{
 		return mCreatureMap.size();

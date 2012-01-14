@@ -35,8 +35,20 @@ public class PU_Protocol
 				receiveCreatureTurn(packet);
 				break;
 				
+			case PU_Packet.HEADER_WARP:
+				receiveWarp(packet);
+				break;
+				
+			case PU_Packet.HEADER_REFRESHCOMPLETE:
+				receiveTilesRefreshed(packet);
+				break;
+				
 			case PU_Packet.HEADER_ADDCREATURE:
 				receiveAddCreature(packet);
+				break;
+				
+			case PU_Packet.HEADER_REMOVECREATURE:
+				receiveRemoveCreature(packet);
 				break;
 				
 			default:
@@ -83,6 +95,13 @@ public class PU_Protocol
 		PU_Packet packet = new PU_Packet();
 		packet.addUInt8(PU_Packet.HEADER_TURN);
 		packet.addUint16(direction);
+		mConn.sendPacket(packet);
+	}
+	
+	public void sendRefreshTiles()
+	{
+		PU_Packet packet = new PU_Packet();
+		packet.addUInt8(PU_Packet.HEADER_REFRESHWORLD);
 		mConn.sendPacket(packet);
 	}
 	
@@ -231,6 +250,28 @@ public class PU_Protocol
 		}
 	}
 	
+	public void receiveWarp(PU_Packet packet)
+	{
+		int x = (short)packet.readUint16();
+		int y = (short)packet.readUint16();
+		
+		PUWeb.game().setState(PU_Game.GAMESTATE_LOADING);
+		
+		PU_Player self = PUWeb.game().getSelf();
+		if(self != null)
+		{
+			self.cancelWalk();
+			self.setPosition(x, y);
+		}
+		
+		sendRefreshTiles();
+	}
+	
+	public void receiveTilesRefreshed(PU_Packet packet)
+	{
+		PUWeb.game().setState(PU_Game.GAMESTATE_WORLD);
+	}
+	
 	public void receiveAddCreature(PU_Packet packet)
 	{
 		PU_Player player = new PU_Player(packet.readUint64());
@@ -251,5 +292,10 @@ public class PU_Protocol
 		}
 		
 		PUWeb.map().addCreature(player);
+	}
+	
+	public void receiveRemoveCreature(PU_Packet packet)
+	{
+		PUWeb.map().removeCreature(packet.readUint64());
 	}
 }

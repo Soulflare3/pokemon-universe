@@ -48,7 +48,7 @@ public class PU_Game
 		{
 			case GAMESTATE_LOADING:
 			{
-				PU_Font font = PUWeb.resources().getFont(Fonts.FONT_PURITAN_BOLD_14);
+				PU_Font font = PUWeb.resources().getFont(Fonts.FONT_ARIALBLK_BOLD_14);
 				if(font != null)
 				{
 					font.drawText("Loading, please wait...", 10, 10);
@@ -156,11 +156,11 @@ public class PU_Game
 		}
 		PUWeb.engine().endSpriteBatch();
 		
-		PU_Font nameFont = PUWeb.resources().getFont(Fonts.FONT_PURITAN_BOLD_14);
+		PU_Font nameFont = PUWeb.resources().getFont(Fonts.FONT_ARIALBLK_BOLD_14_OUTLINE);
 		nameFont.setColor(255, 242, 0);
 		for(PU_PlayerName name : mPlayerNames)
 		{
-			nameFont.drawBorderedText(name.name, name.x, name.y);
+			nameFont.drawText(name.name, name.x, name.y);
 		}
 		
 		
@@ -216,7 +216,7 @@ public class PU_Game
 		{
 			String name = ((PU_Player) creature).getName();
 			int posHalf = (drawX - 48) + (((drawX + 96) - (drawX - 48)) / 2);
-	        int nameHalf = PUWeb.resources().getFont(Fonts.FONT_PURITAN_BOLD_14).getStringWidth(name) / 2;
+	        int nameHalf = PUWeb.resources().getFont(Fonts.FONT_ARIALBLK_BOLD_14).getStringWidth(name) / 2;
             int centerPos = posHalf - nameHalf;
             mPlayerNames.add(new PU_PlayerName(name, centerPos, drawY - 14));
 		}

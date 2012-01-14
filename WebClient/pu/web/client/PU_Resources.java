@@ -91,7 +91,8 @@ public class PU_Resources
 	
 	public void loadFonts()
 	{
-		loadFont(Fonts.FONT_PURITAN_BOLD_14, (ImageResource) Fonts.INSTANCE.puritanBold14Bitmap(), Fonts.INSTANCE.puritanBold14Info().getText());
+		loadFont(Fonts.FONT_ARIALBLK_BOLD_14, (ImageResource) Fonts.INSTANCE.puritanBold14Bitmap(), Fonts.INSTANCE.puritanBold14Info().getText());
+		loadFont(Fonts.FONT_ARIALBLK_BOLD_14_OUTLINE, (ImageResource) Fonts.INSTANCE.arialBlk14OutlineBitmap(), Fonts.INSTANCE.arialBlk14OutlineInfo().getText());
 	}
 	
 	public void loadFont(final int fontId, ImageResource imageResource, final String fontInfo)

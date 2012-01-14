@@ -7,6 +7,7 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.RunAsyncCallback;
 import com.google.gwt.dom.client.Document;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.googlecode.gwtgl.binding.WebGLCanvas;
 import com.googlecode.gwtgl.binding.WebGLRenderingContext;
@@ -44,6 +45,8 @@ public class PUWeb implements EntryPoint
 		
 		PUWeb.mEngine = new PU_Engine(PUWeb.mGlContext);
 		PUWeb.mEngine.init();
+		
+		
 
 		// Start the draw loop
 		drawScene();
@@ -69,14 +72,22 @@ public class PUWeb implements EntryPoint
 			}
 		});
 
-		mConnection = new PU_Connection("ws://82.171.114.203:6161/puserver");
+		String ip = Window.Location.getParameter("ip");		
+		if(ip == null || ip.equals(""))
+			ip = "82.171.114.203";
+		
+		String port = Window.Location.getParameter("port");
+		if(port == null || port.equals(""))
+			port = "6161";
+
+		mConnection = new PU_Connection("ws://" + ip + ":" + port + "/puserver");
 		mConnection.connect();
 	}
 	
 	static PU_Login login;
 	public static void resourcesLoaded()
 	{
-		PUWeb.mGui = new GUIManager(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT, mResources.getFont(Fonts.FONT_PURITAN_BOLD_14));
+		PUWeb.mGui = new GUIManager(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT, mResources.getFont(Fonts.FONT_ARIALBLK_BOLD_14));
 		PUWeb.mEvents = new PU_Events(Document.get().getElementById("gwtGL"), PUWeb.mGui);
 		
 		mGame.setState(PU_Game.GAMESTATE_LOGIN);
@@ -189,11 +200,11 @@ public class PUWeb implements EntryPoint
 			mGui.draw();
 		}
 		
-		PU_Font font = PUWeb.resources().getFont(Fonts.FONT_PURITAN_BOLD_14);
+		PU_Font font = PUWeb.resources().getFont(Fonts.FONT_ARIALBLK_BOLD_14_OUTLINE);
 		if(font != null)
 		{
 			font.setColor(255, 255, 255);
-			font.drawBorderedText("FPS: " + mFPS, 764, 30);
+			font.drawText("FPS: " + mFPS, 764, 30);
 		}
 	}
 }
