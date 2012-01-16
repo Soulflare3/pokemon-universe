@@ -56,6 +56,11 @@ public class Element
 
 	}
 	
+	public void setVisible(boolean visible)
+	{
+		this.mVisible = visible;
+	}
+	
 	public boolean isVisible() 
 	{
 		return mVisible;

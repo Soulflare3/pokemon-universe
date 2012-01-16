@@ -51,7 +51,7 @@ public class Container extends Element
 	@Override
 	public void draw(PU_Rect drawArea)
 	{
-		if(inDrawArea(drawArea))
+		if(isVisible() && inDrawArea(drawArea))
 		{
 			PU_Rect childDrawArea = new PU_Rect(drawArea);
 			childDrawArea.x += getRect().x;

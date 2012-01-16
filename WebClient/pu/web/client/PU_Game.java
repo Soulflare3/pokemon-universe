@@ -3,6 +3,7 @@ package pu.web.client;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import pu.web.client.gui.impl.PU_WorldPanel;
 import pu.web.client.resources.fonts.Fonts;
 
 public class PU_Game
@@ -26,6 +27,8 @@ public class PU_Game
 	private PU_Player mSelf = null;
 	private int mLastDirKey = 0;
 	private ArrayList<PU_PlayerName> mPlayerNames = new ArrayList<PU_PlayerName>();
+	
+	private PU_WorldPanel mWorldPanel = null; 
 	
 	public PU_Game()
 	{
@@ -68,6 +71,7 @@ public class PU_Game
 			case GAMESTATE_WORLD:
 			{
 				drawWorld();
+				
 			}
 			break;
 		}
@@ -348,6 +352,25 @@ public class PU_Game
 					break;
 				}
 			}
+		}
+	}
+	
+	public void showWorldPanel()
+	{
+		if(mWorldPanel == null)
+		{
+			mWorldPanel = new PU_WorldPanel(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT);
+			PUWeb.gui().getRoot().addChild(mWorldPanel);
+		}
+		
+		mWorldPanel.setVisible(true);
+	}
+	
+	public void hideWorldPanel()
+	{
+		if(mWorldPanel != null)
+		{
+			mWorldPanel.setVisible(false);
 		}
 	}
 }

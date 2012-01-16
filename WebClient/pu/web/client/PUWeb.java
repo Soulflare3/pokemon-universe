@@ -45,8 +45,6 @@ public class PUWeb implements EntryPoint
 		
 		PUWeb.mEngine = new PU_Engine(PUWeb.mGlContext);
 		PUWeb.mEngine.init();
-		
-		
 
 		// Start the draw loop
 		drawScene();
