@@ -1,8 +1,8 @@
-package pu.web.client.gui;
+package pu.web.client.gui.impl;
 
 import java.util.ArrayList;
 
-import pu.web.client.gui.impl.PU_Text;
+import pu.web.client.gui.Element;
 
 public class PU_Chatbox extends Element
 {
