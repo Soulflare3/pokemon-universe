@@ -8,7 +8,7 @@ import pu.web.client.PU_Rect;
 public class Button extends TextElement
 {
 	private String mCaption = "";
-	private boolean mMouseDown = false;
+	protected boolean mMouseDown = false;
 	private boolean mHover = false;
 	
 	private ElementImage mImage = new ElementImage();
