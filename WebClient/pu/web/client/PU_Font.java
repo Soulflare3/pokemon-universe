@@ -60,7 +60,7 @@ public class PU_Font
 	{
 		return mImage;
 	}
-	
+
 	public int getStringWidth(String text)
 	{
 		int width = 0;

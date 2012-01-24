@@ -2,7 +2,6 @@ package pu.web.client.gui.impl;
 
 import java.util.ArrayList;
 
-import pu.web.client.PU_Color;
 import pu.web.client.PU_Font;
 
 public class PU_Text
@@ -27,9 +26,9 @@ public class PU_Text
 		return mParts.size();
 	}
 	
-	public void add(String text, PU_Color color)
+	public void add(String text, int red, int green, int blue)
 	{
-		mParts.add(new PU_TextPart(text, color));
+		mParts.add(new PU_TextPart(text, red, green, blue));
 		mDirty = true;
 	}
 	
