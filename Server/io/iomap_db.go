@@ -37,13 +37,13 @@ func processRows(_map *Map) {
 		y := DBGetInt(row[1])
 		z := DBGetInt(row[2])
 		position := pos.NewPositionFrom(x, y, z)
-		layer := DBGetInt(row[8])
-		sprite := DBGetInt(row[7])
-		blocking := DBGetInt(row[5])
+		layer := DBGetInt(row[7])
+		sprite := DBGetInt(row[6])
+		blocking := DBGetInt(row[4])
 		// row `idteleport` may be null sometimes.
 		var tp_id = 0
-		if row[6] != nil {
-			tp_id = DBGetInt(row[6])
+		if row[5] != nil {
+			tp_id = DBGetInt(row[5])
 		}
 		idlocation := DBGetInt(row[3])
 
@@ -60,9 +60,9 @@ func processRows(_map *Map) {
 
 			// Teleport event
 			if tp_id > 0 {
-				tp_x := DBGetInt(row[9])
-				tp_y := DBGetInt(row[10])
-				tp_z := DBGetInt(row[11])
+				tp_x := DBGetInt(row[8])
+				tp_y := DBGetInt(row[9])
+				tp_z := DBGetInt(row[10])
 				tp_pos := pos.NewPositionFrom(tp_x, tp_y, tp_z)
 				tile.AddEvent(NewWarp(tp_pos))
 			}
@@ -79,7 +79,7 @@ func (io *IOMapDB) LoadMap(_map *Map) (err error) {
 	go processRows(_map)
 
 	// Fetch the rows:
-	var query string = "SELECT t.`x`, t.`y`, t.`z`, t.`idlocation`, t.`idmap`, t.`movement`, t.`idteleport`," +
+	var query string = "SELECT t.`x`, t.`y`, t.`z`, t.`idlocation`, t.`movement`, t.`idteleport`," +
 		" tl.`sprite`, tl.`layer`, tp.`x` AS `tp_x`, tp.`y` AS `tp_y`, tp.`z` AS `tp_z`" +
 		" FROM tile `t`" +
 		" INNER JOIN tile_layer `tl` ON tl.`idtile` = t.`idtile`" +

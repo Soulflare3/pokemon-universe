@@ -40,13 +40,13 @@ func NewPositionFrom(_x int, _y int, _z int) Position {
 // NewPositionFromHash generates a new Position struct with 
 // coordinates extracted from the hash
 func NewPositionFromHash(_hash int64) Position {
-	z := int(_hash & 0x01)
+	z := int(int16(_hash))
 
-	y64 := (_hash >> 1) & 0xFFFF
-	yabs := (_hash >> 17) & 0x01
+	y64 := (_hash >> 17) & 0xFFFF
+	yabs := (_hash >> 33) & 0x01
 
-	x64 := (_hash >> 18) & 0xFFFF
-	xabs := (_hash >> 34) & 0x01
+	x64 := (_hash >> 34) & 0xFFFF
+	xabs := (_hash >> 50) & 0x01
 
 	var y int = int(y64)
 	if yabs == 1 {
@@ -87,7 +87,7 @@ func (p Position) Equals(_q Position) bool {
 }
 
 // Create a hash from x, y and z
-// hash = [1 bit for positive/negative x][16 bits for x][1 bit for positive/negative y][16 bits for y][1 bit for z]
+// hash = [1 bit for positive/negative x][16 bits for x][1 bit for positive/negative y][16 bits for y][16 bits for z]
 func (p Position) Hash() int64 {
 	return Hash(p.X, p.Y, p.Z)
 }
@@ -95,16 +95,16 @@ func (p Position) Hash() int64 {
 func Hash(_x int, _y int, _z int) int64 {
 	var x64 int64
 	if _x < 0 {
-		x64 = (int64(1) << 34) | ((^(int64(_x) - 1)) << 18)
+		x64 = (int64(1) << 50) | ((^(int64(_x) - 1)) << 34)
 	} else {
-		x64 = (int64(_x) << 18)
+		x64 = (int64(_x) << 34)
 	}
 
 	var y64 int64
 	if _y < 0 {
-		y64 = (int64(1) << 17) | ((^(int64(_y) - 1)) << 1)
+		y64 = (int64(1) << 33) | ((^(int64(_y) - 1)) << 17)
 	} else {
-		y64 = (int64(_y) << 1)
+		y64 = (int64(_y) << 17)
 	}
 
 	z64 := int64(_z)
