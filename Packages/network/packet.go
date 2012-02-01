@@ -87,6 +87,10 @@ func (p *Packet) ReadUint16() uint16 {
 	return v
 }
 
+func (p *Packet) ReadInt16() int16 {
+	return int16(p.ReadUint16())
+}
+
 func (p *Packet) ReadUint32() uint32 {
 	v := uint32((uint32(p.Buffer[p.readPos]) | (uint32(p.Buffer[p.readPos+1]) << 8) |
 		(uint32(p.Buffer[p.readPos+2]) << 16) | (uint32(p.Buffer[p.readPos+3]) << 24)))

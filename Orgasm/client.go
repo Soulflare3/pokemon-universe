@@ -73,14 +73,14 @@ func (c *Client) HandleClient() {
 			
 		case 0x01: // Request map piece
 			if c.loggedIn {
-				x := int(packet.ReadUint16())
-				y := int(packet.ReadUint16())
+				x := int(packet.ReadInt16())
+				y := int(packet.ReadInt16())
 				z := int(packet.ReadUint16())
 				w := int(packet.ReadUint16())
 				h := int(packet.ReadUint16())
 
 				fmt.Printf("Received tile area: %d:%d:%d:%d:%d\n", x, y, z, w, h)
-				c.SendArea(x, y, z, w+x, h+y)
+				c.SendArea(x, y, z, w + x, h + y)
 			}
 
 		case 0x02: // Tile changes
@@ -146,8 +146,8 @@ func (c *Client) receiveChange(_packet *Packet) {
 	updatedTiles := list.New()
 	
 	for i := 0; i < numTiles; i++ {
-		x := int(_packet.ReadUint16())
-		y := int(_packet.ReadUint16())
+		x := int(_packet.ReadInt16())
+		y := int(_packet.ReadInt16())
 		z := int(_packet.ReadUint16())
 		movement := int(_packet.ReadUint16())
 		numLayers := int(_packet.ReadUint16())

@@ -38,6 +38,7 @@ type IPacket interface {
 
 	ReadUint8() uint8
 	ReadUint16() uint16
+	ReadInt16() int16
 	ReadUint32() uint32
 	ReadUint64() uint64
 	ReadString() string

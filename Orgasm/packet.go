@@ -75,6 +75,10 @@ func (p *Packet) ReadUint64() uint64 {
 	return v
 }
 
+func (p *Packet) ReadInt16() int16 {
+	return int16(p.ReadUint16())
+}
+
 func (p *Packet) ReadString() string {
 	stringlen := p.ReadUint16()
 	if uint16(stringlen) >= (PACKET_MAXSIZE+p.readPos) {

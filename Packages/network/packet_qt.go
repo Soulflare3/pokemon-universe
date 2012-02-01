@@ -92,6 +92,10 @@ func (p *QTPacket) ReadUint16() uint16 {
 	return v
 }
 
+func (p *QTPacket) ReadInt16() int16 {
+	return int16(p.ReadUint16())
+}
+
 // Int
 func (p *QTPacket) ReadUint32() uint32 {
 	v := uint32((uint32(p.Buffer[p.readPos+3]) | (uint32(p.Buffer[p.readPos+2]) << 8) |
