@@ -84,10 +84,19 @@ func (c *Client) HandleClient() {
 			}
 
 		case 0x02: // Tile changes
-			c.receiveChange(packet)
+			c.ReceiveChange(packet)
 			
 		case 0x03: // Request map list
-			c.SendMapList()
+			if c.loggedIn {
+				c.SendMapList()
+			}
+			
+		case 0x04: // Add map
+			c.ReceiveAddMap(packet)
+			
+		case 0x05: // Delete map
+			c.ReceiveRemoveMap(packet)
+			
 		}
 	}
 	fmt.Printf("Client disconnected: %d\n", c.id)
@@ -130,7 +139,7 @@ func (c *Client) passwordTest(_plain string, _hash string) bool {
 	return (sha1Hash == original)
 }
 
-func (c *Client) receiveChange(_packet *Packet) {
+func (c *Client) ReceiveChange(_packet *Packet) {
 	if !c.loggedIn {
 		return
 	}
@@ -235,6 +244,45 @@ func (c *Client) receiveChange(_packet *Packet) {
 	}
 	
 	g_server.SendTileUpdateToClients(updatedTiles, c.id)
+}
+
+func (c *Client) ReceiveAddMap(_packet *Packet) {
+	if !c.loggedIn {
+		return
+	}
+	
+	mapName := _packet.ReadString()
+	if len(mapName) > 0 {
+		query := fmt.Sprintf("INSERT INTO map (name) VALUES (%s)", mapName)
+		if DBQuery(query) == nil {
+			mapId := int(g_db.LastInsertId)
+			g_map.AddMap(mapId, mapName)
+			
+			g_server.SendMapListUpdateToClients()
+		}
+	}
+}
+
+func (c *Client) ReceiveRemoveMap(_packet *Packet) {
+	if !c.loggedIn {
+		return
+	}
+	
+	mapId := _packet.ReadUint16()
+	
+	// Check if map id exists
+	if _, ok := g_map.GetMap(mapId); ok {
+		query := fmt.Sprintf("DELETE FROM map WHERE idmap='%d'", mapId)
+		if DBQuery(query) == nil {
+			g_map.DeleteMap(mapId)
+			
+			// Send map deleted to clients
+			// TODO
+			
+			// Send new list to clients
+			g_server.SendMapListUpdateToClients()
+		}
+	}
 }
 
 // //////////////////////////////////////////////

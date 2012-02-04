@@ -59,3 +59,9 @@ func (s *Server) SendTileUpdateToClients(_tiles *list.List, _sender int) {
 		}
 	}
 }
+
+func (s *Server) SendMapListUpdateToClients() {
+	for _, client := range(s.clients) {
+		client.SendMapList()
+	}
+}

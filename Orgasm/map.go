@@ -5,14 +5,14 @@ import (
 )
 
 type Map struct {
-	tileMap map[int64]*Tile
+	tileMap map[int]map[int64]*Tile
 	mapNames map[int]string
 	
 	updateChannel chan *Packet
 }
 
 func NewMap() *Map {
-	return &Map{ tileMap: make(map[int64]*Tile), 
+	return &Map{ tileMap: make(map[int]map[int64]*Tile), 
 				 mapNames: make(map[int]string),
 				 updateChannel: make(chan *Packet) }
 }
@@ -25,16 +25,35 @@ func (m *Map) GetNumMaps() int {
 	return len(m.mapNames)
 }
 
+func (m *Map) AddMap(_id int, _name string) {
+	m.mapNames[_id] = _name
+	m.tileMap[_id] = make(map[int64]*Tile)
+}
+
+func (m *Map) GetMap(_id int) (string, bool) {
+	name, ok := m.mapNames[_id]
+	return name, ok
+}
+
+func (m *Map) DeleteMap(_id int) {
+	// Remove all tiles
+	delete(m.tileMap, _id)
+	
+	// Remove map name
+	delete(m.mapNames, _id)
+}
+
 func (m *Map) AddTile(_tile *Tile) {
-	index := _tile.Position.Hash()
-	if _, found := m.GetTile(index); !found {
-		m.tileMap[index] = _tile
+	if _, found := m.GetTileFromPosition(_tile.Position); !found {
+		tiles := m.tileMap[_tile.Position.Z]
+		tiles[_tile.Position.Hash()] = _tile
 	}
 }
 
 func (m *Map) RemoveTile(_tile *Tile) {
 	var index int64 = _tile.Position.Hash()
-	delete(m.tileMap, index)
+	tiles := m.tileMap[_tile.Position.Z]
+	delete(tiles, index)
 }
 
 func (m *Map) GetTileFromCoordinates(_x, _y, _z int) (*Tile, bool) {
@@ -42,8 +61,16 @@ func (m *Map) GetTileFromCoordinates(_x, _y, _z int) (*Tile, bool) {
 	return m.GetTile(index)
 }
 
+func (m *Map) GetTileFromPosition(_pos pos.Position) (*Tile, bool) {
+	tiles := m.tileMap[_pos.Z]
+	tile, found := tiles[_pos.Hash()]
+	return tile, found
+}
+
 func (m *Map) GetTile(_hash int64) (*Tile, bool) {
-	tile, found := m.tileMap[_hash]
+	mapId := pos.NewPositionFromHash(_hash).Z
+	tiles := m.tileMap[mapId]
+	tile, found := tiles[_hash]
 	return tile, found
 }
 
@@ -69,7 +96,7 @@ func (m *Map) LoadMapList() (succeed bool, error string) {
 		idmap := DBGetInt(row[0])
 		name := DBGetString(row[1])
 		
-		m.mapNames[idmap] = name
+		m.AddMap(idmap, name)
 	}
 	
 	return true, ""
@@ -115,7 +142,7 @@ func (m *Map) LoadTiles() (succeed bool, error string) {
 //		}
 		// idlocation := DBGetInt(row[3])
 
-		tile, found := m.GetTile(position.Hash())
+		tile, found := m.GetTileFromPosition(position)
 		if found == false {
 			tile = NewTile(position)
 			tile.DbId = row[11].(int64)
