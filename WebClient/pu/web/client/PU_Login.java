@@ -190,6 +190,7 @@ public class PU_Login extends Panel
 				mPhase = LOGINPHASE_IDLE;
 				PUWeb.hideLogin();
 				PUWeb.game().showWorldPanel();
+				PUWeb.game().showChatPanel();
 				PUWeb.game().setState(PU_Game.GAMESTATE_WORLD);
 			}
 			else

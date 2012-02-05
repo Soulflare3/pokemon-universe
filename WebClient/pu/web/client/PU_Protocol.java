@@ -1,5 +1,10 @@
 package pu.web.client;
 
+import pu.web.client.gui.impl.PU_ChatChannel;
+import pu.web.client.gui.impl.PU_ChatPanel;
+import pu.web.client.gui.impl.PU_Text;
+import pu.web.client.resources.fonts.Fonts;
+
 public class PU_Protocol
 {
 	private PU_Connection mConn;
@@ -49,6 +54,10 @@ public class PU_Protocol
 				
 			case PU_Packet.HEADER_REMOVECREATURE:
 				receiveRemoveCreature(packet);
+				break;
+				
+			case PU_Packet.HEADER_CHAT:
+				receiveChat(packet);
 				break;
 				
 			default:
@@ -102,6 +111,16 @@ public class PU_Protocol
 	{
 		PU_Packet packet = new PU_Packet();
 		packet.addUInt8(PU_Packet.HEADER_REFRESHWORLD);
+		mConn.sendPacket(packet);
+	}
+	
+	public void sendChat(int channel, int speakType, String message)
+	{
+		PU_Packet packet = new PU_Packet();
+		packet.addUInt8(PU_Packet.HEADER_CHAT);
+		packet.addUInt8((byte)speakType);
+		packet.addUint16(channel);
+		packet.addString(message);
 		mConn.sendPacket(packet);
 	}
 	
@@ -297,5 +316,47 @@ public class PU_Protocol
 	public void receiveRemoveCreature(PU_Packet packet)
 	{
 		PUWeb.map().removeCreature(packet.readUint64());
+	}
+	
+	public void receiveChat(PU_Packet packet)
+	{
+		long playerId = packet.readUint64();
+		String name = packet.readString();
+		int speakType = packet.readUint8();
+		int channel = packet.readUint16();
+		String message = packet.readString();
+		
+		if(!message.equals(""))
+		{
+			if(speakType == PU_ChatPanel.SPEAK_PRIVATE)
+			{
+				//PM YO
+			}
+			else
+			{
+				PU_Text text = new PU_Text(PUWeb.resources().getFont(Fonts.FONT_ARIALBLK_BOLD_14));
+				if(name.equals(PUWeb.game().getSelf().getName()))
+				{
+					text.add(name + ": ", 66, 1, 73);
+				}
+				else
+				{
+					text.add(name + ": ", 0, 27, 74);
+				}
+				
+				text.add(message, 0, 0, 0);
+				
+				if(channel == PU_ChatChannel.CHANNEL_LOCAL)
+				{
+					//onscreen message
+				}
+				
+				PU_ChatPanel chatPanel = PUWeb.game().getChatPanel();
+				if(chatPanel != null)
+				{
+					chatPanel.addMessage(channel, text);
+				}
+			}
+		}
 	}
 }

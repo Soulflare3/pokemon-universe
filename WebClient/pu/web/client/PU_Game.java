@@ -3,6 +3,7 @@ package pu.web.client;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import pu.web.client.gui.impl.PU_ChatPanel;
 import pu.web.client.gui.impl.PU_WorldPanel;
 import pu.web.client.resources.fonts.Fonts;
 
@@ -29,6 +30,7 @@ public class PU_Game
 	private ArrayList<PU_PlayerName> mPlayerNames = new ArrayList<PU_PlayerName>();
 	
 	private PU_WorldPanel mWorldPanel = null; 
+	private PU_ChatPanel mChatPanel = null;
 	
 	public PU_Game()
 	{
@@ -353,6 +355,30 @@ public class PU_Game
 				}
 			}
 		}
+	}
+	
+	public void showChatPanel()
+	{
+		if(mChatPanel == null)
+		{
+			mChatPanel = new PU_ChatPanel(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT);
+			PUWeb.gui().getRoot().addChild(mChatPanel);
+		}
+		
+		mChatPanel.setVisible(true);
+	}
+	
+	public void hideChatPanel()
+	{
+		if(mChatPanel != null)
+		{
+			mChatPanel.setVisible(false);
+		}
+	}
+	
+	public PU_ChatPanel getChatPanel()
+	{
+		return mChatPanel;
 	}
 	
 	public void showWorldPanel()
