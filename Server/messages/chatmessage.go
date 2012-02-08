@@ -51,7 +51,7 @@ func (m *ChatMessage) ReadPacket(_packet pnet.IPacket) error {
 	m.ChannelId = int(_packet.ReadUint16())
 	m.Receiver = _packet.ReadString()
 	m.Text = _packet.ReadString()
-	
+		
 	g_game.OnPlayerSay(m.From.(*Player), m.ChannelId, m.SpeakType, m.Receiver, m.Text)
 	
 	return nil

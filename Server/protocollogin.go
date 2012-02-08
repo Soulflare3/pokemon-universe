@@ -86,7 +86,7 @@ func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 		return
 	}
 	idPlayer := DBGetInt(row["idplayer"])
-	name := row["name"].(string)
+	name := DBGetString(row["name"])
 	result.Free()
 
 	value, found := g_game.GetPlayerByName(name)
@@ -95,81 +95,8 @@ func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 		ret = true
 	} else {
 		p = NewPlayer(name)
-		p.Id = idPlayer
-
-		queryString = "SELECT p.`position`, p.`movement`, p.`money`, p.`idlocation`, "
-		queryString += "po.`head`, po.`nek`, po.`upper`, po.`lower`, po.`feet`, pc.`position` AS `pc_position` "
-		queryString += "FROM `player` as p "
-		queryString += "JOIN `player_outfit` AS po ON po.`idplayer`=p.`idplayer` "
-		queryString += "JOIN `pokecenter` AS pc ON pc.`idpokecenter`=p.`idpokecenter` "
-		queryString += "WHERE p.`idplayer` = '%d'"
-
-		if err := g_db.Query(fmt.Sprintf(queryString, idPlayer)); err != nil {
-			if IS_DEBUG {
-				g_logger.Printf("[DEBUG] LoadPlayerProfile 1: %v\n\r", err)
-			}
-			return
-		}
-		result, err := g_db.UseResult()
-		if err != nil {
-			if IS_DEBUG {
-				g_logger.Printf("[DEBUG] LoadPlayerProfile 2: %v\n\r", err)
-			}
-			return
-		}
-
-		defer result.Free()
-		row := result.FetchMap()
-		if row == nil {
-			if IS_DEBUG {
-				g_logger.Printf("[DEBUG] LoadPlayerProfile 3: no row for this id %d\n\r", string(idPlayer))
-			}
-			return
-		}
-
-		positionHash, _ := row["position"].(int64)
-		movement := DBGetInt(row["movement"])
-		money := DBGetInt(row["money"])
-		idlocation := DBGetInt(row["idlocation"])
-		pcposition := row["pc_position"].(int64)
-
-		var ok bool
-		p.Position, ok = g_map.GetTile(positionHash)
-		if !ok {
-			if IS_DEBUG {
-				g_logger.Println("[DEBUG] LoadPlayerProfile: Could not find the tile for this position", err)
-			}
-			return
-		}
-		p.Location, ok = g_game.Locations.GetLocation(idlocation)
-		if !ok {
-			if IS_DEBUG {
-				g_logger.Println("[DEBUG] LoadPlayerProfile: Could not find the location", err)
-			}
-			p.Location = p.Position.Location
-		}
-		p.LastPokeCenter, ok = g_map.GetTile(pcposition)
-		if !ok {
-			p.LastPokeCenter, _ = g_map.GetTile(p.Position.Location.PokeCenter.Hash())
-		}
-
-		p.Movement = movement
-		p.SetMoney(money)
-
-		// Load outfit
-		outfitHead := DBGetInt(row["head"])
-		outfitNek := DBGetInt(row["nek"])
-		outfitUpper := DBGetInt(row["upper"])
-		outfitLower := DBGetInt(row["lower"])
-		outfitFeet := DBGetInt(row["feet"])
-
-		p.SetOutfitKey(OUTFIT_HEAD, outfitHead)
-		p.SetOutfitKey(OUTFIT_NEK, outfitNek)
-		p.SetOutfitKey(OUTFIT_UPPER, outfitUpper)
-		p.SetOutfitKey(OUTFIT_LOWER, outfitLower)
-		p.SetOutfitKey(OUTFIT_FEET, outfitFeet)
-
-		ret = true
+		p.dbid = idPlayer
+		ret = p.loadPlayerInfo()
 	}
 
 	return

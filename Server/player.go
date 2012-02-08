@@ -81,8 +81,8 @@ func (p *Player) loadPlayerInfo() bool {
 		" g.group_idgroup, o.head, o.nek, o.upper, o.lower, o.feet FROM player `p`" +
 		" INNER JOIN player_outfit `o` ON o.idplayer = p.idplayer" +
 		" INNER JOIN player_group `g` ON g.player_idplayer = p.idplayer" +
-		" WHERE p.name='%s'"
-	result, err := DBQuerySelect(fmt.Sprintf(query, p.name))
+		" WHERE p.idplayer=%d"
+	result, err := DBQuerySelect(fmt.Sprintf(query, p.dbid))
 	if err != nil {
 		return false
 	}
@@ -98,8 +98,12 @@ func (p *Player) loadPlayerInfo() bool {
 	p.name = DBGetString(row[1])
 	tile, ok := g_map.GetTile(row[2].(int64))
 	if !ok {
-		g_logger.Printf("[Error] Could not load position info for player %s (%d)", p.name, p.dbid)
-		return false
+		g_logger.Printf("[Warning] Could not load position info for player %s (%d)", p.name, p.dbid)
+		tile, _ = g_map.GetTileFrom(-510, -236, 0)
+		if tile == nil {
+			g_logger.Printf("[Error] Could not load default position")
+			return false
+		}
 	}
 	p.Position = tile
 	p.SetDirection(DIR_SOUTH)
@@ -200,7 +204,7 @@ func (p *Player) SetConnection(_conn *Connection) {
 // Called by Connection to remove itself from its owner
 // when the player disconnects
 func (p *Player) removeConnection() {
-	if !p.Conn.IsOpen {
+	if p.Conn == nil || !p.Conn.IsOpen {
 		g_game.OnPlayerLoseConnection(p)
 	}
 }

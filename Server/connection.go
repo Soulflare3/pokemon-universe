@@ -20,6 +20,7 @@ import (
 	pnet "network" // PU Network packet
 	pos "position"
 	"websocket"
+	"fmt"
 )
 
 type Connection struct {
@@ -189,6 +190,7 @@ func (c *Connection) SendPlayerWarp(_position pos.Position) {
 
 func (c *Connection) SendCreatureSay(_creature ICreature, _speakType int, _text string, _channelId int, _time int) {
 	msg := NewChatMessageExt(_creature, _speakType, _text, _channelId, _time)
+	fmt.Println("Send chat message - " + _text)
 	c.SendMessage(msg)
 }
 
