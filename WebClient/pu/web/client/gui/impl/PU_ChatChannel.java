@@ -23,7 +23,7 @@ public class PU_ChatChannel
 	private Scrollbar mScrollbar;
 	private PU_Chatbox mChatbox;
 	
-	public PU_ChatChannel(int id, String name)
+	public PU_ChatChannel(int id, String name, Container container)
 	{
 		mId = id;
 		
@@ -36,6 +36,15 @@ public class PU_ChatChannel
 		case CHANNEL_LOG:
 			mGameChannel = true;
 		}
+		
+		mChatbox = new PU_Chatbox(13, 571, 350, 110);	
+		mChatbox.setVisible(false);
+		container.addChild(mChatbox);		
+					
+		mScrollbar = new Scrollbar(368, 573, 20, 105, Scrollbar.SCROLLBAR_VERTICAL);
+		mScrollbar.setVisible(false);
+		mChatbox.setScrollbar(mScrollbar);		
+		container.addChild(mScrollbar);
 	}
 	
 	public int getId()

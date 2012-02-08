@@ -120,6 +120,7 @@ public class PU_Protocol
 		packet.addUInt8(PU_Packet.HEADER_CHAT);
 		packet.addUInt8((byte)speakType);
 		packet.addUint16(channel);
+		packet.addString(""); // receiver
 		packet.addString(message);
 		mConn.sendPacket(packet);
 	}
@@ -325,7 +326,7 @@ public class PU_Protocol
 		int speakType = packet.readUint8();
 		int channel = packet.readUint16();
 		String message = packet.readString();
-		
+
 		if(!message.equals(""))
 		{
 			if(speakType == PU_ChatPanel.SPEAK_PRIVATE)
@@ -337,11 +338,11 @@ public class PU_Protocol
 				PU_Text text = new PU_Text(PUWeb.resources().getFont(Fonts.FONT_ARIALBLK_BOLD_14));
 				if(name.equals(PUWeb.game().getSelf().getName()))
 				{
-					text.add(name + ": ", 66, 1, 73);
+					text.add(name + ": ", 150, 1, 150);
 				}
 				else
 				{
-					text.add(name + ": ", 0, 27, 74);
+					text.add(name + ": ", 0, 27, 150);
 				}
 				
 				text.add(message, 0, 0, 0);

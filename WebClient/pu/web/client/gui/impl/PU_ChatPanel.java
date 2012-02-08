@@ -78,7 +78,7 @@ public class PU_ChatPanel extends Panel
 	{
 		if(!mChatChannels.containsKey(id))
 		{
-			PU_ChatChannel channel = new PU_ChatChannel(id, name);
+			PU_ChatChannel channel = new PU_ChatChannel(id, name, this);
 			channel.setClosable(closable);
 			mChatChannels.put(id, channel);
 		}
@@ -118,7 +118,7 @@ public class PU_ChatPanel extends Panel
 			if(button == 13)
 			{				
 				String message = mChatInput.getText();
-				PUWeb.connection().getProtocol().sendChat(PU_ChatChannel.CHANNEL_LOCAL, PU_ChatPanel.SPEAK_NORMAL, message);				
+				PUWeb.connection().getProtocol().sendChat(PU_ChatChannel.CHANNEL_LOCAL, 7, message);				
 				mChatInput.setText("");
 			}
 		}
