@@ -1,7 +1,6 @@
 package main
 
 import (
-	list "container/list"
 	pos "position"
 )
 
@@ -33,7 +32,7 @@ type Tile struct {
 	// Location 	*Location
 
 	Layers    	LayerMap
-	Events    	*list.List
+	Event    	ITileEvent
 	
 	IsRemoved	bool
 }
@@ -44,7 +43,6 @@ func NewTile(_pos pos.Position) *Tile {
 	t.Blocking = TILEBLOCK_WALK
 	t.Layers = make(LayerMap)
 	// t.Location = nil
-	t.Events = list.New()
 
 	return t
 }
@@ -66,9 +64,9 @@ func (t *Tile) AddLayer(_layer int, _sprite int) (layer *TileLayer) {
 	return
 }
 
-// func (t *Tile) AddEvent(_event ITileEvent) {
-//	t.Events.PushBack(_event)
-// }
+func (t *Tile) AddEvent(_event ITileEvent) {
+	t.Event = _event
+}
 
 // GetLayer returns a TileLayer object if the layer exists, otherwise nil
 func (t *Tile) GetLayer(_layer int) *TileLayer {

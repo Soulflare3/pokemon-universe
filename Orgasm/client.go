@@ -9,6 +9,7 @@ import (
 	"net"
 	"strings"
 	"container/list"
+	pos "position"
 )
 
 var AutoClientId int = 0
@@ -79,12 +80,11 @@ func (c *Client) HandleClient() {
 				w := int(packet.ReadUint16())
 				h := int(packet.ReadUint16())
 
-				fmt.Printf("Received tile area: %d:%d:%d:%d:%d\n", x, y, z, w, h)
 				c.SendArea(x, y, z, w + x, h + y)
 			}
 
 		case 0x02: // Tile changes
-			c.ReceiveChange(packet)
+			go c.ReceiveChange(packet)
 			
 		case 0x03: // Request map list
 			if c.loggedIn {
@@ -92,10 +92,16 @@ func (c *Client) HandleClient() {
 			}
 			
 		case 0x04: // Add map
-			c.ReceiveAddMap(packet)
+			go c.ReceiveAddMap(packet)
 			
 		case 0x05: // Delete map
-			c.ReceiveRemoveMap(packet)
+			go c.ReceiveRemoveMap(packet)
+			
+		case 0x06: // Update tile event
+			go c.ReceiveTileEventUpdate(packet)
+			
+		default:
+			fmt.Printf("Unknown header: %d", header)
 			
 		}
 	}
@@ -103,22 +109,14 @@ func (c *Client) HandleClient() {
 }
 
 func (c *Client) checkAccount(_username string, _password string) bool {
-	g_dblock.Lock()
-	defer g_dblock.Unlock()
-
 	var query string = fmt.Sprintf("SELECT * FROM mapchange_account WHERE username = '%s'", _username)
 	var err error
-	if err = g_db.Query(query); err != nil {
-		fmt.Printf("Query error: %s", err.Error())
-		return false
-	}
-
 	var result *mysql.Result
-	result, err = g_db.UseResult()
-	if err != nil {
+	if result, err = DBQuerySelect(query); err != nil {
 		fmt.Printf("Query error: %s", err.Error())
 		return false
 	}
+	
 	defer result.Free()
 
 	row := result.FetchMap()
@@ -168,7 +166,7 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 		if numLayers > 0 {
 			if !exists { // Tile does not exists, create it
 				query := fmt.Sprintf("INSERT INTO tile (x, y, z, movement, idlocation) VALUES (%d, %d, %d, %d, 0)", x, y, z, movement)
-				if err := g_db.Query(query); err != nil {
+				if err := DBQuery(query); err != nil {
 					fmt.Printf("Database query error: %s\n", err.Error())
 					return
 				}
@@ -181,7 +179,7 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 				g_map.AddTile(tile)
 			} else {
 				query := fmt.Sprintf("UPDATE tile SET movement='%d' WHERE idtile='%d'", movement, tile.DbId)
-				if err := g_db.Query(query); err != nil {
+				if err := DBQuery(query); err != nil {
 					fmt.Printf("Database query error: %s\n", err.Error())
 					return
 				}
@@ -196,7 +194,7 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 				tileLayer := tile.GetLayer(layerId)
 				if tileLayer == nil {
 					query = fmt.Sprintf("INSERT INTO tile_layer (idtile, layer, sprite) VALUES (%d, %d, %d)", tile.DbId, layerId, sprite)
-					if err := g_db.Query(query); err != nil {
+					if err := DBQuery(query); err != nil {
 						fmt.Printf("Database query error: %s\n", err.Error())
 						return
 					}
@@ -206,7 +204,7 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 				} else {
 					if (sprite == 0) { // Delete layer
 						query = fmt.Sprintf("DELETE FROM tile_layer WHERE idtile_layer='%d'", tileLayer.DbId)
-						if err := g_db.Query(query); err != nil {
+						if err := DBQuery(query); err != nil {
 							fmt.Printf("Database query error: %s\n", err.Error())
 							return
 						}
@@ -214,7 +212,7 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 						tile.RemoveLayer(layerId)						
 					} else {
 						query = fmt.Sprintf("UPDATE tile_layer SET sprite='%d' WHERE idtile_layer='%d'", sprite, tileLayer.DbId)
-						if err := g_db.Query(query); err != nil {
+						if err := DBQuery(query); err != nil {
 							fmt.Printf("Database query error: %s\n", err.Error())
 							return
 						}
@@ -226,12 +224,24 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 		} else {
 			if exists {
 				query = fmt.Sprintf("DELETE FROM tile_layer WHERE idtile='%d'", tile.DbId)
-				if err := g_db.Query(query); err != nil {
+				if err := DBQuery(query); err != nil {
 					fmt.Printf("Database query error: %s\n", err.Error())
 					return
 				}
+				
+				// Check if tile has an event 
+				if tile.Event != nil {
+					if tile.Event.GetEventType() == 1 { // Warp/Teleport
+						warp := tile.Event.(*Warp)
+						query := fmt.Sprintf("DELETE FROM teleport WHERE idteleport = %d", warp.dbid)
+						if err := DBQuery(query); err == nil {
+							fmt.Printf("Database query error: %s\n", err.Error())
+						}
+					}				
+				}
+				
 				query = fmt.Sprintf("DELETE FROM tile WHERE idtile='%d'", tile.DbId)
-				if err := g_db.Query(query); err != nil {
+				if err := DBQuery(query); err != nil {
 					fmt.Printf("Database query error: %s\n", err.Error())
 					return
 				}
@@ -253,7 +263,10 @@ func (c *Client) ReceiveAddMap(_packet *Packet) {
 	
 	mapName := _packet.ReadString()
 	if len(mapName) > 0 {
-		query := fmt.Sprintf("INSERT INTO map (name) VALUES (%s)", mapName)
+		g_dblock.Lock()
+		defer g_dblock.Unlock()
+		
+		query := fmt.Sprintf("INSERT INTO map (name) VALUES ('%s')", mapName)
 		if DBQuery(query) == nil {
 			mapId := int(g_db.LastInsertId)
 			g_map.AddMap(mapId, mapName)
@@ -268,10 +281,13 @@ func (c *Client) ReceiveRemoveMap(_packet *Packet) {
 		return
 	}
 	
-	mapId := _packet.ReadUint16()
+	mapId := int(_packet.ReadUint16())
 	
 	// Check if map id exists
-	if _, ok := g_map.GetMap(mapId); ok {
+	if _, ok := g_map.GetMap(mapId); ok {	
+		g_dblock.Lock()
+		defer g_dblock.Unlock()	
+	
 		query := fmt.Sprintf("DELETE FROM map WHERE idmap='%d'", mapId)
 		if DBQuery(query) == nil {
 			g_map.DeleteMap(mapId)
@@ -281,6 +297,71 @@ func (c *Client) ReceiveRemoveMap(_packet *Packet) {
 			
 			// Send new list to clients
 			g_server.SendMapListUpdateToClients()
+		}
+	}
+}
+
+func (c *Client) ReceiveTileEventUpdate(_packet *Packet) {
+	if !c.loggedIn {
+		return;
+	}
+	
+	x := int(_packet.ReadInt16())
+	y := int(_packet.ReadInt16())
+	z := int(_packet.ReadInt16())
+	
+	if tile, found := g_map.GetTileFromCoordinates(x, y, z); found {	
+		eventType := int(_packet.ReadUint8())
+		
+		g_dblock.Lock()
+		defer g_dblock.Unlock()
+		
+		if eventType == 0 { // Remove event
+			if tile.Event != nil {
+				if tile.Event.GetEventType() == 1 { // Warp/Teleport
+					warp := tile.Event.(*Warp)
+					query := fmt.Sprintf("DELETE FROM teleport WHERE idteleport = %d", warp.dbid)
+					if err := DBQuery(query); err == nil {
+						// Update tile
+						query = fmt.Sprintf("UPDATE tile SET idteleport = 0 WHERE idtile = %d", tile.DbId)
+						if updateErr := DBQuery(query); updateErr == nil {
+							tile.Event = nil;
+						}
+					}
+				}
+			}
+		} else if tile.Event != nil && tile.Event.GetEventType() == eventType { // Update
+			if eventType == 1 {
+				warp := tile.Event.(*Warp)
+				toX := int(_packet.ReadInt16())
+				toY := int(_packet.ReadInt16())
+				toZ := int(_packet.ReadInt16())
+				
+				query := fmt.Sprintf("UPDATE teleport SET x = %d, y = %d, z = %d WHERE idteleport = %d", toX, toY, toZ, warp.dbid)
+				if err := DBQuery(query); err == nil {
+					warp.destination.X = toX
+					warp.destination.Y = toY
+					warp.destination.Z = toZ
+				}
+			}
+		} else { // Add
+			if eventType == 1 {
+				toX := int(_packet.ReadInt16())
+				toY := int(_packet.ReadInt16())
+				toZ := int(_packet.ReadInt16())
+				tp_pos := pos.NewPositionFrom(toX, toY, toZ)
+				warp := NewWarp(tp_pos)
+				
+				query := fmt.Sprintf("INSERT INTO teleport (x, y, z) VALUES (%d, %d, %d)", toX, toY, toZ)
+				if err := DBQuery(query); err == nil {
+					warp.dbid = int64(g_db.LastInsertId)
+					
+					updateQuery := fmt.Sprintf("UPDATE tile SET idteleport = %d WHERE idtile = %d", warp.dbid, tile.DbId)
+					if updateErr := DBQuery(updateQuery); updateErr == nil {
+						tile.AddEvent(warp)
+					}
+				}
+			}
 		}
 	}
 }
@@ -307,7 +388,7 @@ func (c *Client) SendArea(_x, _y, _z, _w, _h int) {
 				packet.readPos = 3
 				packet.AddUint16(uint16(count))
 				c.Send(packet)
-
+				
 				packet = NewPacketExt(0x01)
 				packet.AddUint16(0)
 				packet.AddUint16(uint16(_z))
@@ -320,6 +401,19 @@ func (c *Client) SendArea(_x, _y, _z, _w, _h int) {
 				packet.AddUint16(uint16(x))
 				packet.AddUint16(uint16(y))
 				packet.AddUint8(uint8(tile.Blocking))
+				
+				if tile.Event != nil {
+					packet.AddUint8(uint8(tile.Event.GetEventType()))
+					if tile.Event.GetEventType() == 1 {
+						warp := tile.Event.(*Warp)
+						packet.AddUint16(uint16(warp.destination.X))
+						packet.AddUint16(uint16(warp.destination.Y))
+						packet.AddUint16(uint16(warp.destination.Z))
+					}
+				} else {
+					packet.AddUint8(0)
+				}
+				
 				packet.AddUint8(uint8(len(tile.Layers)))
 				for _, layer := range tile.Layers {
 					if layer != nil {
@@ -330,6 +424,7 @@ func (c *Client) SendArea(_x, _y, _z, _w, _h int) {
 			}
 		}
 	}
+	
 	packet.MsgSize -= 2
 	packet.readPos = 3
 	packet.AddUint16(uint16(count))

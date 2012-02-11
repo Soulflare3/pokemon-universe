@@ -1,6 +1,7 @@
 package main
 
 import (
+	"mysql"
 	pos "position"
 )
 
@@ -18,7 +19,11 @@ func NewMap() *Map {
 }
 
 func (m *Map) GetNumTiles() int {
-	return len(m.tileMap)
+		var tiles int = 0
+	for _, value := range(m.tileMap) {
+		tiles += len(value)
+	}
+	return tiles
 }
 
 func (m *Map) GetNumMaps() int {
@@ -57,8 +62,8 @@ func (m *Map) RemoveTile(_tile *Tile) {
 }
 
 func (m *Map) GetTileFromCoordinates(_x, _y, _z int) (*Tile, bool) {
-	var index int64 = pos.Hash(_x, _y, _z)
-	return m.GetTile(index)
+	position := pos.NewPositionFrom(_x, _y, _z)
+	return m.GetTileFromPosition(position)
 }
 
 func (m *Map) GetTileFromPosition(_pos pos.Position) (*Tile, bool) {
@@ -102,7 +107,7 @@ func (m *Map) LoadMapList() (succeed bool, error string) {
 	return true, ""
 }
 
-func (m *Map) LoadTiles() (succeed bool, error string) {
+func (m *Map) LoadTiles() (succeed bool, msg string) {
 	var query string = "SELECT t.`x`, t.`y`, t.`z`, t.`idlocation`, t.`movement`, t.`idteleport`," +
 		" tl.`sprite`, tl.`layer`, tp.`x` AS `tp_x`, tp.`y` AS `tp_y`, tp.`z` AS `tp_z`," +
 		" t.`idtile`, tl.`idtile_layer`" +
@@ -110,14 +115,9 @@ func (m *Map) LoadTiles() (succeed bool, error string) {
 		" INNER JOIN tile_layer `tl` ON tl.`idtile` = t.`idtile`" +
 		" LEFT JOIN teleport `tp` ON tp.`idteleport` = t.`idteleport`"
 
-	// var err error
-	if err := g_db.Query(query); err != nil {
-		return false, err.Error()
-	}
-
-	// var result *mysql.Result
-	result, err := g_db.UseResult()
-	if err != nil {
+	var err error
+	var result *mysql.Result
+	if result, err = DBQuerySelect(query); err != nil {
 		return false, err.Error()
 	}
 
@@ -136,10 +136,10 @@ func (m *Map) LoadTiles() (succeed bool, error string) {
 		sprite := DBGetInt(row[6])
 		blocking := DBGetInt(row[4])
 		// row `idteleport` may be null sometimes.
-//		var tp_id = 0
-//		if row[5] != nil {
-//			tp_id = DBGetInt(row[5])
-//		}
+		var tp_id = 0
+		if row[5] != nil {
+			tp_id = DBGetInt(row[5])
+		}
 		// idlocation := DBGetInt(row[3])
 
 		tile, found := m.GetTileFromPosition(position)
@@ -155,13 +155,16 @@ func (m *Map) LoadTiles() (succeed bool, error string) {
 			// }
 
 			// Teleport event
-//			if tp_id > 0 {
-//				tp_x := DBGetInt(row[8])
-//				tp_y := DBGetInt(row[9])
-//				tp_z := DBGetInt(row[10])
-//				tp_pos := pos.NewPositionFrom(tp_x, tp_y, tp_z)
-//				// tile.AddEvent(NewWarp(tp_pos))
-//			}
+			if tp_id > 0 {
+				tp_x := DBGetInt(row[8])
+				tp_y := DBGetInt(row[9])
+				tp_z := DBGetInt(row[10])
+				tp_pos := pos.NewPositionFrom(tp_x, tp_y, tp_z)
+				
+				warp := NewWarp(tp_pos)
+				warp.dbid = int64(tp_id)
+				tile.AddEvent(warp)
+			}
 
 			m.AddTile(tile)
 		}

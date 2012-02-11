@@ -7,13 +7,13 @@ import (
 
 func DBQuerySelect(_query string) (result *mysql.Result, err error) {
 	if err = g_db.Query(_query); err != nil {
-		fmt.Printf("[ERROR] SQL error while executing query:\n\r%s\n\rError: %s", _query, err)
+		fmt.Printf("[ERROR] SQL error while executing query:\n\r%s\n\rError: %s\n", _query, err)
 		return nil, err
 	}
 
 	result, err = g_db.UseResult()
 	if err != nil {
-		fmt.Println("[ERROR] SQL error while fetching result for query:\n\r%s\n\rError: %s", _query, err)
+		fmt.Println("[ERROR] SQL error while fetching result for query:\n\r%s\n\rError: %s\n", _query, err)
 		return nil, err
 	}
 
@@ -22,7 +22,7 @@ func DBQuerySelect(_query string) (result *mysql.Result, err error) {
 
 func DBQuery(_query string) (err error) {
 	if err := g_db.Query(_query); err != nil {
-		fmt.Printf("[ERROR] SQL error while executing query:\n\r%s\n\rError: %s", _query, err)
+		fmt.Printf("[ERROR] SQL error while executing query:\n\r%s\n\rError: %s\n", _query, err)
 		return err
 	}
 	
