@@ -41,7 +41,7 @@ type Player struct {
 }
 
 func NewPlayer(_name string) *Player {
-	p := Player{}
+	p := &Player{}
 	p.uid = GenerateUniqueID()
 	p.Conn = nil
 	p.Outfit = NewOutfit()
@@ -54,8 +54,11 @@ func NewPlayer(_name string) *Player {
 	p.VisibleCreatures = make(CreatureList)
 	p.ConditionList = list.New()
 	p.TimeoutCounter = 0
+	
+	// Add self to visible creatures
+	p.VisibleCreatures[p.GetUID()] = p
 
-	return &p
+	return p
 }
 
 func (p *Player) LoadData() bool {
@@ -90,7 +93,7 @@ func (p *Player) loadPlayerInfo() bool {
 	defer result.Free()
 	row := result.FetchRow()
 	if row == nil {
-		g_logger.Printf("[Error] No data for player %s (%d)", p.name, p.dbid)
+		g_logger.Printf("[Error] No pokemon data for player %s (DB ID: %d)", p.name, p.dbid)
 		return false
 	}
 
@@ -250,6 +253,10 @@ func (p *Player) OnCreatureTurn(_creature ICreature) {
 }
 
 func (p *Player) OnCreatureAppear(_creature ICreature, _isLogin bool) {
+	if _creature.GetUID() == p.GetUID() {
+		return
+	}
+	
 	canSeeCreature := CanSeeCreature(p, _creature)
 	if !canSeeCreature {
 		return
@@ -261,6 +268,10 @@ func (p *Player) OnCreatureAppear(_creature ICreature, _isLogin bool) {
 }
 
 func (p *Player) OnCreatureDisappear(_creature ICreature, _isLogout bool) {
+	if _creature.GetUID() == p.GetUID() {
+		return
+	}
+	
 	// TODO: Have to do something here with _isLogout
 
 	p.RemoveVisibleCreature(_creature)

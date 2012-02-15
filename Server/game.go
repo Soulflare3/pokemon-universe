@@ -128,21 +128,21 @@ func (g *Game) GetPlayerByName(_name string) (*Player, bool) {
 func (g *Game) OnPlayerLoseConnection(_player *Player) {
 	_player.Conn = nil
 	_player.TimeoutCounter = 0
-	g.PlayersDiscon[_player.GetUID()] = _player
+	// g.PlayersDiscon[_player.GetUID()] = _player
+	
+	g.RemoveCreature(_player.GetUID())
 }
 
 func (g *Game) AddCreature(_creature ICreature) {
 	// TODO: Maybe only take the creatues from the area the new creature is in. This saves some extra iterating
 	// TODO 2: Upgrade this to parallel stuff
 	
-	fmt.Printf("[%v] Login on (%v,%v)\n", _creature.GetName(), _creature.GetPosition().X, _creature.GetPosition().Y)
-
+	g.mutexCreatureList.Lock()
+	defer g.mutexCreatureList.Unlock()
 	for _, value := range g.Creatures {
 		value.OnCreatureAppear(_creature, true)
 	}
-
-	g.mutexCreatureList.Lock()
-	defer g.mutexCreatureList.Unlock()
+	
 	g.Creatures[_creature.GetUID()] = _creature
 
 	if _creature.GetType() == CTYPE_PLAYER {

@@ -46,7 +46,7 @@ func (c *Connection) HandleConnection() {
 			packet.GetHeader()
 			c.ProcessPacket(packet)
 		} else {
-			println(err.Error())
+			// println(err.Error())
 			break;
 		}
 	}

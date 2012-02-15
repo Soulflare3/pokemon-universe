@@ -79,25 +79,31 @@ func ClientConnection(clientsock *websocket.Conn) {
 		packet.GetHeader()
 		parseFirstMessage(clientsock, packet)
 	} else {
-		println("Client connection error: " + err.Error())
+		if(err.Error() != "EOF") {
+			g_logger.Println("Client connection error: " + err.Error())
+		}
 	}
 }
 
 // This function checks players without a connection every second
 // and idle players every 10 seconds
 func (s *Server) timeoutLoop() {
-	s.TimeoutCount++
+	// TODO: Change this to a scheduler
+	go func() {
+		time.Sleep(1e9)
+		s.timeoutLoop()
+	}()
 
 	// Check connectionless players
-	g_game.mutexDisconnectList.Lock()
-	defer g_game.mutexDisconnectList.Unlock()
-	for guid, value := range g_game.PlayersDiscon {
-		value.TimeoutCounter++
-		if value.TimeoutCounter >= 30 {
-			delete(g_game.PlayersDiscon, guid)
-			go g_game.RemoveCreature(guid)
-		}
-	}
+//	g_game.mutexDisconnectList.Lock()
+//	defer g_game.mutexDisconnectList.Unlock()
+//	for guid, value := range g_game.PlayersDiscon {
+//		value.TimeoutCounter++
+//		if value.TimeoutCounter >= 30 {
+//			delete(g_game.PlayersDiscon, guid)
+//			go g_game.RemoveCreature(guid)
+//		}
+//	}
 
 	if s.TimeoutCount == 10 {
 		s.TimeoutCount = 0
@@ -107,19 +113,15 @@ func (s *Server) timeoutLoop() {
 		defer g_game.mutexPlayerList.RUnlock()
 		for _, player := range g_game.Players {
 			if player.Conn != nil {
-				//TODO: send ping
+				// TODO: send ping
 				if player.GetTimeSinceLastMove() > 9e5 { // (900000sec / 15 min)
 					go g_game.OnPlayerLoseConnection(player)
 				}
 			}
 		}
 	}
-
-	// TODO: Change this to a scheduler
-	go func() {
-		time.Sleep(1e9)
-		s.timeoutLoop()
-	}()
+	
+	s.TimeoutCount++
 }
 
 func parseFirstMessage(conn *websocket.Conn, packet *pnet.Packet) {
@@ -164,7 +166,6 @@ func parseFirstMessage(conn *websocket.Conn, packet *pnet.Packet) {
 				// AddCreature sends few messages to the player so,
 				// quickly sending the status message before adding the player.
 				connection.SendMessage(firstMessage)
-				println("- Loaded all data, adding to Game")
 				g_game.AddCreature(player)
 				
 				player.Conn.HandleConnection()

@@ -96,7 +96,7 @@ func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 	} else {
 		p = NewPlayer(name)
 		p.dbid = idPlayer
-		ret = p.loadPlayerInfo()
+		ret = p.LoadData()
 	}
 
 	return
