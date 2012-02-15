@@ -133,7 +133,7 @@ func (p *Player) loadPlayerInfo() bool {
 
 func (p *Player) loadPokemon() bool {
 	var query string = "SELECT idpokemon, nickname, bound, experience, iv_hp, iv_attack, iv_attack_spec, iv_defence, iv_defence_spec," +
-		" iv_speed, happiness, gender, in_party, party_slot, idplayer_pokemon, shiny, abilityId, damagedHp FROM player_pokemon, damagedHp WHERE idplayer='%d'"
+		" iv_speed, happiness, gender, in_party, party_slot, idplayer_pokemon, shiny, abilityId, damagedHp FROM player_pokemon WHERE idplayer='%d'"
 	result, err := DBQuerySelect(fmt.Sprintf(query, p.dbid))
 	if err != nil {
 		fmt.Println(err)
