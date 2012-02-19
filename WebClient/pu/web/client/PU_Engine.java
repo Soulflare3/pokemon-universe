@@ -464,7 +464,7 @@ public class PU_Engine
 		{
 			mTextureBatchAtlas = texture;
 			mTextureBatchTextureSize = textureSize;
-			mTextureBatchData = new int[count * 8 * 2 - 8];
+			mTextureBatchData = new int[count * 16 + count * 8 - 8];
 			mTextureBatchColorMod[0] = ((float) red / 255.0f);
 			mTextureBatchColorMod[1] = ((float) green / 255.0f);
 			mTextureBatchColorMod[2] = ((float) blue / 255.0f);
