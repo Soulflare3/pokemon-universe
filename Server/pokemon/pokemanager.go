@@ -29,7 +29,7 @@ type PokemonStatArray 		[]*PokemonStat
 type PokemonTypeArray		[]int
 type PokemonAbilityList 	map[int]*PokemonAbility
 type PokemonMoveList 		map[int]*PokemonMove
-type MessageList		map[int]map[int]string
+type MessageList			map[int]map[int]string
 
 type PokemonManager struct {
 	pokemon				PokemonList // All pokemon including different forms
@@ -84,8 +84,10 @@ func (m *PokemonManager) Load() bool {
 
 func (m *PokemonManager) loadMoves() bool {
 	var query string = "SELECT id, identifier, type_id, power, accuracy, priority, target_id, damage_class_id," +
-		" effect_id, effect_chance, contest_type_id, contest_effect_id, super_contest_effect_id, pp" +
-		" FROM moves"
+		" effect_id, effect_chance, contest_type_id, contest_effect_id, super_contest_effect_id, pp, flavor_text" +
+		" FROM moves" +
+		" RIGHT JOIN move_flavor_text ON move_id  = id" + 
+		" WHERE version_group_id = 11"
 	result, err := DBQuerySelect(query)
 	if err != nil {
 		return false
@@ -114,6 +116,7 @@ func (m *PokemonManager) loadMoves() bool {
 		move.ContestEffect = DBGetInt(row[11])
 		move.SuperContestEffect = DBGetInt(row[12])
 		move.PP = DBGetInt(row[13])
+		move.FlavorText = DBGetString(row[14])
 		
 		// Add to map
 		m.moves[move.MoveId] = move

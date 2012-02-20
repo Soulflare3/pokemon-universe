@@ -64,15 +64,11 @@ func NewPlayer(_name string) *Player {
 func (p *Player) LoadData() bool {
 	// Load player info
 	if !p.loadPlayerInfo() {
-		// TODO: Unload player and disconnect
-
 		return false
 	}
 
 	// Load all pokemon player has
 	if !p.loadPokemon() {
-		// TODO: Unload player and disconnect
-
 		return false
 	}
 
@@ -156,7 +152,7 @@ func (p *Player) loadPokemon() bool {
 		pokemon.Base = g_PokemonManager.GetPokemon(pokemonId)
 		pokemon.Nickname = DBGetString(row[1])
 		pokemon.IsBound = DBGetInt(row[2])
-		pokemon.Experience = DBGetInt(row[3])
+		pokemon.Experience = DBGetFloat64(row[3])
 		pokemon.Stats[0] = DBGetInt(row[4])
 		pokemon.Stats[1] = DBGetInt(row[5])
 		pokemon.Stats[2] = DBGetInt(row[7])
@@ -187,7 +183,7 @@ func (p *Player) loadPokemon() bool {
 	// Load moves for each pokemon
 	for index, pokemon := range p.PokemonParty.Party {
 		if pokemon != nil {
-			fmt.Printf("Load pokemon moves for: %d\n\r", index)
+			fmt.Printf("Load pokemon moves for: %d - %s\n\r", index, pokemon.GetNickname())
 			pokemon.LoadMoves()
 		}
 	}

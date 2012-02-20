@@ -31,6 +31,7 @@ type Move struct {
 	ContestType			int
 	ContestEffect		int
 	SuperContestEffect	int
+	FlavorText			string
 }
 
 func NewMove() *Move {

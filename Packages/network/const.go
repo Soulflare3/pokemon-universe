@@ -34,6 +34,9 @@ const (
 	HEADER_TILES          = 0xC1
 	HEADER_ADDCREATURE    = 0xC2
 	HEADER_REMOVECREATURE = 0xC3
+	
+	// Pokemon heaaders
+	HEADER_POKEMONPARTY = 0xD0
 
 
 	// These need to get other values

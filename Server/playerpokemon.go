@@ -29,7 +29,7 @@ type PlayerPokemon struct {
 	Base		*Pokemon
 	Nickname	string
 	IsBound		int // Can (not) trade if 1
-	Experience	int
+	Experience	float64
 	Stats		[]int
 	Happiness	int
 	Gender		int
@@ -59,6 +59,10 @@ func (p *PlayerPokemon) LoadMoves() {
 	}
 	
 	defer result.Free()
+	if result.RowCount() == 0 {
+		g_logger.Printf("[WARNING] Pokemon (db id: %d) has zero moves\n", p.IdDb)
+	}
+	
 	var index int = 0
 	for {
 		row := result.FetchRow()
@@ -80,5 +84,5 @@ func (p *PlayerPokemon) GetNickname() string {
 }
 
 func (p *PlayerPokemon) GetLevel() int {
-	return int(math.Sqrt(math.Sqrt(float64(p.Experience))))
+	return CalculateLevelFromExperience(p.Experience)
 }

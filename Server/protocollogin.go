@@ -24,8 +24,8 @@ import (
 )
 
 func CheckAccountInfo(_username string, _password string) bool {
-	//_username = g_db.Escape(_username)
-	//_password = g_db.Escape(_password)
+	_username = g_db.Escape(_username)
+	_password = g_db.Escape(_password)
 
 	var queryString string = "SELECT password, password_salt FROM player WHERE name='" + _username + "'"
 	if err := g_db.Query(queryString); err != nil {
@@ -66,7 +66,7 @@ func PasswordTest(_plain string, _hash string) bool {
 func LoadPlayerProfile(_username string) (ret bool, p *Player) {
 	p = nil
 	ret = false
-	//_username = g_db.Escape(_username)
+	_username = g_db.Escape(_username)
 
 	var queryString string = "SELECT idplayer, name FROM player WHERE name='%v'"
 	if err := g_db.Query(fmt.Sprintf(queryString, _username)); err != nil {

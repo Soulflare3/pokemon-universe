@@ -7,6 +7,7 @@ include $(GOROOT)/src/Make.inc
 TARG=puserver
 GOFILES=\
 	*.go\
+	helpers/*.go\
 	io/*.go\
 	messages/*.go\
 	tileevents/*.go\

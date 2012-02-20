@@ -46,6 +46,9 @@ func NewPokemon() *Pokemon {
 					 Forms: new(list.List) }
 	// pokemon.Forms.Init()
 	
+	pokemon.Types[0] = 0
+	pokemon.Types[1] = 0
+	
 	return &pokemon
 }
 
