@@ -8,6 +8,7 @@ public class PU_Creature
 	public static final int DIR_EAST = 4;
 	
 	protected long mId = 0;
+	protected String mName = "";
 	
 	protected int mX = 0;
 	protected int mY = 0;
@@ -42,6 +43,16 @@ public class PU_Creature
 	public long getId()
 	{
 		return mId;
+	}
+	
+	public void setName(String name)
+	{
+		mName = name;
+	}
+	
+	public String getName()
+	{
+		return mName;
 	}
 	
 	public boolean isWalking()

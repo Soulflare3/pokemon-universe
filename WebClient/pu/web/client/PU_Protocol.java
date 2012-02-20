@@ -349,7 +349,7 @@ public class PU_Protocol
 				
 				if(channel == PU_ChatChannel.CHANNEL_LOCAL)
 				{
-					//onscreen message
+					PUWeb.game().getOnscreenChat().add(name, message);
 				}
 				
 				PU_ChatPanel chatPanel = PUWeb.game().getChatPanel();

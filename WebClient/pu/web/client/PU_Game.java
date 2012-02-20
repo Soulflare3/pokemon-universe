@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import pu.web.client.gui.impl.PU_ChatPanel;
+import pu.web.client.gui.impl.PU_OnscreenChat;
 import pu.web.client.gui.impl.PU_WorldPanel;
 import pu.web.client.resources.fonts.Fonts;
 
@@ -31,6 +32,7 @@ public class PU_Game
 	
 	private PU_WorldPanel mWorldPanel = null; 
 	private PU_ChatPanel mChatPanel = null;
+	private PU_OnscreenChat mOnscreenChat = new PU_OnscreenChat();
 	
 	public PU_Game()
 	{
@@ -73,6 +75,7 @@ public class PU_Game
 			case GAMESTATE_WORLD:
 			{
 				drawWorld();
+				mOnscreenChat.draw();
 				
 			}
 			break;
@@ -390,6 +393,7 @@ public class PU_Game
 		}
 		
 		mWorldPanel.setVisible(true);
+		mOnscreenChat.setVisible(true);
 	}
 	
 	public void hideWorldPanel()
@@ -397,6 +401,12 @@ public class PU_Game
 		if(mWorldPanel != null)
 		{
 			mWorldPanel.setVisible(false);
+			mOnscreenChat.setVisible(false);
 		}
+	}
+	
+	public PU_OnscreenChat getOnscreenChat()
+	{
+		return mOnscreenChat;
 	}
 }

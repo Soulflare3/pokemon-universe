@@ -4,12 +4,12 @@ import java.util.HashMap;
 
 import pu.web.client.resources.fonts.Fonts;
 import pu.web.client.resources.gui.GuiImageBundle;
+import pu.web.client.resources.gui.GuiImages;
 import pu.web.client.resources.tiles.Tiles;
 import pu.web.shared.ImageLoadEvent;
 
 import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.resources.client.ImageResource;
-import com.google.gwt.resources.client.ResourcePrototype;
 import com.google.gwt.xml.client.Document;
 import com.google.gwt.xml.client.Element;
 import com.google.gwt.xml.client.NodeList;
@@ -36,7 +36,7 @@ public class PU_Resources
 	public PU_Resources()
 	{
 		mFontCount = Fonts.FONT_COUNT;
-		mGuiImageCount = GuiImageBundle.INSTANCE.getResources().length;
+		mGuiImageCount = GuiImageBundle.IMAGE_COUNT;
 	}
 	
 	public void checkComplete()
@@ -133,15 +133,14 @@ public class PU_Resources
 	
 	public void loadGuiImages()
 	{
-		final ResourcePrototype[] resources = GuiImageBundle.INSTANCE.getResources();
+		final ImageResource[] resources = GuiImages.getImages();
 		mGuiImages = new PU_Image[resources.length];
-		for(ResourcePrototype resource : resources)
+		for(int i = 0; i < resources.length; i++)
 		{
-			String name = resource.getName();
-			final int id = Integer.parseInt(name.replace("res_", ""));
+			final int id = i;
 			
 			final WebGLTexture texture = PUWeb.engine().createEmptyTexture();
-			final ImageElement image = PUWeb.engine().getImageElement((ImageResource)resource);
+			final ImageElement image = PUWeb.engine().getImageElement(resources[i]);
 			loadImage(new ImageLoadEvent() 
 			{
 				@Override

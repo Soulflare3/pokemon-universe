@@ -118,7 +118,7 @@ public class PU_ChatPanel extends Panel
 			if(button == 13)
 			{				
 				String message = mChatInput.getText();
-				PUWeb.connection().getProtocol().sendChat(PU_ChatChannel.CHANNEL_LOCAL, 7, message);				
+				PUWeb.connection().getProtocol().sendChat(PU_ChatChannel.CHANNEL_LOCAL, 7, message);	
 				mChatInput.setText("");
 			}
 		}

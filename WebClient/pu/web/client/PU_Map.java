@@ -81,6 +81,18 @@ public class PU_Map
 		return mCreatureMap.get(id);
 	}
 	
+	public PU_Creature getCreatureByName(String name)
+	{
+		for(PU_Creature creature : mCreatureMap.values())
+		{
+			if(creature.getName().equals(name))
+			{
+				return creature;
+			}
+		}
+		return null;
+	}
+	
 	public void addCreature(PU_Creature creature)
 	{
 		if(!mCreatureMap.containsKey(creature.getId()))

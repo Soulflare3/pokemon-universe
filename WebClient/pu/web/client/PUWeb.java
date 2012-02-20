@@ -3,13 +3,13 @@ package pu.web.client;
 import pu.web.client.gui.GUIManager;
 import pu.web.client.resources.fonts.Fonts;
 
+import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.RunAsyncCallback;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.RootPanel;
-import com.googlecode.gwtgl.binding.WebGLCanvas;
 import com.googlecode.gwtgl.binding.WebGLRenderingContext;
 
 public class PUWeb implements EntryPoint
@@ -34,8 +34,10 @@ public class PUWeb implements EntryPoint
 
 	public void onModuleLoad()
 	{
-		final WebGLCanvas webGLCanvas = new WebGLCanvas(PU_Engine.SCREEN_WIDTH + "px", PU_Engine.SCREEN_HEIGHT + "px");
-		PUWeb.mGlContext = webGLCanvas.getGlContext();
+		final Canvas webGLCanvas = Canvas.createIfSupported();
+		webGLCanvas.setCoordinateSpaceHeight(PU_Engine.SCREEN_HEIGHT);
+        webGLCanvas.setCoordinateSpaceWidth(PU_Engine.SCREEN_WIDTH);
+		PUWeb.mGlContext = (WebGLRenderingContext)webGLCanvas.getContext("experimental-webgl");
 		PUWeb.mGlContext.viewport(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT);
 		RootPanel.get("gwtGL").add(webGLCanvas);
 		

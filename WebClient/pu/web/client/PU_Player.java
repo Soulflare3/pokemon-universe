@@ -12,7 +12,6 @@ public class PU_Player extends PU_Creature
 	public static final int BODY_FEET  = 4;
 	public static final int BODY_LOWER = 5;
 	
-	private String mName;
 	private long mMoney = 0;
 	
 	private PU_BodyPart[] mBodyParts = new PU_BodyPart[NUM_BODYPARTS];
@@ -37,16 +36,6 @@ public class PU_Player extends PU_Creature
 	public long getMoney()
 	{
 		return mMoney;
-	}
-	
-	public void setName(String name)
-	{
-		mName = name;
-	}
-	
-	public String getName()
-	{
-		return mName;
 	}
 	
 	public void turn(int direction, boolean send)
