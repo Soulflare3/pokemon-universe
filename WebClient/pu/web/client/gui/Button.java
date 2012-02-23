@@ -66,6 +66,9 @@ public class Button extends TextElement
 			mImage.getImage().drawRectInRect(getRect(), drawArea);
 		}
 		
+		PUWeb.engine().setColor(0, 0, 0, 255);
+		PUWeb.engine().renderRect(realRect.x+2, realRect.y+2, realRect.width-4, realRect.height-4);
+		
 		PU_Font font = getFont();
 		if(!mCaption.equals("") && font != null)
 		{

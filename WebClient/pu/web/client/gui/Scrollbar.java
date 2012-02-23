@@ -23,7 +23,6 @@ public class Scrollbar extends Container
 		mOrientation = orientation;
 		
 		pnlBackground = new Panel(0, 0, width, height);
-		pnlBackground.setBackgroundColor(80, 80, 80);
 		addChild(pnlBackground);
 		
 		if(mOrientation == SCROLLBAR_VERTICAL)
@@ -144,7 +143,7 @@ public class Scrollbar extends Container
 	
 	public void scrollButtonChanged(int x, int y)
 	{
-		mValue = mMinValue + (int)(((float)x / (float)getScrollAreaSize()) * (float)mMaxValue);
+		mValue = mMinValue + (int)(((float)y / (float)getScrollAreaSize()) * (float)mMaxValue);
 		
 		if(mValueChangedListener != null)
 		{

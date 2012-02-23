@@ -22,6 +22,11 @@ public class PU_Chatbox extends Element
 		mFont = PUWeb.gui().getDefaultFont();
 	}
 	
+	public PU_Font getFont()
+	{
+		return mFont;
+	}
+	
 	public void setFont(PU_Font font)
 	{
 		mFont = font;
@@ -30,6 +35,11 @@ public class PU_Chatbox extends Element
 	public void setScrollbar(Scrollbar scrollbar)
 	{
 		mScrollbar = scrollbar;
+	}
+	
+	public int getLineCount()
+	{
+		return mLines.size();
 	}
 	
 	public void addLine(PU_Text line)

@@ -7,7 +7,6 @@ import pu.web.client.PU_Image;
 import pu.web.client.PU_Rect;
 import pu.web.client.gui.OnKeyDownListener;
 import pu.web.client.gui.Panel;
-import pu.web.client.gui.Scrollbar;
 import pu.web.client.gui.TextField;
 import pu.web.client.resources.gui.GuiImages;
 
@@ -22,8 +21,6 @@ public class PU_ChatPanel extends Panel
     public static final int SPEAK_PRIVATE = 6;
 	
 	// Controls
-	private PU_Chatbox mChatbox = null;
-	private Scrollbar mChatboxScrollbar = null;
 	private TextField mChatInput = null;
 	
 	// Members
@@ -35,13 +32,6 @@ public class PU_ChatPanel extends Panel
 		super(x, y, width, height);
 		
 		mImageBase = PUWeb.resources().getGuiImage(GuiImages.IMG_GUI_WORLD_BOTTOMBASE);
-		
-		mChatbox = new PU_Chatbox(13, 571, 350, 110);
-		addChild(mChatbox);
-		
-		mChatboxScrollbar = new Scrollbar(368, 573, 20, 105, Scrollbar.SCROLLBAR_VERTICAL);
-		mChatbox.setScrollbar(mChatboxScrollbar);
-		addChild(mChatboxScrollbar);
 		
 		mChatInput = new TextField(10, 694, 349, 18);
 		mChatInput.setFontColor(0, 0, 0);

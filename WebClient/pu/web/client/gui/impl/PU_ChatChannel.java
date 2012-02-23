@@ -41,8 +41,9 @@ public class PU_ChatChannel
 		mChatbox.setVisible(false);
 		container.addChild(mChatbox);		
 					
-		mScrollbar = new Scrollbar(368, 573, 20, 105, Scrollbar.SCROLLBAR_VERTICAL);
+		mScrollbar = new Scrollbar(372, 573, 13, 103, Scrollbar.SCROLLBAR_VERTICAL);
 		mScrollbar.setVisible(false);
+		mScrollbar.getScroller().setVisible(false);
 		mChatbox.setScrollbar(mScrollbar);		
 		container.addChild(mScrollbar);
 	}
@@ -111,6 +112,12 @@ public class PU_ChatChannel
 	{
 		if(mChatbox != null)
 		{
+			int fontHeight = mChatbox.getFont().getLineHeight();
+			int boxHeight = mChatbox.getRect().height - 6;
+			int visibleLines = (int)((float)boxHeight / (float)fontHeight);
+			if(mChatbox.getLineCount()+1 > visibleLines && mScrollbar != null)
+				mScrollbar.getScroller().setVisible(true);
+			
 			mChatbox.addText(text);
 		}
 	}

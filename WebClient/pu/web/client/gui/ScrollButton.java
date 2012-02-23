@@ -72,6 +72,7 @@ public class ScrollButton extends Button
 			
 			updateScrollChangeListener();
 		}
+		mMouseDown = false;
 		mScrolling = false;
 		super.mouseUp(x, y);
 	}
