@@ -29,7 +29,7 @@ func (m *SendPokemonData) GetHeader() uint8 {
 }
 
 // WritePacket write the needed object data to a Packet and returns it
-func (m *SendPlayerData) WritePacket() pnet.IPacket {
+func (m *SendPokemonData) WritePacket() pnet.IPacket {
 	packet := pnet.NewPacketExt(m.GetHeader())
 	
 	for i := 0; i < 6; i++ {
@@ -40,7 +40,7 @@ func (m *SendPlayerData) WritePacket() pnet.IPacket {
 		if pokemon == nil {
 			packet.AddUint32(0) // Zero if slot is empty
 		} else {
-			pokemonLevel = pokemon.GetLevel()
+			pokemonLevel := pokemon.GetLevel()
 		
 			packet.AddUint32(uint32(pokemon.IdDb)) // Database ID
 			packet.AddUint16(uint16(pokemon.Base.Species.SpeciesId)) // Real ID

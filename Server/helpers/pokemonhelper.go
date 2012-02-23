@@ -21,11 +21,13 @@ import (
 )
 
 func CalculateLevelFromExperience(_exp float64) (level int) {
-	level = int(math.Floor(math.Sqrt(math.Sqrt(p.Experience))))
+	level = int(math.Floor(math.Sqrt(math.Sqrt(_exp))))
 	
 	return
 }
 
 func ExperienceForLevel(_level int) (exp float64) {
-	exp = math.Floor(math.Pow(_level, 4))
+	exp = math.Floor(math.Pow(float64(_level), 4))
+	
+	return
 }

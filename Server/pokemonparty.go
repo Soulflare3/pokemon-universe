@@ -40,11 +40,7 @@ func (p *PokemonParty) AddSlot(_pokemon *PlayerPokemon, _slot int) {
 }
 
 func (p *PokemonParty) GetFromSlot(_slot int) *PlayerPokemon {
-	pokemon, found := p.Party[_slot]
-	if !found {
-		return nil
-	}
-	
+	pokemon := p.Party[_slot]
 	return pokemon
 }
 

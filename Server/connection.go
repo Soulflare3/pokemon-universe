@@ -99,7 +99,7 @@ func (c *Connection) SendPlayerData() {
 	
 	// Send PkMn
 	pokemonData := &SendPokemonData{}
-	pokemonData.Pokmeon = c.Owner.PokemonParty
+	pokemonData.Pokemon = c.Owner.PokemonParty
 	c.SendMessage(pokemonData)
 	
 	//ToDo: Send items
