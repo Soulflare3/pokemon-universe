@@ -1,8 +1,8 @@
 package main
 
 import (
-	"mysql"
-	pos "position"
+	puh "puhelper"
+	pos "putools/pos"
 )
 
 type Map struct {
@@ -81,12 +81,8 @@ func (m *Map) GetTile(_hash int64) (*Tile, bool) {
 
 func (m *Map) LoadMapList() (succeed bool, error string) {
 	var query string = "SELECT idmap, name FROM map ORDER BY name"
-	
-	if err := g_db.Query(query); err != nil {
-		return false, err.Error()
-	}
-	
-	result, err := g_db.UseResult()
+		
+	result, err := puh.DBQuerySelect(query)
 	if err != nil {
 		return false, err.Error()
 	}
@@ -98,8 +94,8 @@ func (m *Map) LoadMapList() (succeed bool, error string) {
 			break
 		}
 		
-		idmap := DBGetInt(row[0])
-		name := DBGetString(row[1])
+		idmap := puh.DBGetInt(row[0])
+		name := puh.DBGetString(row[1])
 		
 		m.AddMap(idmap, name)
 	}
@@ -115,9 +111,8 @@ func (m *Map) LoadTiles() (succeed bool, msg string) {
 		" INNER JOIN tile_layer `tl` ON tl.`idtile` = t.`idtile`" +
 		" LEFT JOIN teleport `tp` ON tp.`idteleport` = t.`idteleport`"
 
-	var err error
-	var result *mysql.Result
-	if result, err = DBQuerySelect(query); err != nil {
+	result, err := puh.DBQuerySelect(query)
+	if err != nil {
 		return false, err.Error()
 	}
 
@@ -128,24 +123,24 @@ func (m *Map) LoadTiles() (succeed bool, msg string) {
 			break
 		}
 
-		x := DBGetInt(row[0])
-		y := DBGetInt(row[1])
-		z := DBGetInt(row[2])
+		x := puh.DBGetInt(row[0])
+		y := puh.DBGetInt(row[1])
+		z := puh.DBGetInt(row[2])
 		position := pos.NewPositionFrom(x, y, z)
-		layer := DBGetInt(row[7])
-		sprite := DBGetInt(row[6])
-		blocking := DBGetInt(row[4])
+		layer := puh.DBGetInt(row[7])
+		sprite := puh.DBGetInt(row[6])
+		blocking := puh.DBGetInt(row[4])
 		// row `idteleport` may be null sometimes.
 		var tp_id = 0
 		if row[5] != nil {
-			tp_id = DBGetInt(row[5])
+			tp_id = puh.DBGetInt(row[5])
 		}
 		// idlocation := DBGetInt(row[3])
 
 		tile, found := m.GetTileFromPosition(position)
 		if found == false {
 			tile = NewTile(position)
-			tile.DbId = row[11].(int64)
+			tile.DbId = puh.DBGetInt64(row[11])
 			tile.Blocking = blocking
 
 			// Get location
@@ -156,9 +151,9 @@ func (m *Map) LoadTiles() (succeed bool, msg string) {
 
 			// Teleport event
 			if tp_id > 0 {
-				tp_x := DBGetInt(row[8])
-				tp_y := DBGetInt(row[9])
-				tp_z := DBGetInt(row[10])
+				tp_x := puh.DBGetInt(row[8])
+				tp_y := puh.DBGetInt(row[9])
+				tp_z := puh.DBGetInt(row[10])
 				tp_pos := pos.NewPositionFrom(tp_x, tp_y, tp_z)
 				
 				warp := NewWarp(tp_pos)
@@ -170,7 +165,7 @@ func (m *Map) LoadTiles() (succeed bool, msg string) {
 		}
 
 		tileLayer := tile.AddLayer(layer, sprite)
-		tileLayer.DbId = row[12].(int64)
+		tileLayer.DbId = puh.DBGetInt64(row[12])
 	}
 	return true, ""
 }

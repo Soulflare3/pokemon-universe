@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
-	"mysql"
 	"sync"
 	"flag"
 	
-	"conf"
+	"gomysql"
+	"goconf"
+	puh "puhelper"
+	"putools/log"
 )
 
 var g_map *Map = NewMap()
-var g_db *mysql.Client
 var g_dblock sync.Mutex
 var g_server *Server
 var g_config *conf.ConfigFile
@@ -36,13 +37,17 @@ func initDatabase() bool {
 
 	// Connect to database
 	var err error
-	g_db, err = mysql.DialTCP(SQLHost, SQLUser, SQLPass, SQLDB)
+	puh.DBCon, err = mysql.DialTCP(SQLHost, SQLUser, SQLPass, SQLDB)
 	if err != nil {
-		fmt.Printf("[Error] Could not connect to database:\n %v\n", err)
+		logger.Printf("[Error] Could not connect to database: %v\n\r", err)
 		return false
+	} else {
+		logger.Println("Connected to SQL server:")
+		logger.Printf(" - Host: %s\n", SQLHost)
+		logger.Printf(" - Database: %s\n", SQLDB)
 	}
 
-	g_db.Reconnect = true
+	puh.DBCon.Reconnect = true
 
 	return true
 }
@@ -70,9 +75,9 @@ func main() {
 	fmt.Printf("[Succeeded]\n")
 
 	// Load images
-	fmt.Printf("Loading tile images...")
-	LoadImages()
-	fmt.Printf("[Succeeded] (%d images loaded)\n", len(ImagesMap))
+	//fmt.Printf("Loading tile images...")
+	//LoadImages()
+	//fmt.Printf("[Succeeded] (%d images loaded)\n", len(ImagesMap))
 
 	// Get maps 
 	fmt.Printf("Retrieving map names..")
@@ -83,15 +88,6 @@ func main() {
 	fmt.Printf("Retrieving tiles...")
 	g_map.LoadTiles()
 	fmt.Printf("[Succeeded] (%d tiles loaded)\n", g_map.GetNumTiles())
-
-	// Setup http handler
-	// http.HandleFunc("/add/", addFormHandler)
-	// http.HandleFunc("/adduser/", addHandler)
-	// http.HandleFunc("/users/", userHandler)
-	// http.HandleFunc("/list/", listHandler)
-	// http.HandleFunc("/inc/", SourceHandler)
-	// http.HandleFunc("/", handleIndex)
-	// http.ListenAndServe(":8080", nil)
 	
 	// Set up server
 	fmt.Printf("Running server...")

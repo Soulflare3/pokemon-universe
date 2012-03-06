@@ -1,7 +1,7 @@
 package main
 
 import (
-	pos "position"
+	pos "putools/pos"
 )
 
 const (

@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
-	pos "position"
+	pos "putools/pos"
 )
 
 type Warp struct {

@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"hash"
 	"io"
-	"mysql"
 	"net"
 	"strings"
 	"container/list"
-	pos "position"
+	
+	puh "puhelper"
+	pos "putools/pos"
 )
 
 var AutoClientId int = 0
@@ -110,10 +111,9 @@ func (c *Client) HandleClient() {
 
 func (c *Client) checkAccount(_username string, _password string) bool {
 	var query string = fmt.Sprintf("SELECT * FROM mapchange_account WHERE username = '%s'", _username)
-	var err error
-	var result *mysql.Result
-	if result, err = DBQuerySelect(query); err != nil {
-		fmt.Printf("Query error: %s", err.Error())
+
+	result, err := puh.DBQuerySelect(query);
+	if err != nil {
 		return false
 	}
 	
@@ -166,20 +166,20 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 		if numLayers > 0 {
 			if !exists { // Tile does not exists, create it
 				query := fmt.Sprintf("INSERT INTO tile (x, y, z, movement, idlocation) VALUES (%d, %d, %d, %d, 0)", x, y, z, movement)
-				if err := DBQuery(query); err != nil {
+				if err := puh.DBQuery(query); err != nil {
 					fmt.Printf("Database query error: %s\n", err.Error())
 					return
 				}
 				
 				tile = NewTileExt(x, y, z)
 				tile.Blocking = movement
-				tile.DbId = int64(g_db.LastInsertId)
+				tile.DbId = int64(puh.DBGetLastInsertId())
 				
 				// Add tile to map
 				g_map.AddTile(tile)
 			} else {
 				query := fmt.Sprintf("UPDATE tile SET movement='%d' WHERE idtile='%d'", movement, tile.DbId)
-				if err := DBQuery(query); err != nil {
+				if err := puh.DBQuery(query); err != nil {
 					fmt.Printf("Database query error: %s\n", err.Error())
 					return
 				}
@@ -194,17 +194,17 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 				tileLayer := tile.GetLayer(layerId)
 				if tileLayer == nil {
 					query = fmt.Sprintf("INSERT INTO tile_layer (idtile, layer, sprite) VALUES (%d, %d, %d)", tile.DbId, layerId, sprite)
-					if err := DBQuery(query); err != nil {
+					if err := puh.DBQuery(query); err != nil {
 						fmt.Printf("Database query error: %s\n", err.Error())
 						return
 					}
 					
 					tileLayer = tile.AddLayer(layerId, sprite)
-					tileLayer.DbId = int64(g_db.LastInsertId)
+					tileLayer.DbId = int64(puh.DBGetLastInsertId())
 				} else {
 					if (sprite == 0) { // Delete layer
 						query = fmt.Sprintf("DELETE FROM tile_layer WHERE idtile_layer='%d'", tileLayer.DbId)
-						if err := DBQuery(query); err != nil {
+						if err := puh.DBQuery(query); err != nil {
 							fmt.Printf("Database query error: %s\n", err.Error())
 							return
 						}
@@ -212,7 +212,7 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 						tile.RemoveLayer(layerId)						
 					} else {
 						query = fmt.Sprintf("UPDATE tile_layer SET sprite='%d' WHERE idtile_layer='%d'", sprite, tileLayer.DbId)
-						if err := DBQuery(query); err != nil {
+						if err := puh.DBQuery(query); err != nil {
 							fmt.Printf("Database query error: %s\n", err.Error())
 							return
 						}
@@ -224,7 +224,7 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 		} else {
 			if exists {
 				query = fmt.Sprintf("DELETE FROM tile_layer WHERE idtile='%d'", tile.DbId)
-				if err := DBQuery(query); err != nil {
+				if err := puh.DBQuery(query); err != nil {
 					fmt.Printf("Database query error: %s\n", err.Error())
 					return
 				}
@@ -234,14 +234,14 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 					if tile.Event.GetEventType() == 1 { // Warp/Teleport
 						warp := tile.Event.(*Warp)
 						query := fmt.Sprintf("DELETE FROM teleport WHERE idteleport = %d", warp.dbid)
-						if err := DBQuery(query); err == nil {
+						if err := puh.DBQuery(query); err == nil {
 							fmt.Printf("Database query error: %s\n", err.Error())
 						}
 					}				
 				}
 				
 				query = fmt.Sprintf("DELETE FROM tile WHERE idtile='%d'", tile.DbId)
-				if err := DBQuery(query); err != nil {
+				if err := puh.DBQuery(query); err != nil {
 					fmt.Printf("Database query error: %s\n", err.Error())
 					return
 				}
@@ -267,8 +267,8 @@ func (c *Client) ReceiveAddMap(_packet *Packet) {
 		defer g_dblock.Unlock()
 		
 		query := fmt.Sprintf("INSERT INTO map (name) VALUES ('%s')", mapName)
-		if DBQuery(query) == nil {
-			mapId := int(g_db.LastInsertId)
+		if puh.DBQuery(query) == nil {
+			mapId := int(puh.DBGetLastInsertId())
 			g_map.AddMap(mapId, mapName)
 			
 			g_server.SendMapListUpdateToClients()
@@ -289,7 +289,7 @@ func (c *Client) ReceiveRemoveMap(_packet *Packet) {
 		defer g_dblock.Unlock()	
 	
 		query := fmt.Sprintf("DELETE FROM map WHERE idmap='%d'", mapId)
-		if DBQuery(query) == nil {
+		if puh.DBQuery(query) == nil {
 			g_map.DeleteMap(mapId)
 			
 			// Send map deleted to clients
@@ -321,10 +321,10 @@ func (c *Client) ReceiveTileEventUpdate(_packet *Packet) {
 				if tile.Event.GetEventType() == 1 { // Warp/Teleport
 					warp := tile.Event.(*Warp)
 					query := fmt.Sprintf("DELETE FROM teleport WHERE idteleport = %d", warp.dbid)
-					if err := DBQuery(query); err == nil {
+					if err := puh.DBQuery(query); err == nil {
 						// Update tile
 						query = fmt.Sprintf("UPDATE tile SET idteleport = 0 WHERE idtile = %d", tile.DbId)
-						if updateErr := DBQuery(query); updateErr == nil {
+						if updateErr := puh.DBQuery(query); updateErr == nil {
 							tile.Event = nil;
 						}
 					}
@@ -338,7 +338,7 @@ func (c *Client) ReceiveTileEventUpdate(_packet *Packet) {
 				toZ := int(_packet.ReadInt16())
 				
 				query := fmt.Sprintf("UPDATE teleport SET x = %d, y = %d, z = %d WHERE idteleport = %d", toX, toY, toZ, warp.dbid)
-				if err := DBQuery(query); err == nil {
+				if err := puh.DBQuery(query); err == nil {
 					warp.destination.X = toX
 					warp.destination.Y = toY
 					warp.destination.Z = toZ
@@ -353,11 +353,11 @@ func (c *Client) ReceiveTileEventUpdate(_packet *Packet) {
 				warp := NewWarp(tp_pos)
 				
 				query := fmt.Sprintf("INSERT INTO teleport (x, y, z) VALUES (%d, %d, %d)", toX, toY, toZ)
-				if err := DBQuery(query); err == nil {
-					warp.dbid = int64(g_db.LastInsertId)
+				if err := puh.DBQuery(query); err == nil {
+					warp.dbid = int64(puh.DBGetLastInsertId())
 					
 					updateQuery := fmt.Sprintf("UPDATE tile SET idteleport = %d WHERE idtile = %d", warp.dbid, tile.DbId)
-					if updateErr := DBQuery(updateQuery); updateErr == nil {
+					if updateErr := puh.DBQuery(updateQuery); updateErr == nil {
 						tile.AddEvent(warp)
 					}
 				}

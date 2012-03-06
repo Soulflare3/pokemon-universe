@@ -42,6 +42,21 @@ func DBQuerySelect(_query string) (result *mysql.Result, err error) {
 	return result, nil
 }
 
+func DBQuery(_query string) (err error) {
+	if err := DBCon.Query(_query); err != nil {
+		logger.Println("[ERROR] SQL error while executing query:")
+		logger.Printf("%s\n", _query)
+		logger.Printf("Error: %s\n", err.Error()) 
+		return err
+	}
+	
+	return nil
+}
+
+func DBGetLastInsertId() uint64 {
+	return DBCon.LastInsertId
+}
+
 func DBGetString(_row interface{}) string {
 	if _row != nil {
 		return _row.(string)
