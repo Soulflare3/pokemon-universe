@@ -167,7 +167,6 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 			if !exists { // Tile does not exists, create it
 				query := fmt.Sprintf("INSERT INTO tile (x, y, z, movement, idlocation) VALUES (%d, %d, %d, %d, 0)", x, y, z, movement)
 				if err := puh.DBQuery(query); err != nil {
-					fmt.Printf("Database query error: %s\n", err.Error())
 					return
 				}
 				
@@ -180,7 +179,6 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 			} else {
 				query := fmt.Sprintf("UPDATE tile SET movement='%d' WHERE idtile='%d'", movement, tile.DbId)
 				if err := puh.DBQuery(query); err != nil {
-					fmt.Printf("Database query error: %s\n", err.Error())
 					return
 				}
 				
@@ -195,7 +193,6 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 				if tileLayer == nil {
 					query = fmt.Sprintf("INSERT INTO tile_layer (idtile, layer, sprite) VALUES (%d, %d, %d)", tile.DbId, layerId, sprite)
 					if err := puh.DBQuery(query); err != nil {
-						fmt.Printf("Database query error: %s\n", err.Error())
 						return
 					}
 					
@@ -205,7 +202,6 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 					if (sprite == 0) { // Delete layer
 						query = fmt.Sprintf("DELETE FROM tile_layer WHERE idtile_layer='%d'", tileLayer.DbId)
 						if err := puh.DBQuery(query); err != nil {
-							fmt.Printf("Database query error: %s\n", err.Error())
 							return
 						}
 						
@@ -213,7 +209,6 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 					} else {
 						query = fmt.Sprintf("UPDATE tile_layer SET sprite='%d' WHERE idtile_layer='%d'", sprite, tileLayer.DbId)
 						if err := puh.DBQuery(query); err != nil {
-							fmt.Printf("Database query error: %s\n", err.Error())
 							return
 						}
 						
@@ -225,7 +220,6 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 			if exists {
 				query = fmt.Sprintf("DELETE FROM tile_layer WHERE idtile='%d'", tile.DbId)
 				if err := puh.DBQuery(query); err != nil {
-					fmt.Printf("Database query error: %s\n", err.Error())
 					return
 				}
 				
@@ -235,14 +229,12 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 						warp := tile.Event.(*Warp)
 						query := fmt.Sprintf("DELETE FROM teleport WHERE idteleport = %d", warp.dbid)
 						if err := puh.DBQuery(query); err == nil {
-							fmt.Printf("Database query error: %s\n", err.Error())
 						}
 					}				
 				}
 				
 				query = fmt.Sprintf("DELETE FROM tile WHERE idtile='%d'", tile.DbId)
 				if err := puh.DBQuery(query); err != nil {
-					fmt.Printf("Database query error: %s\n", err.Error())
 					return
 				}
 				
