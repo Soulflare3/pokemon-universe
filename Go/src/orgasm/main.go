@@ -12,6 +12,7 @@ import (
 )
 
 var g_map *Map = NewMap()
+var g_npc *Npc = NewNpcList()
 var g_dblock sync.Mutex
 var g_server *Server
 var g_config *conf.ConfigFile
@@ -88,6 +89,11 @@ func main() {
 	fmt.Printf("Retrieving tiles...")
 	g_map.LoadTiles()
 	fmt.Printf("[Succeeded] (%d tiles loaded)\n", g_map.GetNumTiles())
+	
+	// Retreive all NPCs
+	fmt.Printf("Retrieving NPCs...")
+	g_npc.LoadNpcList()
+	fmt.Printf("[Succeeded] (%d NPCs loaded)\n", g_npc.GetNumNpcs())
 	
 	// Set up server
 	fmt.Printf("Running server...")

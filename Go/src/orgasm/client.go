@@ -69,6 +69,7 @@ func (c *Client) HandleClient() {
 				c.loggedIn = true
 				c.SendLogin(0)
 				c.SendMapList()
+				c.SendNpcList()
 			} else {
 				c.SendLogin(1)
 			}
@@ -100,6 +101,9 @@ func (c *Client) HandleClient() {
 			
 		case 0x06: // Update tile event
 			go c.ReceiveTileEventUpdate(packet)
+			
+		case 0x07: // Add Npc
+			go c.ReceiveAddNpc(packet)
 			
 		default:
 			fmt.Printf("Unknown header: %d", header)
@@ -358,6 +362,26 @@ func (c *Client) ReceiveTileEventUpdate(_packet *Packet) {
 	}
 }
 
+func (c *Client) ReceiveAddNpc(_packet *Packet) {
+	if !c.loggedIn {
+		return
+	}
+	
+	npcName := _packet.ReadString()
+	if len(npcName) > 0 {
+		g_dblock.Lock()
+		defer g_dblock.Unlock()
+		
+		query := fmt.Sprintf("INSERT INTO npc (name) VALUES ('%s')", npcName)
+		if puh.DBQuery(query) == nil {
+			npcId := int(puh.DBGetLastInsertId())
+			g_npc.AddNpc(npcId, npcName)
+			
+			g_server.SendNpcListUpdateToClients()
+		}
+	}
+}
+
 // //////////////////////////////////////////////
 // SEND
 // //////////////////////////////////////////////
@@ -434,6 +458,20 @@ func (c *Client) SendMapList() {
 	
 	c.Send(packet)
 }
+
+func (c *Client) SendNpcList() {
+	packet := NewPacketExt(0x04)
+	packet.AddUint16(uint16(len(g_npc.NpcName)))
+	
+	for index := range(g_npc.NpcName) {
+		packet.AddUint16(uint16(index))
+		value := g_npc.NpcName[index];
+		packet.AddString(value)
+	}
+	
+	c.Send(packet)
+}
+
 
 func (c *Client) Send(_packet *Packet) {
 	_packet.SetHeader()
