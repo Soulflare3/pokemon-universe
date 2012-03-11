@@ -53,6 +53,29 @@ func DBQuery(_query string) (err error) {
 	return nil
 }
 
+func DBStartTransaction() {
+	if err := DBCon.Start(); err != nil {
+		logger.Println("[ERROR] SQL error while starting a new transaction.")
+		logger.Printf("Error: %s\n", err.Error()) 
+	}
+}
+
+func DBCommit() {
+	if err := DBCon.Commit(); err != nil {
+		logger.Println("[ERROR] SQL error while committing transaction.")
+		logger.Printf("Error: %s\n", err.Error()) 
+		
+		DBRollback()
+	}
+}
+
+func DBRollback() {
+	if err := DBCon.Rollback(); err != nil {
+		logger.Println("[ERROR] SQL error while rolling transaction back")
+		logger.Printf("Error: %s\n", err.Error())
+	}
+}
+
 func DBGetLastInsertId() uint64 {
 	return DBCon.LastInsertId
 }

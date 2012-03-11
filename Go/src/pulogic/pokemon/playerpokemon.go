@@ -53,9 +53,8 @@ func NewPlayerPokemon(_playerId int) *PlayerPokemon {
 }
 
 func (p *PlayerPokemon) LoadMoves() {
-	var query string = "SELECT idmove, current_pp FROM player_pokemon_move WHERE idplayer_pokemon='%d'"
-	derp := fmt.Sprintf(query, p.IdDb)
-	result, err := puh.DBQuerySelect(derp)
+	var query string = "SELECT idplayer_pokemon_move, idmove, pp_used FROM player_pokemon_move WHERE idplayer_pokemon='%d'"
+	result, err := puh.DBQuerySelect(fmt.Sprintf(query, p.IdDb))
 	if err != nil {
 		return
 	}
@@ -72,9 +71,23 @@ func (p *PlayerPokemon) LoadMoves() {
 			break
 		}
 		
-		moveId := puh.DBGetInt(row[0])
-		p.Moves[index] = NewPlayerPokemonMove(moveId, puh.DBGetInt(row[1]))
+		uniqueId := puh.DBGetInt64(row[0])
+		moveId := puh.DBGetInt(row[1])
+		ppUsed := puh.DBGetInt(row[2])
+		p.Moves[index] = NewPlayerPokemonMove(uniqueId, moveId, ppUsed)
 		index++
+	}
+}
+
+func (p *PlayerPokemon) SaveMoves() {
+	
+	for i := 0; i < 4; i++ {
+		
+		if move := p.Moves[i]; move != nil {
+			
+			query := "UPDATE player_pokemon_move SET idmove=%d, pp_used=%d WHERE idplayer_pokemon_move=%d"
+			puh.DBQuery(fmt.Sprintf(query, move.Move.MoveId, move.CurrentPP, move.DbId))
+		}
 	}
 }
 

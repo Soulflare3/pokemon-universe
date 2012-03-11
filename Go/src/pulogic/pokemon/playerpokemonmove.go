@@ -19,11 +19,12 @@ package pokemon
 type PlayerPokemonMove struct {
 	Move *Move
 	
-	CurrentPP int
+	DbId		int64
+	CurrentPP 	int
 }
 
-func NewPlayerPokemonMove(_moveId int, _currentPP int) *PlayerPokemonMove {
-	pMove := PlayerPokemonMove{ CurrentPP: _currentPP }
+func NewPlayerPokemonMove(_dbid int64, _moveId int, _currentPP int) *PlayerPokemonMove {
+	pMove := PlayerPokemonMove{ DbId: _dbid, CurrentPP: _currentPP }
 	pMove.Move = GetInstance().GetMoveById(_moveId)
 	
 	return &pMove

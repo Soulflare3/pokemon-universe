@@ -47,6 +47,7 @@ type Game struct {
 
 	Chat				*Chat
 	Locations			*LocationStore
+	Items				*ItemStore
 
 	mutexCreatureList   *sync.RWMutex
 	mutexPlayerList     *sync.RWMutex
@@ -79,23 +80,30 @@ func (the *Game) Load() (LostIt bool) {
 
 	logger.Println(" - Loading locations")
 	if err := the.Locations.Load(); err != nil {
-		logger.Println(err)
+		logger.Println("[ERROR] Failed to load locations...")
+		LostIt = false
+	}
+	
+	logger.Println(" - Loading items")
+	if err := the.Items.Load(); !err {
+		logger.Println("[ERROR] Failed to load items...")
 		LostIt = false
 	}
 
 	logger.Println(" - Loading worldmap")
 	start := time.Now().UnixNano()
 	if err := g_map.Load(); err != nil {
-		logger.Println(err)
+		logger.Println("[ERROR] Failed to load worldmap...")
 		LostIt = false
 	} else {
 		logger.Printf(" - Map loaded in %dms\n", (time.Now().UnixNano()-start)/1e6)
 	}
 	
-	logger.Println("Loading NPCs and scripts")
+	logger.Println(" - Loading NPCs and scripts")
 	g_npc = NewNpcManager()
 	if !g_npc.Load() {
-		logger.Println("Failed to load NPC data...")
+		logger.Println("[ERROR] Failed to load NPC data...")
+		LostIt = false
 	}
 
 	return
@@ -170,14 +178,23 @@ func (g *Game) RemoveCreature(_guid uint64) {
 
 		delete(g.Creatures, _guid)
 
-		if object.GetType() == CTYPE_PLAYER {
-			// Join default channels
-			g.Chat.RemoveUserFromAllChannels(object.(*Player))
-		
+		if object.GetType() == CTYPE_PLAYER {			
 			g.mutexPlayerList.Lock()
 			defer g.mutexPlayerList.Unlock()
-			logger.Printf("[Logout] %d - %v logged out\n", object.GetUID(), object.GetName())
+			
+			// Remove from player list
 			delete(g.Players, _guid)
+			
+			playerObj := object.(*Player)
+			
+			// Remove from channels
+			g.Chat.RemoveUserFromAllChannels(playerObj)
+			
+			// Save all player data
+			playerObj.SaveData()
+			
+			logger.Printf("[Logout] %d - %v logged out\n", object.GetUID(), object.GetName())
+			
 		}
 		
 		// Remove creature from all visible creature lists

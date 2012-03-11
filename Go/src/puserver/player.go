@@ -36,6 +36,9 @@ type Player struct {
 
 	Pokemon			pkmn.PlayerPokemonList
 	PokemonParty	*pkmn.PokemonParty
+	
+	Backpack *Depot
+	Storage	*Depot
 
 	Location       	*Location
 	LastPokeCenter 	*Tile
@@ -54,6 +57,10 @@ func NewPlayer(_name string) *Player {
 
 	p.Pokemon = make(pkmn.PlayerPokemonList)
 	p.PokemonParty = pkmn.NewPokemonParty()
+	
+	p.Backpack = NewDepot(25)
+	p.Storage = NewDepot(100)
+	
 	p.lastStep = PUSYS_TIME()
 	p.moveSpeed = 250
 	p.VisibleCreatures = make(pul.CreatureList)
@@ -66,6 +73,8 @@ func NewPlayer(_name string) *Player {
 	return p
 }
 
+// --------------------- LOADING ----------------------------//
+
 func (p *Player) LoadData() bool {
 	// Load player info
 	if !p.loadPlayerInfo() {
@@ -74,6 +83,16 @@ func (p *Player) LoadData() bool {
 
 	// Load all pokemon player has
 	if !p.loadPokemon() {
+		return false
+	}
+	
+	// Load player storage items
+	if !p.loadItems() {
+		return false
+	}
+	
+	// Load player backpack
+	if !p.loadBackpack() {
 		return false
 	}
 
@@ -94,7 +113,7 @@ func (p *Player) loadPlayerInfo() bool {
 	defer result.Free()
 	row := result.FetchRow()
 	if row == nil {
-		logger.Printf("[Error] No pokemon data for player %s (DB ID: %d)\n", p.name, p.dbid)
+		logger.Printf("[Error] No player data for %s (DB ID: %d)\n", p.name, p.dbid)
 		return false
 	}
 
@@ -134,7 +153,7 @@ func (p *Player) loadPlayerInfo() bool {
 
 func (p *Player) loadPokemon() bool {
 	var query string = "SELECT idpokemon, nickname, bound, experience, iv_hp, iv_attack, iv_attack_spec, iv_defence, iv_defence_spec," +
-		" iv_speed, happiness, gender, in_party, party_slot, idplayer_pokemon, shiny, abilityId, damagedHp FROM player_pokemon WHERE idplayer='%d'"
+		" iv_speed, happiness, gender, in_party, party_slot, idplayer_pokemon, shiny, abilityId, damagedHp FROM player_pokemon WHERE idplayer='%d' AND in_party=1"
 	result, err := puh.DBQuerySelect(fmt.Sprintf(query, p.dbid))
 	if err != nil {
 		return false
@@ -155,12 +174,12 @@ func (p *Player) loadPokemon() bool {
 		pokemon.Nickname = puh.DBGetString(row[1])
 		pokemon.IsBound = puh.DBGetInt(row[2])
 		pokemon.Experience = puh.DBGetFloat64(row[3])
-		pokemon.Stats[0] = puh.DBGetInt(row[4])
-		pokemon.Stats[1] = puh.DBGetInt(row[5])
-		pokemon.Stats[2] = puh.DBGetInt(row[7])
-		pokemon.Stats[3] = puh.DBGetInt(row[6])
-		pokemon.Stats[4] = puh.DBGetInt(row[8])
-		pokemon.Stats[5] = puh.DBGetInt(row[9])
+		pokemon.Stats[0] = puh.DBGetInt(row[4]) // HP
+		pokemon.Stats[1] = puh.DBGetInt(row[5]) // Attack
+		pokemon.Stats[2] = puh.DBGetInt(row[7]) // Defence
+		pokemon.Stats[3] = puh.DBGetInt(row[6]) // Spec Attack
+		pokemon.Stats[4] = puh.DBGetInt(row[8]) // Spec Defence
+		pokemon.Stats[5] = puh.DBGetInt(row[9]) // Speed
 		pokemon.Happiness = puh.DBGetInt(row[10])
 		pokemon.Gender = puh.DBGetInt(row[11])
 		pokemon.InParty = puh.DBGetInt(row[12])
@@ -193,6 +212,182 @@ func (p *Player) loadPokemon() bool {
 	return true
 }
 
+func (p *Player) loadItems() bool {
+	var query string = "SELECT idplayer_items, iditem, count, slot FROM player_items WHERE idplayer=%d"
+	result, err := puh.DBQuerySelect(fmt.Sprintf(query, p.dbid))
+	if err != nil {
+		return false
+	}
+	
+	defer result.Free()
+	
+	for {
+		row := result.FetchRow()
+		if row == nil {
+			break
+		}
+		
+		dbid := puh.DBGetInt64(row[0])
+		itemId := puh.DBGetInt64(row[1])
+		count := puh.DBGetInt(row[2])
+		slot := puh.DBGetInt(row[3])
+		
+		item, _ := g_game.Items.GetItemByItemId(itemId)
+		newItem := item.Clone()
+		newItem.DbId = dbid
+		newItem.SetCount(count)
+		
+		p.Storage.AddItemObject(newItem, slot)
+	}
+	
+	return true
+}
+
+func (p *Player) loadBackpack() bool {
+	var query string = "SELECT idplayer_backpack, iditem, count, slot FROM player_babckpack WHERE idplayer=%d"
+	result, err := puh.DBQuerySelect(fmt.Sprintf(query, p.dbid))
+	if err != nil {
+		return false
+	}
+	
+	defer result.Free()
+	
+	for {
+		row := result.FetchRow()
+		if row == nil {
+			break
+		}
+		
+		dbid := puh.DBGetInt64(row[0])
+		itemId := puh.DBGetInt64(row[1])
+		count := puh.DBGetInt(row[2])
+		slot := puh.DBGetInt(row[3])
+		
+		item, _ := g_game.Items.GetItemByItemId(itemId)
+		newItem := item.Clone()
+		newItem.DbId = dbid
+		newItem.SetCount(count)
+		
+		p.Backpack.AddItemObject(newItem, slot)
+	}
+	
+	return true	
+}
+
+// --------------------- SAVING ----------------------------//
+
+func (p *Player) SaveData() {
+	p.savePlayerInfo()
+	p.savePokemon()
+	p.saveItems()
+	p.saveBackpack()
+}
+
+func (p *Player) savePlayerInfo() {
+	var query string 
+	query = fmt.Sprintf("UPDATE player SET position=%d, movement=%d, money=%d, idlocation=%d, idlocation=%d WHERE idplayer=%d", 
+						p.GetPosition().Hash(), 
+						p.GetMovement(), 
+						p.GetMoney(),
+						p.GetTile().GetLocation().GetId(),
+						p.dbid)
+	puh.DBQuery(query)
+	
+	// Save outfit
+	query = fmt.Sprintf("UPDATE player_outfit SET head=%d, nek=%d, upper=%d, lower=%d, feet=%d WHERE idplayer=%d",
+						p.GetOutfit().GetOutfitKey(pul.OUTFIT_HEAD),
+						p.GetOutfit().GetOutfitKey(pul.OUTFIT_NEK),
+						p.GetOutfit().GetOutfitKey(pul.OUTFIT_UPPER),
+						p.GetOutfit().GetOutfitKey(pul.OUTFIT_LOWER),
+						p.GetOutfit().GetOutfitKey(pul.OUTFIT_FEET))
+	puh.DBQuery(query)
+}
+
+func (p *Player) savePokemon() {
+	for index, pokemon := range p.PokemonParty.Party {
+		if pokemon != nil {
+			// Save pokemon info
+			saveQuery := "UPDATE player_pokemon SET "
+			saveQuery += "nickname='%v', bound=%d, experience=%d, iv_hp=%d, iv_attack=%d, iv_attack_spec=%d, iv_defence=%d, iv_defence_spec=%d, iv_speed=%d, happiness=%d, in_party=%d, party_slot=%d, held_item=%d "
+			saveQuery += "WHERE idplayer_pokemon=%d"
+			puh.DBQuery(fmt.Sprintf(saveQuery,
+								pokemon.Nickname,
+								pokemon.IsBound,
+								int(pokemon.Experience),
+								pokemon.Stats[0],
+								pokemon.Stats[1],
+								pokemon.Stats[3],
+								pokemon.Stats[2],
+								pokemon.Stats[4],
+								pokemon.Stats[5],
+								pokemon.Happiness,
+								pokemon.InParty,
+								index,
+								0,
+								pokemon.IdDb))
+			
+			// Save moves
+			pokemon.SaveMoves()
+		}
+	}
+}
+
+func (p *Player) saveItems() {
+	puh.DBStartTransaction()
+	
+	// Remove all items from database
+	if err := puh.DBQuery(fmt.Sprintf("DELETE FROM player_items WHERE idplayer=%d", p.dbid)); err != nil {
+		logger.Println("Failed to save player items!")
+		puh.DBRollback()
+	}
+	
+	// Insert all items in database
+	puh.DBCon.SetAutoCommit(false)
+	var err error = nil
+	for _, item := range(p.Storage.Items) {
+		if err = puh.DBQuery(fmt.Sprintf("INSERT INTO player_items (idplayer, iditem, count, slot) VALUES ('%d','%d','%d','%d')", p.dbid, item.DbId, item.Count, item.Slot)); err != nil {
+			break
+		}
+	}
+	
+	if err == nil {
+		puh.DBCommit()
+	} else {
+		puh.DBRollback()
+	}
+	
+	puh.DBCon.SetAutoCommit(true)
+}
+
+func (p *Player) saveBackpack() {
+	puh.DBStartTransaction()
+	
+	// Remove all items from database
+	if err := puh.DBQuery(fmt.Sprintf("DELETE FROM player_backpack WHERE idplayer=%d", p.dbid)); err != nil {
+		logger.Println("Failed to save player items!")
+		puh.DBRollback()
+	}
+	
+	// Insert all items in database
+	puh.DBCon.SetAutoCommit(false)
+	var err error = nil
+	for _, item := range(p.Backpack.Items) {
+		if err = puh.DBQuery(fmt.Sprintf("INSERT INTO player_backpack (idplayer, iditem, count, slot) VALUES ('%d','%d','%d','%d')", p.dbid, item.DbId, item.Count, item.Slot)); err != nil {
+			break
+		}
+	}
+	
+	if err == nil {
+		puh.DBCommit()
+	} else {
+		puh.DBRollback()
+	}
+	
+	puh.DBCon.SetAutoCommit(true)
+}
+
+// --------------------- INTERFACE ----------------------------//
+
 func (p *Player) GetType() int {
 	return CTYPE_PLAYER
 }
@@ -214,6 +409,10 @@ func (p *Player) SetMoney(_money int) int {
 	if p.Money += _money; p.Money < 0 {
 		p.Money = 0
 	}
+	return p.Money
+}
+
+func (p *Player) GetMoney() int {
 	return p.Money
 }
 
