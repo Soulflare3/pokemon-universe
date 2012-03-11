@@ -82,12 +82,14 @@ func (the *Game) Load() (LostIt bool) {
 	if err := the.Locations.Load(); err != nil {
 		logger.Println("[ERROR] Failed to load locations...")
 		LostIt = false
+		return
 	}
 	
 	logger.Println(" - Loading items")
 	if err := the.Items.Load(); !err {
 		logger.Println("[ERROR] Failed to load items...")
 		LostIt = false
+		return
 	}
 
 	logger.Println(" - Loading worldmap")
@@ -95,6 +97,7 @@ func (the *Game) Load() (LostIt bool) {
 	if err := g_map.Load(); err != nil {
 		logger.Println("[ERROR] Failed to load worldmap...")
 		LostIt = false
+		return
 	} else {
 		logger.Printf(" - Map loaded in %dms\n", (time.Now().UnixNano()-start)/1e6)
 	}
@@ -104,6 +107,7 @@ func (the *Game) Load() (LostIt bool) {
 	if !g_npc.Load() {
 		logger.Println("[ERROR] Failed to load NPC data...")
 		LostIt = false
+		return
 	}
 
 	return

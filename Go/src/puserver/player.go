@@ -77,21 +77,25 @@ func NewPlayer(_name string) *Player {
 
 func (p *Player) LoadData() bool {
 	// Load player info
+	logger.Println("Loading player info")
 	if !p.loadPlayerInfo() {
 		return false
 	}
 
 	// Load all pokemon player has
+	logger.Println("Loading player pokemon")
 	if !p.loadPokemon() {
 		return false
 	}
 	
 	// Load player storage items
+	logger.Println("Loading player items")
 	if !p.loadItems() {
 		return false
 	}
 	
 	// Load player backpack
+	logger.Println("Loading player backpack")
 	if !p.loadBackpack() {
 		return false
 	}
@@ -122,7 +126,8 @@ func (p *Player) loadPlayerInfo() bool {
 	tile, ok := g_map.GetTile(puh.DBGetInt64(row[2]))
 	if !ok {
 		logger.Printf("[Warning] Could not load position info for player %s (%d)\n", p.name, p.dbid)
-		tile, _ = g_map.GetTileFrom(-510, -236, 0)
+		//tile, _ = g_map.GetTileFrom(-510, -236, 0)
+		tile, _ = g_map.GetTileFrom(0, 0, 1)
 		if tile == nil {
 			logger.Println("[Error] Could not load default position")
 			return false
@@ -153,7 +158,7 @@ func (p *Player) loadPlayerInfo() bool {
 
 func (p *Player) loadPokemon() bool {
 	var query string = "SELECT idpokemon, nickname, bound, experience, iv_hp, iv_attack, iv_attack_spec, iv_defence, iv_defence_spec," +
-		" iv_speed, happiness, gender, in_party, party_slot, idplayer_pokemon, shiny, abilityId, damagedHp FROM player_pokemon WHERE idplayer='%d' AND in_party=1"
+		" iv_speed, happiness, gender, in_party, party_slot, idplayer_pokemon, shiny, idability, damaged_hp FROM player_pokemon WHERE idplayer='%d' AND in_party=1"
 	result, err := puh.DBQuerySelect(fmt.Sprintf(query, p.dbid))
 	if err != nil {
 		return false
@@ -244,7 +249,7 @@ func (p *Player) loadItems() bool {
 }
 
 func (p *Player) loadBackpack() bool {
-	var query string = "SELECT idplayer_backpack, iditem, count, slot FROM player_babckpack WHERE idplayer=%d"
+	var query string = "SELECT idplayer_backpack, iditem, count, slot FROM player_backpack WHERE idplayer=%d"
 	result, err := puh.DBQuerySelect(fmt.Sprintf(query, p.dbid))
 	if err != nil {
 		return false
@@ -285,7 +290,7 @@ func (p *Player) SaveData() {
 
 func (p *Player) savePlayerInfo() {
 	var query string 
-	query = fmt.Sprintf("UPDATE player SET position=%d, movement=%d, money=%d, idlocation=%d, idlocation=%d WHERE idplayer=%d", 
+	query = fmt.Sprintf("UPDATE player SET position=%d, movement=%d, money=%d, idlocation=%d WHERE idplayer=%d", 
 						p.GetPosition().Hash(), 
 						p.GetMovement(), 
 						p.GetMoney(),
@@ -299,7 +304,8 @@ func (p *Player) savePlayerInfo() {
 						p.GetOutfit().GetOutfitKey(pul.OUTFIT_NEK),
 						p.GetOutfit().GetOutfitKey(pul.OUTFIT_UPPER),
 						p.GetOutfit().GetOutfitKey(pul.OUTFIT_LOWER),
-						p.GetOutfit().GetOutfitKey(pul.OUTFIT_FEET))
+						p.GetOutfit().GetOutfitKey(pul.OUTFIT_FEET),
+						p.dbid)
 	puh.DBQuery(query)
 }
 

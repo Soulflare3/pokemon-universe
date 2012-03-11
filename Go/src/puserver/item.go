@@ -84,6 +84,9 @@ func (s *ItemStore) Load() bool {
 	defer result.Free()
 	for {
 		row := result.FetchRow()
+		if row == nil {
+			break
+		}
 		
 		itemId := puh.DBGetInt64(row[0])
 		identifier := puh.DBGetString(row[1])

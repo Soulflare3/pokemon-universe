@@ -152,8 +152,10 @@ func (s *Server) ParseFirstMessage(conn *websocket.Conn, packet *pnet.Packet) {
 		
 		if !ret {
 			firstMessage.Status = pnetmsg.LOGINSTATUS_WRONGACCOUNT
+			logger.Printf("[LOGIN] %s - Wrong Account - %s", firstMessage.Username, firstMessage.Password)
 		} else {
 			// Account exists and password is correct
+			logger.Println("LoadPlayerProfile: 0")
 			ret, player := s.LoadPlayerProfile(playerId)
 
 			if !ret || player == nil {
@@ -222,16 +224,15 @@ func (s *Server) LoadPlayerProfile(_playerId int64) (ret bool, p *Player) {
 	p = nil
 	ret = false
 
-	var queryString string = "SELECT idplayer, name FROM player WHERE idPlayer='%d'"
+	var queryString string = fmt.Sprintf("SELECT idplayer, name FROM player WHERE idplayer=%d", _playerId)
 	result, err := puh.DBQuerySelect(queryString);
 	if err != nil {
-		logger.Printf("LoadPlayerProfile: %v\n\r", err)
 		return
 	}
 
 	row := result.FetchMap()
-	defer result.Free()
 	if row == nil {
+		result.Free()
 		return
 	}
 	idPlayer := puh.DBGetInt(row["idplayer"])
