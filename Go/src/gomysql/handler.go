@@ -43,7 +43,7 @@ func handleError(p *packetError, c *Client) (err error) {
 		c.serverStatus ^= SERVER_MORE_RESULTS_EXISTS
 	}
 	// Return error
-	return &ServerError{Errno(p.errno), Errstr(p.error)}
+	return &ServerError{Errno(p.errno), ErrorMsg(p.error)}
 }
 
 // EOF packet handler
@@ -125,7 +125,7 @@ func handleRow(p *packetRowData, c *Client, r *Result) (err error) {
 	// Iterate fields to get types
 	for i, f := range r.fields {
 		// Check null
-		if len(p.row[i].([]byte)) == 0 {
+		if p.row[i].IsNull() {
 			field = nil
 		} else {
 			switch f.Type {
@@ -139,34 +139,28 @@ func handleRow(p *packetRowData, c *Client, r *Result) (err error) {
 				if err != nil {
 					return
 				}
-
 			// Floats and doubles
 			case FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
 				field, err = strconv.ParseFloat(string(p.row[i].([]byte)), 64)
 				if err != nil {
 					return
 				}
-
 			// Strings
 			case FIELD_TYPE_DECIMAL, FIELD_TYPE_NEWDECIMAL, FIELD_TYPE_VARCHAR, FIELD_TYPE_VAR_STRING, FIELD_TYPE_STRING:
-				field = string(p.row[i].([]byte))
-
+				field = string(p.row[i].Data())
 			// Anything else
 			default:
-				field = p.row[i]
+				field = p.row[i].Data()
 			}
 		}
-
 		// Add to row
 		row = append(row, field)
 	}
-
 	// Stored result
 	if r.mode == RESULT_STORED {
 		// Cast and append the row
 		r.rows = append(r.rows, Row(row))
 	}
-
 	// Used result
 	if r.mode == RESULT_USED {
 		// Only save 1 row, overwrite previous
@@ -206,17 +200,17 @@ func handleParam(p *packetParameter, c *Client) (err error) {
 }
 
 // Binary row packet handler
-func handleBinaryRow(p *packetRowBinary, c *Client, r *Result) (err error) {
+func handleBinaryRow(p *packetRowBinary, c *Client, r *Result) error {
 	// Log binary row result
 	c.log(1, "[%d] Received binary row packet", p.sequence)
 	// Check sequence
-	err = c.checkSequence(p.sequence)
+	err := c.checkSequence(p.sequence)
 	if err != nil {
-		return
+		return err
 	}
 	// Check if there is a result set
 	if r == nil || r.mode == RESULT_FREE {
-		return
+		return nil
 	}
 	// Read data into fields
 	var row []interface{}
@@ -231,6 +225,8 @@ func handleBinaryRow(p *packetRowBinary, c *Client, r *Result) (err error) {
 		posBit := i - (posByte * 8) + 2
 		if nbm[posByte]&(1<<uint8(posBit)) != 0 {
 			field = nil
+			// PC:  this is necessary to add the field to the row slice
+			row = append(row, field)
 			continue
 		}
 		// Otherwise use field type
@@ -281,7 +277,7 @@ func handleBinaryRow(p *packetRowBinary, c *Client, r *Result) (err error) {
 			FIELD_TYPE_VAR_STRING, FIELD_TYPE_STRING, FIELD_TYPE_GEOMETRY:
 			num, n, _err := btolcb(p.data[pos:])
 			if _err != nil {
-				return _err
+				return err
 			}
 			field = p.data[pos+uint64(n) : pos+uint64(n)+num]
 			pos += uint64(n) + num
@@ -289,7 +285,7 @@ func handleBinaryRow(p *packetRowBinary, c *Client, r *Result) (err error) {
 		case FIELD_TYPE_DATE:
 			num, n, _err := btolcb(p.data[pos:])
 			if _err != nil {
-				return _err
+				return err
 			}
 			// New date
 			d := Date{}
@@ -311,7 +307,7 @@ func handleBinaryRow(p *packetRowBinary, c *Client, r *Result) (err error) {
 		case FIELD_TYPE_TIME:
 			num, n, _err := btolcb(p.data[pos:])
 			if _err != nil {
-				return _err
+				return err
 			}
 			// New time
 			t := Time{}
@@ -333,7 +329,7 @@ func handleBinaryRow(p *packetRowBinary, c *Client, r *Result) (err error) {
 		case FIELD_TYPE_TIMESTAMP, FIELD_TYPE_DATETIME:
 			num, n, _err := btolcb(p.data[pos:])
 			if _err != nil {
-				return _err
+				return err
 			}
 			// New datetime
 			d := DateTime{}
@@ -349,12 +345,18 @@ func handleBinaryRow(p *packetRowBinary, c *Client, r *Result) (err error) {
 			d.Month = p.data[pos+uint64(n)+2]
 			// Day 1 byte
 			d.Day = p.data[pos+uint64(n)+3]
-			// Hour 1 byte
-			d.Hour = p.data[pos+uint64(n)+4]
-			// Minute 1 byte
-			d.Minute = p.data[pos+uint64(n)+5]
-			// Second 1 byte
-			d.Second = p.data[pos+uint64(n)+6]
+                        if uint64(len(p.data)) > pos+uint64(n)+4 {
+                                // Hour 1 byte
+                                d.Hour = p.data[pos+uint64(n)+4]
+                        }
+                        if uint64(len(p.data)) > pos+uint64(n)+5 {
+                                // Minute 1 byte
+                                d.Minute = p.data[pos+uint64(n)+5]
+                        }
+                        if uint64(len(p.data)) > pos+uint64(n)+6 {
+                                // Second 1 byte
+                                d.Second = p.data[pos+uint64(n)+6]
+                        }
 			field = d
 			pos += uint64(n) + num
 		}
@@ -371,5 +373,5 @@ func handleBinaryRow(p *packetRowBinary, c *Client, r *Result) (err error) {
 		// Only save 1 row, overwrite previous
 		r.rows = []Row{Row(row)}
 	}
-	return
+	return nil
 }

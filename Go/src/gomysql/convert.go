@@ -6,6 +6,7 @@
 package mysql
 
 import (
+	"fmt"
 	"io"
 	"math"
 	"strconv"
@@ -235,8 +236,10 @@ func atoui64(i interface{}) (n uint64) {
 			panic("Invalid string for integer conversion")
 		}
 		n = uint64(in)
+	case nil:
+		return 0
 	default:
-		panic("Not a numeric type")
+		panic(fmt.Sprintf("Not a numeric type: %v", t))
 	}
 	return
 }
@@ -254,7 +257,10 @@ func atof64(i interface{}) (f float64) {
 		if err != nil {
 			panic("Invalid string for floating point conversion")
 		}
+	case nil:
+		f = 0.0
 	default:
+		fmt.Printf("type: %v\n", t)
 		panic("Not a floating point type")
 	}
 	return

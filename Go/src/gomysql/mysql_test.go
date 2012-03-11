@@ -9,18 +9,21 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"sync"
 	"testing"
 )
 
-const (
-	// Testing credentials, run the following on server client prior to running:
-	// create database gomysql_test;
-	// create database gomysql_test2;
-	// create database gomysql_test3;
-	// create user gomysql_test@localhost identified by 'abc123';
-	// grant all privileges on gomysql_test.* to gomysql_test@localhost;
-	// grant all privileges on gomysql_test2.* to gomysql_test@localhost;
+const instructions = `To run the GoMySQL tests, run the following on the server first:
 
+   create database gomysql_test;
+   create database gomysql_test2;
+   create database gomysql_test3;
+   create user gomysql_test@localhost identified by 'abc123';
+   grant all privileges on gomysql_test.* to gomysql_test@localhost;
+   grant all privileges on gomysql_test2.* to gomysql_test@localhost;
+`
+
+const (
 	// Testing settings
 	TEST_HOST       = "localhost"
 	TEST_PORT       = "3306"
@@ -41,6 +44,7 @@ const (
 	UPDATE_SIMPLE      = "UPDATE simple SET `text` = '%s', `datetime` = NOW() WHERE id = %d"
 	UPDATE_SIMPLE_STMT = "UPDATE simple SET `text` = ?, `datetime` = NOW() WHERE id = ?"
 	DROP_SIMPLE        = "DROP TABLE `simple`"
+	DROP_SIMPLE_MAYBE  = "DROP TABLE IF EXISTS `simple`"
 
 	// All types table queries
 	CREATE_ALLTYPES = "CREATE TABLE `all_types` (`id` SERIAL NOT NULL, `tiny_int` TINYINT NOT NULL, `tiny_uint` TINYINT UNSIGNED NOT NULL, `small_int` SMALLINT NOT NULL, `small_uint` SMALLINT UNSIGNED NOT NULL, `medium_int` MEDIUMINT NOT NULL, `medium_uint` MEDIUMINT UNSIGNED NOT NULL, `int` INT NOT NULL, `uint` INT UNSIGNED NOT NULL, `big_int` BIGINT NOT NULL, `big_uint` BIGINT UNSIGNED NOT NULL, `decimal` DECIMAL(10,4) NOT NULL, `float` FLOAT NOT NULL, `double` DOUBLE NOT NULL, `real` REAL NOT NULL, `bit` BIT(32) NOT NULL, `boolean` BOOLEAN NOT NULL, `date` DATE NOT NULL, `datetime` DATETIME NOT NULL, `timestamp` TIMESTAMP NOT NULL, `time` TIME NOT NULL, `year` YEAR NOT NULL, `char` CHAR(32) NOT NULL, `varchar` VARCHAR(32) NOT NULL, `tiny_text` TINYTEXT NOT NULL, `text` TEXT NOT NULL, `medium_text` MEDIUMTEXT NOT NULL, `long_text` LONGTEXT NOT NULL, `binary` BINARY(32) NOT NULL, `var_binary` VARBINARY(32) NOT NULL, `tiny_blob` TINYBLOB NOT NULL, `medium_blob` MEDIUMBLOB NOT NULL, `blob` BLOB NOT NULL, `long_blob` LONGBLOB NOT NULL, `enum` ENUM('a','b','c','d','e') NOT NULL, `set` SET('a','b','c','d','e') NOT NULL, `geometry` GEOMETRY NOT NULL) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci COMMENT = 'GoMySQL Test Suite All Types Table'"
@@ -48,7 +52,10 @@ const (
 )
 
 var (
-	db  *Client
+	db        *Client
+
+	checkOnce sync.Once
+	skipTests bool
 	err error
 )
 
@@ -60,8 +67,40 @@ type SimpleRow struct {
 	Date   string
 }
 
+func verifyConnections() {
+	db, err = DialTCP(TEST_HOST, TEST_USER, TEST_PASSWD, TEST_DBNAME)
+	if db != nil {
+		db.Close()
+	}
+	if err != nil {
+		skipTests = true
+		os.Stderr.Write([]byte(instructions))
+		return
+	}
+	db, err = DialUnix(TEST_SOCK, TEST_USER, TEST_PASSWD, TEST_DBNAME)
+	if db != nil {
+		db.Close()
+	}
+	if err != nil {
+		skipTests = true
+		os.Stderr.Write([]byte(instructions))
+		return
+	}
+}
+
+func skipTest(t *testing.T) bool {
+	checkOnce.Do(verifyConnections)
+	if skipTests {
+		t.Logf("skipping test; see instructions")
+	}
+	return skipTests
+}
+
 // Test connect to server via TCP
 func TestDialTCP(t *testing.T) {
+	if skipTest(t) {
+		return
+	}
 	t.Logf("Running DialTCP test to %s:%s", TEST_HOST, TEST_PORT)
 	db, err = DialTCP(TEST_HOST, TEST_USER, TEST_PASSWD, TEST_DBNAME)
 	if err != nil {
@@ -77,6 +116,9 @@ func TestDialTCP(t *testing.T) {
 
 // Test connect to server via Unix socket
 func TestDialUnix(t *testing.T) {
+	if skipTest(t) {
+		return
+	}
 	t.Logf("Running DialUnix test to %s", TEST_SOCK)
 	db, err = DialUnix(TEST_SOCK, TEST_USER, TEST_PASSWD, TEST_DBNAME)
 	if err != nil {
@@ -92,6 +134,9 @@ func TestDialUnix(t *testing.T) {
 
 // Test connect to server with unprivileged database
 func TestDialUnixUnpriv(t *testing.T) {
+	if skipTest(t) {
+		return
+	}
 	t.Logf("Running DialUnix test to unprivileged database %s", TEST_DBNAMEUP)
 	db, err = DialUnix(TEST_SOCK, TEST_USER, TEST_PASSWD, TEST_DBNAMEUP)
 	if err != nil {
@@ -107,6 +152,9 @@ func TestDialUnixUnpriv(t *testing.T) {
 
 // Test connect to server with nonexistant database
 func TestDialUnixNonex(t *testing.T) {
+	if skipTest(t) {
+		return
+	}
 	t.Logf("Running DialUnix test to nonexistant database %s", TEST_DBNAMEBAD)
 	db, err = DialUnix(TEST_SOCK, TEST_USER, TEST_PASSWD, TEST_DBNAMEBAD)
 	if err != nil {
@@ -122,6 +170,9 @@ func TestDialUnixNonex(t *testing.T) {
 
 // Test connect with bad password
 func TestDialUnixBadPass(t *testing.T) {
+	if skipTest(t) {
+		return
+	}
 	t.Logf("Running DialUnix test with bad password")
 	db, err = DialUnix(TEST_SOCK, TEST_USER, TEST_BAD_PASSWD, TEST_DBNAME)
 	if err != nil {
@@ -137,6 +188,9 @@ func TestDialUnixBadPass(t *testing.T) {
 
 // Test queries on a simple table (create database, select, insert, update, drop database)
 func TestSimple(t *testing.T) {
+	if skipTest(t) {
+		return
+	}
 	t.Logf("Running simple table tests")
 	db, err = DialUnix(TEST_SOCK, TEST_USER, TEST_PASSWD, TEST_DBNAME)
 	if err != nil {
@@ -145,6 +199,7 @@ func TestSimple(t *testing.T) {
 	}
 
 	t.Logf("Create table")
+	db.Query(DROP_SIMPLE_MAYBE)
 	err = db.Query(CREATE_SIMPLE)
 	if err != nil {
 		t.Logf("Error %s", err)
@@ -185,8 +240,12 @@ func TestSimple(t *testing.T) {
 			break
 		}
 		id := row[0].(uint64)
-		num, str1, str2 := strconv.FormatInt(row[1].(int64), 10), row[2].(string), string(row[3].([]byte))
-		if rowMap[id][0] != num || rowMap[id][1] != str1 || rowMap[id][2] != str2 {
+		num, str1, str2 := strconv.Itoa64(row[1].(int64)), row[2].(string), string(row[3].([]byte))
+		expectRow, ok := rowMap[id]
+		if !ok {
+			t.Fatalf("read unexpected row number %d", id)
+		}
+		if expectRow[0] != num || expectRow[1] != str1 || expectRow[2] != str2 {
 			t.Logf("String from database doesn't match local string")
 			t.Fail()
 		}
@@ -234,7 +293,11 @@ func TestSimple(t *testing.T) {
 			break
 		}
 		id := row[0].(uint64)
+<<<<<<< HEAD
+		num, str1, str2 := strconv.Itoa64(row[1].(int64)), row[2].(string), string(row[3].([]byte))
+=======
 		num, str1, str2 := strconv.FormatInt(row[1].(int64), 10), row[2].(string), string(row[3].([]byte))
+>>>>>>> 73a1111ad461bba14db1fc51365102fedd532d2c
 		if rowMap[id][0] != num || rowMap[id][1] != str1 || rowMap[id][2] != str2 {
 			t.Logf("%#v %#v", rowMap[id], row)
 			t.Logf("String from database doesn't match local string")
@@ -264,41 +327,15 @@ func TestSimple(t *testing.T) {
 	}
 }
 
-// Test queries on a simple table (create database, select, insert, update, drop database) using a statement
-func TestSimpleStatement(t *testing.T) {
-	t.Logf("Running simple table statement tests")
-	db, err = DialUnix(TEST_SOCK, TEST_USER, TEST_PASSWD, TEST_DBNAME)
-	if err != nil {
-		t.Logf("Error %s", err)
-		t.Fail()
-	}
-
-	t.Logf("Init statement")
+func insert1000Records(t *testing.T, db *Client) map[uint64][]string {
 	stmt, err := db.InitStmt()
 	if err != nil {
-		t.Logf("Error %s", err)
-		t.Fail()
+		t.Fatalf("InitStmt: %v", err)
 	}
 
-	t.Logf("Prepare create table")
-	err = stmt.Prepare(CREATE_SIMPLE)
-	if err != nil {
-		t.Logf("Error %s", err)
-		t.Fail()
-	}
-
-	t.Logf("Execute create table")
-	err = stmt.Execute()
-	if err != nil {
-		t.Logf("Error %s", err)
-		t.Fail()
-	}
-
-	t.Logf("Prepare insert")
 	err = stmt.Prepare(INSERT_SIMPLE_STMT)
 	if err != nil {
-		t.Logf("Error %s", err)
-		t.Fail()
+		t.Logf("Prepare insert: %v", err)
 	}
 
 	t.Logf("Insert 1000 records")
@@ -307,16 +344,42 @@ func TestSimpleStatement(t *testing.T) {
 		num, str1, str2 := rand.Int(), randString(32), randString(128)
 		err = stmt.BindParams(num, str1, str2)
 		if err != nil {
-			t.Logf("Error %s", err)
-			t.Fail()
+			t.Fatalf("Error %s", err)
 		}
 		err = stmt.Execute()
 		if err != nil {
-			t.Logf("Error %s", err)
-			t.Fail()
+			t.Fatalf("Error %s", err)
 		}
 		row := []string{fmt.Sprintf("%d", num), str1, str2}
 		rowMap[stmt.LastInsertId] = row
+	}
+	return rowMap
+}
+
+// Test queries on a simple table (create database, select, insert, update, drop database) using a statement
+func TestSimpleStatement(t *testing.T) {
+	if skipTest(t) {
+		return
+	}
+	t.Logf("Running simple table statement tests")
+	db, err = DialUnix(TEST_SOCK, TEST_USER, TEST_PASSWD, TEST_DBNAME)
+	if err != nil {
+		t.Logf("Error %s", err)
+		t.Fail()
+	}
+
+	db.Query(DROP_SIMPLE_MAYBE)
+	err := db.Query(CREATE_SIMPLE)
+	if err != nil {
+		t.Fatalf("create table: %v", err)
+	}
+	defer db.Query(DROP_SIMPLE)
+
+	rowMap := insert1000Records(t, db)
+
+	stmt, err := db.InitStmt()
+	if err != nil {
+		t.Fatalf("InitStmt: %v", err)
 	}
 
 	t.Logf("Prepare select")
@@ -445,6 +508,53 @@ func TestSimpleStatement(t *testing.T) {
 	if err != nil {
 		t.Logf("Error %s", err)
 		t.Fail()
+	}
+}
+
+func TestStatementUseResult(t *testing.T) {
+	if skipTest(t) {
+		return
+	}
+	db, err := DialUnix(TEST_SOCK, TEST_USER, TEST_PASSWD, TEST_DBNAME)
+	if err != nil {
+		t.Fatalf("dial error: %v", err)
+	}
+	defer db.Close()
+
+	db.Query(DROP_SIMPLE_MAYBE)
+	err = db.Query(CREATE_SIMPLE)
+	if err != nil {
+		t.Fatalf("create table: %v", err)
+	}
+	defer db.Query(DROP_SIMPLE)
+
+	insert1000Records(t, db)
+	stmt, err := db.Prepare(SELECT_SIMPLE)
+	if err != nil {
+		t.Fatalf("Prepare select: %v", err)
+	}
+	err = stmt.Execute()
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+	res, err := stmt.UseResult()
+	if err != nil {
+		t.Fatalf("UseResult: %v", err)
+	}
+	nRows := 0
+	for {
+		row := res.FetchRow()
+		if row == nil {
+			break
+		}
+		nRows++
+	}
+	if nRows != 1000 {
+		t.Errorf("expected 1000 rows; got %d", nRows)
+	}
+	err = res.Free()
+	if err != nil {
+		t.Logf("Free result: %s", err)
 	}
 }
 

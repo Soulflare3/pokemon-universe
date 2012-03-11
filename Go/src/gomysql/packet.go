@@ -68,7 +68,7 @@ func (p *packetBase) readSlice(data []byte, delim byte) (slice []byte, err error
 // Read length coded string
 func (p *packetBase) readLengthCodedString(data []byte) (s string, n int, err error) {
 	// Read bytes and convert to string
-	b, n, err := p.readLengthCodedBytes(data)
+	b, n, _, err := p.readLengthCodedBytes(data)
 	if err != nil {
 		return
 	}
@@ -87,6 +87,13 @@ func (p *packetBase) readLengthCodedBytes(data []byte) (b []byte, n int, err err
 		err = io.EOF
 		return
 	}
+	// Check if null (only used for Row data)
+	if data[0] == 251 {
+		null = true
+	} else {
+		null = false
+	}
+
 	// Get bytes
 	b = data[n : n+int(num)]
 	n += int(num)
@@ -591,18 +598,47 @@ func (p *packetField) read(data []byte) (err error) {
 	return
 }
 
+// Column Value
+type ColumnValue interface {
+	IsNull() bool
+	Data() []byte
+}
+
+// Non Null Column Value
+type nonNullColumnValue []byte
+
+func (nonNullColumnValue) IsNull() bool {
+	return false
+}
+
+func (n nonNullColumnValue) Data() []byte {
+	return n
+}
+
+// Null Column Value
+type nullColumnValue []byte
+
+func (nullColumnValue) IsNull() bool {
+	return true
+}
+
+func (nullColumnValue) Data() []byte {
+	return nil
+}
+
 // Row data struct
 type packetRowData struct {
 	packetBase
-	row []interface{}
+	row []ColumnValue
 }
 
 // Row data packet reader
-func (p *packetRowData) read(data []byte) (err error) {
+func (p *packetRowData) read(data []byte) error {
 	// Recover errors
 	defer func() {
 		if e := recover(); e != nil {
-			err = &ClientError{CR_MALFORMED_PACKET, CR_MALFORMED_PACKET_STR}
+			// err := &ClientError{CR_MALFORMED_PACKET, CR_MALFORMED_PACKET_STR}
+			return
 		}
 	}()
 	// Position
@@ -610,19 +646,23 @@ func (p *packetRowData) read(data []byte) (err error) {
 	// Loop until end of packet
 	for {
 		// Read string
-		b, n, _err := p.readLengthCodedBytes(data[pos:])
-		if _err != nil {
-			return _err
+		b, n, null, err := p.readLengthCodedBytes(data[pos:])
+		if err != nil {
+			return err
 		}
 		// Add to slice
-		p.row = append(p.row, b)
+		if null {
+			p.row = append(p.row, nullColumnValue(nil))
+		} else {
+			p.row = append(p.row, nonNullColumnValue(b))
+		}
 		// Increment position and check for end of packet
 		pos += n
 		if pos == len(data) {
 			break
 		}
 	}
-	return
+	return nil
 }
 
 // Prepare ok struct

@@ -124,7 +124,7 @@ func DialUnix(raddr, user, passwd string, dbname ...string) (c *Client, err erro
 }
 
 // Connect to the server
-func (c *Client) Connect(network, raddr, user, passwd string, dbname ...string) (err error) {
+func (c *Client) Connect(network, raddr, user, passwd string, dbname ...string) error {
 	// Log connect
 	c.log(1, "=== Begin connect ===")
 	// Check not already connected
@@ -142,13 +142,13 @@ func (c *Client) Connect(network, raddr, user, passwd string, dbname ...string) 
 		c.dbname = dbname[0]
 	}
 	// Call connect
-	err = c.connect()
+	err := c.connect()
 	if err != nil {
-		return
+		return err
 	}
 	// Set connected
 	c.connected = true
-	return
+	return nil
 }
 
 // Close connection to server
@@ -446,8 +446,8 @@ func (c *Client) reset() {
 }
 
 // Format errors
-func (c *Client) fmtError(str Errstr, args ...interface{}) Errstr {
-	return Errstr(fmt.Sprintf(string(str), args...))
+²func (c *Client) fmtError(str ErrorMsg, args ...interface{}) ErrorMsg {
+	return ErrorMsg(fmt.Sprintf(string(str), args...))
 }
 
 // Logging
@@ -597,7 +597,7 @@ func (c *Client) dial() (err error) {
 		}
 		// Log error
 		if cErr, ok := err.(*ClientError); ok {
-			c.log(1, string(cErr.Errstr))
+			c.log(1, string(cErr.ErrorMsg))
 		}
 		return
 	}
@@ -783,7 +783,7 @@ func (c *Client) command(command command, args ...interface{}) (err error) {
 }
 
 // Get field packets for a result
-func (c *Client) getFields() (error) {
+func (c *Client) getFields() error {
 	// Check for a valid result
 	if c.result == nil {
 		return &ClientError{CR_NO_RESULT_SET, CR_NO_RESULT_SET_STR}
@@ -815,7 +815,7 @@ func (c *Client) getRow() (eof bool, err error) {
 }
 
 // Get all rows for the result
-func (c *Client) getAllRows() (error) {
+func (c *Client) getAllRows() error {
 	for {
 		eof, err := c.getRow()
 		if err != nil {
