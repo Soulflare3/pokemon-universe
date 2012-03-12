@@ -121,7 +121,7 @@ type ClientError struct {
 // Convert to string
 func (e *ClientError) Error() string {
 	return fmt.Sprintf("#%d %s", e.Errno, e.Errstr)
-}
+} 
 
 // Server error struct
 type ServerError struct {
