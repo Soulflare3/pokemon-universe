@@ -411,14 +411,13 @@ func (c *Client) ReceiveEditNpc(_packet *Packet) {
 		if result == nil {
 			
 			outfitQuery := fmt.Sprintf("UPDATE npc_outfit SET head=%d, nek=%d, upper=%d, lower=%d, feet=%d WHERE idnpc = %d", head, nek, upper, lower, feet, npcId)
-			fmt.Printf(outfitQuery + "\n")
 			
 			result := puh.DBQuery(outfitQuery)
 			
 			if result == nil {
 			
-				g_npc.AddNpc(int(npcId), npcName, 0, 0, 0, 0, 0)
-				g_server.SendUpdateNpcToClients()
+				g_npc.AddNpc(int(npcId), npcName, int(head), int(nek), int(upper), int(lower), int(feet))
+				g_server.SendUpdateNpcToClients(int(npcId))
 			}
 		}
 	}
@@ -509,10 +508,10 @@ func (c *Client) SendNpcList() {
 		packet.AddUint16(uint16(index))
 		value := g_npc.NpcName[index]
 		head := uint16(g_npc.Head[index])
-		nek := uint16(g_npc.Head[index])
-		upper := uint16(g_npc.Head[index])
-		lower := uint16(g_npc.Head[index])
-		feet := uint16(g_npc.Head[index])
+		nek := uint16(g_npc.Nek[index])
+		upper := uint16(g_npc.Upper[index])
+		lower := uint16(g_npc.Lower[index])
+		feet := uint16(g_npc.Feet[index])
 		
 		packet.AddString(value)
 		packet.AddUint16(head)
@@ -532,10 +531,10 @@ func (c *Client) SendNewNpc() {
 	packet.AddUint16(uint16(index))
 	value := g_npc.NpcName[index]
 	head := uint16(g_npc.Head[index])
-	nek := uint16(g_npc.Head[index])
-	upper := uint16(g_npc.Head[index])
-	lower := uint16(g_npc.Head[index])
-	feet := uint16(g_npc.Head[index])
+	nek := uint16(g_npc.Nek[index])
+	upper := uint16(g_npc.Upper[index])
+	lower := uint16(g_npc.Lower[index])
+	feet := uint16(g_npc.Feet[index])
 	
 	packet.AddString(value)
 	packet.AddUint16(head)
@@ -547,17 +546,16 @@ func (c *Client) SendNewNpc() {
 	c.Send(packet)
 }
 
-func (c *Client) SendUpdateNpc() {
+func (c *Client) SendUpdateNpc(id int) {
 	packet := NewPacketExt(0x06)
 	
-	index := len(g_npc.NpcName) 
-	packet.AddUint16(uint16(index))
-	value := g_npc.NpcName[index]
-	head := uint16(g_npc.Head[index])
-	nek := uint16(g_npc.Head[index])
-	upper := uint16(g_npc.Head[index])
-	lower := uint16(g_npc.Head[index])
-	feet := uint16(g_npc.Head[index])
+	packet.AddUint16(uint16(id))
+	value := g_npc.NpcName[id]
+	head := uint16(g_npc.Head[id])
+	nek := uint16(g_npc.Nek[id])
+	upper := uint16(g_npc.Upper[id])
+	lower := uint16(g_npc.Lower[id])
+	feet := uint16(g_npc.Feet[id])
 	
 	packet.AddString(value)
 	packet.AddUint16(head)

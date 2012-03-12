@@ -72,8 +72,8 @@ func (s *Server) SendNewNpcToClients() {
 	}
 }
 
-func (s *Server) SendUpdateNpcToClients() {
+func (s *Server) SendUpdateNpcToClients(id int) {
 	for _, client := range(s.clients) {
-		client.SendUpdateNpc()
+		client.SendUpdateNpc(id)
 	}
 }
