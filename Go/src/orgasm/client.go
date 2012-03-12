@@ -105,6 +105,9 @@ func (c *Client) HandleClient() {
 		case 0x07: // Add Npc
 			go c.ReceiveAddNpc(packet)
 			
+		case 0x08: //Edit Npc
+			go c.ReceiveEditNpc(packet)
+			
 		default:
 			fmt.Printf("Unknown header: %d", header)
 			
@@ -375,9 +378,49 @@ func (c *Client) ReceiveAddNpc(_packet *Packet) {
 		query := fmt.Sprintf("INSERT INTO npc (name) VALUES ('%s')", npcName)
 		if puh.DBQuery(query) == nil {
 			npcId := int(puh.DBGetLastInsertId())
-			g_npc.AddNpc(npcId, npcName)
 			
-			g_server.SendNpcListUpdateToClients()
+			outfitQuery := fmt.Sprintf("INSERT INTO npc_outfit (idnpc,head,nek,upper,lower,feet) VALUES ('%d','0', '0', '0', '0', '0')",npcId)
+			if puh.DBQuery(outfitQuery) == nil {
+			
+				g_npc.AddNpc(npcId, npcName, 0, 0, 0, 0, 0)
+				g_server.SendNewNpcToClients()
+			}
+		}
+	}
+}
+
+func (c *Client) ReceiveEditNpc(_packet *Packet) {
+	if !c.loggedIn {
+		return
+	}
+	
+	npcId := _packet.ReadUint16()
+	npcName := _packet.ReadString()
+	head := _packet.ReadUint16()
+	nek := _packet.ReadUint16()
+	upper := _packet.ReadUint16()
+	lower := _packet.ReadUint16()
+	feet := _packet.ReadUint16()
+	
+	if len(npcName) > 0 {
+		g_dblock.Lock()
+		defer g_dblock.Unlock()
+		query := fmt.Sprintf("UPDATE npc SET name='%s' WHERE idnpc='%d'", npcName, npcId)
+		
+		result := puh.DBQuery(query)
+		if result == nil {
+			npcId := int(puh.DBGetLastInsertId())
+			
+			outfitQuery := fmt.Sprintf("UPDATE npc_outfit SET head=%d, nek=%d, upper=%d, lower=%d, feet=%d WHERE idnpc = %d", head, nek, upper, lower, feet, npcId)
+			fmt.Printf(outfitQuery + "\n")
+			
+			result := puh.DBQuery(outfitQuery)
+			
+			if result == nil {
+			
+				g_npc.AddNpc(npcId, npcName, 0, 0, 0, 0, 0)
+				g_server.SendUpdateNpcToClients()
+			}
 		}
 	}
 }
@@ -465,9 +508,64 @@ func (c *Client) SendNpcList() {
 	
 	for index := range(g_npc.NpcName) {
 		packet.AddUint16(uint16(index))
-		value := g_npc.NpcName[index];
+		value := g_npc.NpcName[index]
+		head := uint16(g_npc.Head[index])
+		nek := uint16(g_npc.Head[index])
+		upper := uint16(g_npc.Head[index])
+		lower := uint16(g_npc.Head[index])
+		feet := uint16(g_npc.Head[index])
+		
 		packet.AddString(value)
+		packet.AddUint16(head)
+		packet.AddUint16(nek)
+		packet.AddUint16(upper)
+		packet.AddUint16(lower)
+		packet.AddUint16(feet)
 	}
+	
+	c.Send(packet)
+}
+
+func (c *Client) SendNewNpc() {
+	packet := NewPacketExt(0x05)
+	
+	index := len(g_npc.NpcName) 
+	packet.AddUint16(uint16(index))
+	value := g_npc.NpcName[index]
+	head := uint16(g_npc.Head[index])
+	nek := uint16(g_npc.Head[index])
+	upper := uint16(g_npc.Head[index])
+	lower := uint16(g_npc.Head[index])
+	feet := uint16(g_npc.Head[index])
+	
+	packet.AddString(value)
+	packet.AddUint16(head)
+	packet.AddUint16(nek)
+	packet.AddUint16(upper)
+	packet.AddUint16(lower)
+	packet.AddUint16(feet)
+	
+	c.Send(packet)
+}
+
+func (c *Client) SendUpdateNpc() {
+	packet := NewPacketExt(0x06)
+	
+	index := len(g_npc.NpcName) 
+	packet.AddUint16(uint16(index))
+	value := g_npc.NpcName[index]
+	head := uint16(g_npc.Head[index])
+	nek := uint16(g_npc.Head[index])
+	upper := uint16(g_npc.Head[index])
+	lower := uint16(g_npc.Head[index])
+	feet := uint16(g_npc.Head[index])
+	
+	packet.AddString(value)
+	packet.AddUint16(head)
+	packet.AddUint16(nek)
+	packet.AddUint16(upper)
+	packet.AddUint16(lower)
+	packet.AddUint16(feet)
 	
 	c.Send(packet)
 }

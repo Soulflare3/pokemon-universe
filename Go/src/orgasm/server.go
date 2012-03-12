@@ -66,8 +66,14 @@ func (s *Server) SendMapListUpdateToClients() {
 	}
 }
 
-func (s *Server) SendNpcListUpdateToClients() {
+func (s *Server) SendNewNpcToClients() {
 	for _, client := range(s.clients) {
-		client.SendNpcList()
+		client.SendNewNpc()
+	}
+}
+
+func (s *Server) SendUpdateNpcToClients() {
+	for _, client := range(s.clients) {
+		client.SendUpdateNpc()
 	}
 }

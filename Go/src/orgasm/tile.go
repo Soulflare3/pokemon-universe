@@ -81,14 +81,3 @@ func (t *Tile) RemoveLayer(_layer int) {
 	delete(t.Layers, _layer)
 }
 
-type TileCollection struct {
-  Tiles []*Tile
-  x, y int
-  width, height int
-  username, description string
-}
-
-func (c *TileCollection) AddTile(_tile *Tile) {
-        c.Tiles = append(c.Tiles, _tile)
-}
-
