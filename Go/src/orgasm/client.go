@@ -409,7 +409,6 @@ func (c *Client) ReceiveEditNpc(_packet *Packet) {
 		
 		result := puh.DBQuery(query)
 		if result == nil {
-			npcId := int(puh.DBGetLastInsertId())
 			
 			outfitQuery := fmt.Sprintf("UPDATE npc_outfit SET head=%d, nek=%d, upper=%d, lower=%d, feet=%d WHERE idnpc = %d", head, nek, upper, lower, feet, npcId)
 			fmt.Printf(outfitQuery + "\n")
@@ -418,7 +417,7 @@ func (c *Client) ReceiveEditNpc(_packet *Packet) {
 			
 			if result == nil {
 			
-				g_npc.AddNpc(npcId, npcName, 0, 0, 0, 0, 0)
+				g_npc.AddNpc(int(npcId), npcName, 0, 0, 0, 0, 0)
 				g_server.SendUpdateNpcToClients()
 			}
 		}
