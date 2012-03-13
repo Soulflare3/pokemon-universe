@@ -383,7 +383,7 @@ func (c *Client) ReceiveAddNpc(_packet *Packet) {
 			if puh.DBQuery(outfitQuery) == nil {
 			
 				g_npc.AddNpc(npcId, npcName, 0, 0, 0, 0, 0)
-				g_server.SendNewNpcToClients(npcId)
+				g_server.SendNpcToClients(npcId)
 			}
 		}
 	}
@@ -417,7 +417,7 @@ func (c *Client) ReceiveEditNpc(_packet *Packet) {
 			if result == nil {
 			
 				g_npc.AddNpc(int(npcId), npcName, int(head), int(nek), int(upper), int(lower), int(feet))
-				g_server.SendUpdateNpcToClients(int(npcId))
+				g_server.SendNpcToClients(int(npcId))
 			}
 		}
 	}
@@ -524,7 +524,7 @@ func (c *Client) SendNpcList() {
 	c.Send(packet)
 }
 
-func (c *Client) SendNewNpc(_id int) {
+func (c *Client) SendNpc(_id int) {
 	packet := NewPacketExt(0x05)
 	
 	npc, _ := g_npc.Npcs[_id]
@@ -545,29 +545,6 @@ func (c *Client) SendNewNpc(_id int) {
 	
 	c.Send(packet)
 }
-
-func (c *Client) SendUpdateNpc(_id int) {
-	packet := NewPacketExt(0x06)
-	
-	npc, _ := g_npc.Npcs[_id]
-	packet.AddUint16(uint16(npc.Id))
-	value := npc.Name
-	head := uint16(npc.Head)
-	nek := uint16(npc.Nek)
-	upper := uint16(npc.Upper)
-	lower := uint16(npc.Lower)
-	feet := uint16(npc.Feet)
-
-	packet.AddString(value)
-	packet.AddUint16(head)
-	packet.AddUint16(nek)
-	packet.AddUint16(upper)
-	packet.AddUint16(lower)
-	packet.AddUint16(feet)
-	
-	c.Send(packet)
-}
-
 
 func (c *Client) Send(_packet *Packet) {
 	_packet.SetHeader()
