@@ -12,7 +12,7 @@ import (
 )
 
 var g_map *Map = NewMap()
-var g_npc *Npc = NewNpcList()
+var g_npc *NpcList = NewNpcList()
 var g_dblock sync.Mutex
 var g_server *Server
 var g_config *conf.ConfigFile
