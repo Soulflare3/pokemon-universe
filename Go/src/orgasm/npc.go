@@ -57,7 +57,7 @@ func (m *NpcList) LoadNpcList() (succeed bool, error string) {
 }
 
 func (m *NpcList) GetNumNpcs() int {
-	return len(m.NpcName)
+	return len(m.Npcs)
 }
 
 func (m *NpcList) AddNpc(_npcId int, _npcName string, _head int, _nek int, _upper int, _lower int, _feet int) {
