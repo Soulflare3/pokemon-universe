@@ -106,7 +106,10 @@ func (c *Client) HandleClient() {
 			go c.ReceiveAddNpc(packet)
 			
 		case 0x08: //Edit Npc
-			go c.ReceiveEditNpc(packet)
+			go c.ReceiveEditNpcAppearence(packet)
+			
+		case 0x09: //Edit Npc poition
+			go c.ReceiveEditNpcPosition(packet)
 			
 		default:
 			fmt.Printf("Unknown header: %d", header)
@@ -382,14 +385,14 @@ func (c *Client) ReceiveAddNpc(_packet *Packet) {
 			outfitQuery := fmt.Sprintf("INSERT INTO npc_outfit (idnpc,head,nek,upper,lower,feet) VALUES ('%d','0', '0', '0', '0', '0')",npcId)
 			if puh.DBQuery(outfitQuery) == nil {
 			
-				g_npc.AddNpc(npcId, npcName, 0, 0, 0, 0, 0)
+				g_npc.AddNpc(npcId, npcName, 0, 0, 0, 0, 0, 0, 0, 0)
 				g_server.SendNpcToClients(npcId)
 			}
 		}
 	}
 }
 
-func (c *Client) ReceiveEditNpc(_packet *Packet) {
+func (c *Client) ReceiveEditNpcAppearence(_packet *Packet) {
 	if !c.loggedIn {
 		return
 	}
@@ -416,10 +419,32 @@ func (c *Client) ReceiveEditNpc(_packet *Packet) {
 			
 			if result == nil {
 			
-				g_npc.AddNpc(int(npcId), npcName, int(head), int(nek), int(upper), int(lower), int(feet))
+				g_npc.UpdateNpcAppearance(int(npcId), npcName, int(head), int(nek), int(upper), int(lower), int(feet))
 				g_server.SendNpcToClients(int(npcId))
 			}
 		}
+	}
+}
+
+func (c *Client) ReceiveEditNpcPosition(_packet *Packet) {
+	if !c.loggedIn {
+		return
+	}
+	
+	npcId := _packet.ReadUint16()
+	x := _packet.ReadUint16()
+	y := _packet.ReadUint16()
+	z := _packet.ReadUint16()
+	
+	positionHash := pos.NewPositionFrom(int(x),int(y),int(z)).Hash()
+	
+	g_dblock.Lock()
+	defer g_dblock.Unlock()
+	query := fmt.Sprintf("UPDATE npc SET position=%d WHERE idnpc='%d'", positionHash, npcId)
+	result := puh.DBQuery(query)
+	if result == nil {
+		g_npc.UpdateNpcPosition(int(npcId), int(x), int(y), int(z))
+		g_server.SendNpcToClients(int(npcId))
 	}
 }
 
@@ -512,6 +537,9 @@ func (c *Client) SendNpcList() {
 		upper := uint16(npc.Upper)
 		lower := uint16(npc.Lower)
 		feet := uint16(npc.Feet)
+		x := uint16(npc.X)
+		y := uint16(npc.Y)
+		z := uint16(npc.Z)
 		
 		packet.AddString(value)
 		packet.AddUint16(head)
@@ -519,6 +547,9 @@ func (c *Client) SendNpcList() {
 		packet.AddUint16(upper)
 		packet.AddUint16(lower)
 		packet.AddUint16(feet)
+		packet.AddUint16(x)
+		packet.AddUint16(y)
+		packet.AddUint16(z)
 	}
 	
 	c.Send(packet)
@@ -535,6 +566,9 @@ func (c *Client) SendNpc(_id int) {
 	upper := uint16(npc.Upper)
 	lower := uint16(npc.Lower)
 	feet := uint16(npc.Feet)
+	x := uint16(npc.X)
+	y := uint16(npc.Y)
+	z := uint16(npc.Z)
 	
 	packet.AddString(value)
 	packet.AddUint16(head)
@@ -542,6 +576,9 @@ func (c *Client) SendNpc(_id int) {
 	packet.AddUint16(upper)
 	packet.AddUint16(lower)
 	packet.AddUint16(feet)
+	packet.AddUint16(x)
+	packet.AddUint16(y)
+	packet.AddUint16(z)
 	
 	c.Send(packet)
 }
