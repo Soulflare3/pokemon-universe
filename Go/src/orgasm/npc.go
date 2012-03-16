@@ -15,9 +15,7 @@ type Npc struct {
   	Upper 	int
 	Lower	int
   	Feet 	int
-  	X		int
-  	Y		int
-  	Z		int
+  	Position pos.Position
 }
 
 type NpcList struct {
@@ -53,12 +51,7 @@ func (m *NpcList) LoadNpcList() (succeed bool, error string) {
 		feet := puh.DBGetInt(row[6])
 		positionHash := puh.DBGetInt64(row[7])
 		
-		position := pos.NewPositionFromHash(positionHash)
-		x := position.X
-		y := position.Y
-		z := position.Z
-		
-		m.AddNpc(idNpc, nameNpc, head, nek, upper, lower, feet, x, y, z )
+		m.AddNpc(idNpc, nameNpc, head, nek, upper, lower, feet, pos.NewPositionFromHash(positionHash))
 	}
 	
 	return true, ""
@@ -68,7 +61,7 @@ func (m *NpcList) GetNumNpcs() int {
 	return len(m.Npcs)
 }
 
-func (m *NpcList) AddNpc(_npcId int, _npcName string, _head int, _nek int, _upper int, _lower int, _feet int, _x int, _y int, _z int) {
+func (m *NpcList) AddNpc(_npcId int, _npcName string, _head int, _nek int, _upper int, _lower int, _feet int, _position pos.Position) {
 	npc := &Npc { Id: _npcId,
 				  Name: _npcName,
 				  Head: _head,
@@ -76,9 +69,7 @@ func (m *NpcList) AddNpc(_npcId int, _npcName string, _head int, _nek int, _uppe
 				  Upper: _upper,
 				  Lower: _lower,
 				  Feet: _feet, 
-				  X: _x,
-				  Y: _y,
-				  Z: _z }
+				  Position: _position }
 	
 	m.Npcs[_npcId] = npc
 }
@@ -87,7 +78,7 @@ func (m *NpcList) UpdateNpcAppearance(_npcId int, _npcName string, _head int, _n
 	// Get Npc from list
 	npc, found := m.Npcs[_npcId]
 	if !found {
-		m.AddNpc(_npcId, _npcName, _head, _nek, _upper, _lower, _feet, 0, 0, 0)
+		m.AddNpc(_npcId, _npcName, _head, _nek, _upper, _lower, _feet, pos.NewPosition())
 	} else {
 		npc.Name = _npcName
 		npc.Head = _head
@@ -98,12 +89,10 @@ func (m *NpcList) UpdateNpcAppearance(_npcId int, _npcName string, _head int, _n
 	}
 }
 
-func (m *NpcList) UpdateNpcPosition(_npcId int, _x int, _y int, _z int) {
+func (m *NpcList) UpdateNpcPosition(_npcId int, _position pos.Position) {
 	// Get Npc from list
 	npc, found := m.Npcs[_npcId]
 	if found {
-		npc.X = _x
-		npc.Y = _y
-		npc.Z = _z
+		npc.Position = _position;
 	} 
 }
