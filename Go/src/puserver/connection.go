@@ -210,7 +210,9 @@ func (c *Connection) SendFriendList(_friends FriendList) {
 	msg := pnetmsg.NewFriendListMessage()
 	
 	for _, friend := range(_friends) {
-		msg.AddFriend(friend.Name, friend.Online)
+		if !friend.IsRemoved {
+			msg.AddFriend(friend.Name, friend.Online)
+		}
 	}
 	
 }

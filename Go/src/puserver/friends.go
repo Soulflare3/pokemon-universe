@@ -27,52 +27,62 @@ type Friend struct {
 	DbId	int64
 	Name	string
 	Online	bool
+	
+	IsRemoved bool
 }
 
 func (p *Player) AddFriend(_name string) {
-	if _, found := p.GetFriend(_name); found {
-		return
-	}
-	
-	isOnline := false
-	
-	// Check if player is online
-	_, found := g_game.GetPlayerByName(_name)
-	if found {
-		isOnline = true
-	} else {
-		query := fmt.Sprintf("SELECT idplayer FROM player WHERE name='%s'", _name)
-		result, err := puh.DBQuerySelect(query)
-		if err == nil {
-			defer puh.DBFree()
-			found = (result.RowCount() > 0)
-		} else {
-			found = false
+	if f, found := p.GetFriend(_name); found {
+		if f.IsRemoved {
+			// Friend already exists, but is flagged for removal
+			_, online := g_game.GetPlayerByName(_name)
+			p.UpdateFriend(_name, online)
 		}
-	}
-	
-	if found {
-		friend := &Friend { DbId: 0,
-							Name: _name,
-							Online: isOnline }
-		
-		p.Friends[_name] = friend
-		
-		p.sendFriendUpdate(_name, isOnline)
 	} else {
-		p.sendCancelMessage(RET_PLAYERNOTFOUND)
+		isOnline := false
+		
+		// Check if player is online
+		_, found := g_game.GetPlayerByName(_name)
+		if found {
+			isOnline = true
+		} else {
+			// Check if player exists in database
+			query := fmt.Sprintf("SELECT idplayer FROM player WHERE name='%s'", _name)
+			result, err := puh.DBQuerySelect(query)
+			if err == nil {
+				defer puh.DBFree()
+				found = (result.RowCount() > 0)
+			} else {
+				found = false
+			}
+		}
+		
+		if found {
+			friend := &Friend { DbId: 0,
+								Name: _name,
+								Online: isOnline,
+								IsRemoved: false }
+			
+			p.Friends[_name] = friend
+			
+			p.sendFriendUpdate(_name, isOnline)
+		} else {
+			p.sendCancelMessage(RET_PLAYERNOTFOUND)
+		}
 	}
 }
 
 func (p *Player) RemoveFriend(_name string) {
-	delete(p.Friends, _name)
-	
-	p.sendFriendRemove(_name)
+	if friend, found := p.GetFriend(_name); found {
+		friend.IsRemoved = true
+		p.sendFriendRemove(_name)
+	}
 }
 
 func (p *Player) UpdateFriend(_name string, _online bool) {
 	if friend, found := p.GetFriend(_name); found {
 		friend.Online = _online
+		friend.IsRemoved = false
 	}
 	
 	p.sendFriendUpdate(_name, _online)

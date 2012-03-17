@@ -322,6 +322,7 @@ func (p *Player) SaveData() {
 	p.savePokemon()
 	p.saveItems()
 	p.saveBackpack()
+	p.saveFriends()
 }
 
 func (p *Player) savePlayerInfo() {
@@ -375,57 +376,67 @@ func (p *Player) savePokemon() {
 }
 
 func (p *Player) saveItems() {
-	puh.DBStartTransaction()
-	
-	// Remove all items from database
-	if err := puh.DBQuery(fmt.Sprintf("DELETE FROM player_items WHERE idplayer=%d", p.dbid)); err != nil {
+    puh.DBStartTransaction()
+	puh.DBCon.SetAutoCommit(false)
+        
+    // Remove all items from database
+	if err := puh.DBQueryNoLock(fmt.Sprintf("DELETE FROM player_items WHERE idplayer=%d", p.dbid)); err != nil {
 		logger.Println("Failed to save player items!")
 		puh.DBRollback()
 	}
-	
+        
 	// Insert all items in database
-	puh.DBCon.SetAutoCommit(false)
 	var err error = nil
 	for _, item := range(p.Storage.Items) {
-		if err = puh.DBQuery(fmt.Sprintf("INSERT INTO player_items (idplayer, iditem, count, slot) VALUES ('%d','%d','%d','%d')", p.dbid, item.DbId, item.Count, item.Slot)); err != nil {
-			break
-		}
+		if err = puh.DBQueryNoLock(fmt.Sprintf("INSERT INTO player_items (idplayer, iditem, count, slot) VALUES ('%d','%d','%d','%d')", p.dbid, item.DbId, item.Count, item.Slot)); err != nil {
+        	break
+    	}
 	}
-	
+        
+	puh.DBCon.SetAutoCommit(true)
+        
 	if err == nil {
-		puh.DBCommit()
+    	puh.DBCommit()
 	} else {
 		puh.DBRollback()
 	}
-	
-	puh.DBCon.SetAutoCommit(true)
 }
 
 func (p *Player) saveBackpack() {
-	puh.DBStartTransaction()
-	
+    puh.DBCon.SetAutoCommit(false)
+    puh.DBStartTransaction()
+        
 	// Remove all items from database
-	if err := puh.DBQuery(fmt.Sprintf("DELETE FROM player_backpack WHERE idplayer=%d", p.dbid)); err != nil {
+	if err := puh.DBQueryNoLock(fmt.Sprintf("DELETE FROM player_backpack WHERE idplayer=%d", p.dbid)); err != nil {
 		logger.Println("Failed to save player items!")
 		puh.DBRollback()
+    }
+        
+    // Insert all items in database
+    var err error = nil
+    for _, item := range(p.Backpack.Items) {
+        if err = puh.DBQueryNoLock(fmt.Sprintf("INSERT INTO player_backpack (idplayer, iditem, count, slot) VALUES ('%d','%d','%d','%d')", p.dbid, item.DbId, item.Count, item.Slot)); err != nil {
+    		break
+    	}
+    }
+        
+    puh.DBCon.SetAutoCommit(true)
+        
+    if err == nil {
+            puh.DBCommit()
+    } else {
+            puh.DBRollback()
 	}
-	
-	// Insert all items in database
-	puh.DBCon.SetAutoCommit(false)
-	var err error = nil
-	for _, item := range(p.Backpack.Items) {
-		if err = puh.DBQuery(fmt.Sprintf("INSERT INTO player_backpack (idplayer, iditem, count, slot) VALUES ('%d','%d','%d','%d')", p.dbid, item.DbId, item.Count, item.Slot)); err != nil {
-			break
+}
+
+func (p *Player) saveFriends() {
+	for _, friend := range(p.Friends) {	
+		if friend.DbId == 0 && !friend.IsRemoved { // New friend
+			puh.DBQuery(fmt.Sprintf("INSERT INTO player_friends (idplayer, friend_name) VALUES (%d, '%s')", p.dbid, friend.Name))
+		} else if friend.DbId > 0 && friend.IsRemoved { // Friend removed		
+			puh.DBQuery(fmt.Sprintf("DELETE FROM player_friends WHERE idplayer_friends = %d", friend.DbId))
 		}
 	}
-	
-	if err == nil {
-		puh.DBCommit()
-	} else {
-		puh.DBRollback()
-	}
-	
-	puh.DBCon.SetAutoCommit(true)
 }
 
 // --------------------- INTERFACE ----------------------------//

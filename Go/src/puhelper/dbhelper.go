@@ -65,6 +65,16 @@ func DBQuery(_query string) (err error) {
 	return
 }
 
+func DBQueryNoLock(_query string) (err error) {
+	if err = DBCon.Query(_query); err != nil {
+		logger.Println("[ERROR] SQL error while executing query:")
+		logger.Printf("%s\n", _query)
+		logger.Printf("Error: %s\n", err.Error()) 
+	}
+	
+	return
+}
+
 func DBFree() {
 	DBCon.FreeResult()
 	DBCon.Unlock()
@@ -79,7 +89,10 @@ func DBUnlock() {
 }
 
 func DBStartTransaction() {
+	DBLock()
 	if err := DBCon.Start(); err != nil {
+		DBUnlock()
+		
 		logger.Println("[ERROR] SQL error while starting a new transaction.")
 		logger.Printf("Error: %s\n", err.Error()) 
 	}
@@ -91,6 +104,8 @@ func DBCommit() {
 		logger.Printf("Error: %s\n", err.Error()) 
 		
 		DBRollback()
+	} else {
+		DBUnlock()
 	}
 }
 
@@ -99,6 +114,8 @@ func DBRollback() {
 		logger.Println("[ERROR] SQL error while rolling transaction back")
 		logger.Printf("Error: %s\n", err.Error())
 	}
+	
+	DBUnlock()
 }
 
 func DBGetLastInsertId() uint64 {
