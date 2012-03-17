@@ -71,6 +71,9 @@ func (c *Connection) ProcessPacket(_packet *pnet.Packet) {
 	case pnet.HEADER_REFRESHWORLD:
 		c.ReceiveRefreshWorld()
 		
+	case pnet.HEADER_FRIENDUPDATE:
+		c.ReceiveFriendUpdate(_packet)
+		
 	case pnet.HEADER_CHAT:
 		c.ReceiveChat(_packet)
 	}	
@@ -104,7 +107,11 @@ func (c *Connection) SendPlayerData() {
 	pokemonData.Pokemon = c.Owner.PokemonParty
 	c.SendMessage(pokemonData)
 	
-	//ToDo: Send items
+	// TODO: Send items
+	// ----
+	
+	// Send list to client
+	c.SendFriendList(c.Owner.Friends)
 	
 	// Send map
 	c.SendMapData(DIR_NULL, c.Owner.GetPosition())
@@ -199,6 +206,25 @@ func (c *Connection) SendCreatureSay(_creature pul.ICreature, _speakType int, _t
 	c.SendMessage(msg)
 }
 
+func (c *Connection) SendFriendList(_friends FriendList) {
+	msg := pnetmsg.NewFriendListMessage()
+	
+	for _, friend := range(_friends) {
+		msg.AddFriend(friend.Name, friend.Online)
+	}
+	
+}
+
+func (c *Connection) SendFriendUpdate(_name string, _online bool) {
+	msg := pnetmsg.NewFriendUpdateMessageExt(_name, _online, false)
+	c.SendMessage(msg)
+}
+
+func (c *Connection) SendFriendRemove(_name string) {
+	msg := pnetmsg.NewFriendUpdateMessageExt(_name, false, true)
+	c.SendMessage(msg)
+}
+
 // ------------------------------------------------------ //
 //                     RECEIVE
 // ------------------------------------------------------ //
@@ -227,4 +253,15 @@ func (c *Connection) ReceiveChat(_packet *pnet.Packet) {
 	msg.ReadPacket(_packet)
 	
 	g_game.OnPlayerSay(msg.From.(*Player), msg.ChannelId, msg.SpeakType, msg.Receiver, msg.Text)
+}
+
+func (c *Connection) ReceiveFriendUpdate(_packet *pnet.Packet) {
+	msg := pnetmsg.NewFriendUpdateMessage()
+	msg.ReadPacket(_packet)
+	
+	if msg.Removed == 1 {
+		c.Owner.RemoveFriend(msg.Name)
+	} else {
+		c.Owner.AddFriend(msg.Name)
+	}
 }

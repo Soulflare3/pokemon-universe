@@ -36,6 +36,7 @@ type Player struct {
 
 	Pokemon			pkmn.PlayerPokemonList
 	PokemonParty	*pkmn.PokemonParty
+	Friends			FriendList
 	
 	Backpack *Depot
 	Storage	*Depot
@@ -57,6 +58,7 @@ func NewPlayer(_name string) *Player {
 
 	p.Pokemon = make(pkmn.PlayerPokemonList)
 	p.PokemonParty = pkmn.NewPokemonParty()
+	p.Friends = make(FriendList)
 	
 	p.Backpack = NewDepot(25)
 	p.Storage = NewDepot(100)
@@ -105,6 +107,12 @@ func (p *Player) LoadData() bool {
 	// Load player backpack
 	logger.Println("Loading player backpack")
 	if !p.loadBackpack() {
+		return false
+	}
+	
+	// Load friends list
+	logger.Println("Loading player friends")
+	if !p.loadFriends() {
 		return false
 	}
 
@@ -223,7 +231,7 @@ func (p *Player) loadItems() bool {
 		return false
 	}
 	
-	defer result.Free()
+	defer puh.DBFree()
 	
 	for {
 		row := result.FetchRow()
@@ -254,7 +262,7 @@ func (p *Player) loadBackpack() bool {
 		return false
 	}
 	
-	defer result.Free()
+	defer puh.DBFree()
 	
 	for {
 		row := result.FetchRow()
@@ -276,6 +284,35 @@ func (p *Player) loadBackpack() bool {
 	}
 	
 	return true	
+}
+
+func (p *Player) loadFriends() bool {
+	var query string = "SELECT idplayer_friends, friend_name FROM player_friends WHERE idplayer=%d"
+	result, err := puh.DBQuerySelect(fmt.Sprintf(query, p.dbid))
+	if err != nil {
+		return false
+	}
+	
+	defer puh.DBFree()
+	
+	for {
+		row := result.FetchRow()
+		if row == nil {
+			break
+		}
+		
+		dbid := puh.DBGetInt64(row[0])
+		name := puh.DBGetString(row[1])
+		
+		_, online := g_game.GetPlayerByName(name)
+		
+		friend := &Friend { DbId: dbid,
+							Name: name,
+							Online: online }
+		p.Friends[name] = friend
+	}
+		
+	return true
 }
 
 // --------------------- SAVING ----------------------------//
@@ -495,92 +532,13 @@ func (p *Player) AddVisibleCreature(_creature pul.ICreature) {
 
 func (p *Player) RemoveVisibleCreature(_creature pul.ICreature) {
 	// No need to check if the key actually exists because Go is awesome
-	// http://golang.org/doc/effective_go.html#maps
+	// http://tip.golang.org/doc/effective_go.html#maps
 	delete(p.VisibleCreatures, _creature.GetUID())
 	p.sendCreatureRemove(_creature)
 }
 
-
 // ------------------------------------------------------ //
-func (p *Player) sendCancelMessage(_message int) {
-	switch _message {		
-		case RET_YOUAREEXHAUSTED:
-			p.Conn.SendCancel("You are exhausted.")
-		case RET_NOTPOSSIBLE:
-			fallthrough
-		default:
-			p.Conn.SendCancel("Sorry, not possible.")
-	}
-}
 
-func (p *Player) sendTextMessage(_mclass int, _message string) {
-	if p.Conn != nil {
-		// p.Conn.sendTextMessage(_mclass, _message)
-	}
-}
-
-func (p *Player) sendMapData(_dir int) {
-	if p.Conn != nil {
-		p.Conn.SendMapData(_dir, p.GetPosition())
-	}
-}
-
-func (p *Player) sendCreatureMove(_creature pul.ICreature, _from, _to pul.ITile) {
-	if p.Conn != nil {
-		p.Conn.SendCreatureMove(_creature, _from.(*Tile), _to.(*Tile))
-	}
-}
-
-func (p *Player) sendCreatureTurn(_creature pul.ICreature) {
-	if p.Conn != nil {
-		p.Conn.SendCreatureTurn(_creature, p.GetDirection())
-	}
-}
-
-func (p *Player) sendCreatureAdd(_creature pul.ICreature) {
-	if p.Conn != nil {
-		p.Conn.SendCreatureAdd(_creature)
-	}
-}
-
-func (p *Player) sendCreatureRemove(_creature pul.ICreature) {
-	if p.Conn != nil {
-		p.Conn.SendCreatureRemove(_creature)
-	}
-}
-
-func (p *Player) sendPlayerWarp() {
-	if p.Conn != nil {
-		p.Conn.SendPlayerWarp(p.GetPosition())
-	}
-}
-
-func (p *Player) sendCreatureSay(_creature pul.ICreature, _speakType int, _message string) {
-	if p.Conn != nil {
-		//p.Conn.SendCreatureSay(_creature, _speakType, _message)
-	}
-}
-
-func (p *Player) sendCreatureChangeVisibility(_creature pul.ICreature, _visible bool) {
-	if _creature.GetUID() != p.GetUID() {
-		if _visible {
-			p.AddVisibleCreature(_creature)
-		} else if !p.hasFlag(PlayerFlag_CanSenseInvisibility) {
-			p.RemoveVisibleCreature(_creature)
-		}
-	}
-}
-
-// --------------------- CHAT ----------------------------//
-func (p *Player) sendClosePrivateChat(_channelId int) {
-
-}
-
-func (p *Player) sendToChannel(_fromPlayer pul.ICreature, _type int, _text string, _channelId int, _time int) {
-	p.Conn.SendCreatureSay(_fromPlayer, _type, _text, _channelId, _time)
-}
-
-// ------------------------------------------------------ //
 func (p *Player) HealParty() {
 	p.PokemonParty.HealParty()
 	
