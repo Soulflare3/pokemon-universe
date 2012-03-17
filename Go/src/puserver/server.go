@@ -196,7 +196,7 @@ func (s *Server) CheckAccountInfo(_username string, _password string) (bool, int
 	}
 
 	row := result.FetchMap()
-	defer result.Free()
+	defer puh.DBFree()
 	if row == nil {
 		return false, 0
 	}
@@ -232,12 +232,12 @@ func (s *Server) LoadPlayerProfile(_playerId int64) (ret bool, p *Player) {
 
 	row := result.FetchMap()
 	if row == nil {
-		result.Free()
+		puh.DBFree()
 		return
 	}
 	idPlayer := puh.DBGetInt(row["idplayer"])
 	name := puh.DBGetString(row["name"])
-	result.Free()
+	puh.DBFree()
 
 	value, found := g_game.GetPlayerByName(name)
 	if found {

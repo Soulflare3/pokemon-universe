@@ -26,31 +26,56 @@ var (
 )
 
 func DBQuerySelect(_query string) (result *mysql.Result, err error) {
+	// Lock
+	DBLock()
+	
+	err = DBCon.Query(_query)
+	if err != nil {
+		logger.Println("[ERROR] SQL error while executing query:")
+		logger.Printf("%s\n", _query)
+		logger.Printf("Error: %s\n", err.Error()) 
+		result = nil
+	} else {
+		result, err = DBCon.UseResult()
+		if err != nil {
+			logger.Println("[ERROR] SQL error while fetching result for query:\n\r%s\n\rError: %s", _query, err.Error())
+			result = nil
+		}
+	}
+	
+	// Unlock
+	if err != nil {
+		DBUnlock()
+	}
+
+	return
+}
+
+func DBQuery(_query string) (err error) {
+	// Lock
+	DBLock()
+	defer DBUnlock()
+	
 	if err = DBCon.Query(_query); err != nil {
 		logger.Println("[ERROR] SQL error while executing query:")
 		logger.Printf("%s\n", _query)
 		logger.Printf("Error: %s\n", err.Error()) 
-		return nil, err
-	}
-
-	result, err = DBCon.UseResult()
-	if err != nil {
-		logger.Println("[ERROR] SQL error while fetching result for query:\n\r%s\n\rError: %s", _query, err.Error())
-		return nil, err
-	}
-
-	return result, nil
-}
-
-func DBQuery(_query string) (err error) {
-	if err := DBCon.Query(_query); err != nil {
-		logger.Println("[ERROR] SQL error while executing query:")
-		logger.Printf("%s\n", _query)
-		logger.Printf("Error: %s\n", err.Error()) 
-		return err
 	}
 	
-	return nil
+	return
+}
+
+func DBFree() {
+	DBCon.FreeResult()
+	DBCon.Unlock()
+}
+
+func DBLock() {
+	DBCon.Lock()
+}
+
+func DBUnlock() {
+	DBCon.Unlock()
 }
 
 func DBStartTransaction() {

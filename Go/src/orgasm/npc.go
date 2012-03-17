@@ -35,7 +35,7 @@ func (m *NpcList) LoadNpcList() (succeed bool, error string) {
 		return false, err.Error()
 	}
 	
-	defer result.Free()
+	defer puh.DBFree()
 	for {
 		row := result.FetchRow()
 		if row == nil {

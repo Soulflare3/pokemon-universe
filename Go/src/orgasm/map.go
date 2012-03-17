@@ -87,7 +87,7 @@ func (m *Map) LoadMapList() (succeed bool, error string) {
 		return false, err.Error()
 	}
 	
-	defer result.Free()
+	defer puh.DBFree()
 	for {
 		row := result.FetchRow()
 		if row == nil {
@@ -116,7 +116,7 @@ func (m *Map) LoadTiles() (succeed bool, msg string) {
 		return false, err.Error()
 	}
 
-	defer result.Free()
+	defer puh.DBFree()
 	for {
 		row := result.FetchRow()
 		if row == nil {

@@ -127,7 +127,7 @@ func (c *Client) checkAccount(_username string, _password string) bool {
 		return false
 	}
 	
-	defer result.Free()
+	defer puh.DBFree()
 
 	row := result.FetchMap()
 	if row != nil {

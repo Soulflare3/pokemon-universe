@@ -49,7 +49,7 @@ func (io *IOMapDB2) LoadMap(_map *Map) error {
 	if err != nil {
 		return err
 	}
-	defer result.Free()
+	defer puh.DBFree()
 	
 	logger.Printf(" - Processing worldmap data from database")
 	count := 0
@@ -77,7 +77,7 @@ func (io *IOMapDB2) loadMapList(_map *Map) error {
 	if err != nil {
 		return err
 	}
-	defer result.Free()
+	defer puh.DBFree()
 	
 	logger.Printf(" - Processing map list")
 	for {

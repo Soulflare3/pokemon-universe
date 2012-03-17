@@ -61,7 +61,7 @@ func (p *Pokemon) loadStats() bool {
 		return false
 	}
 	
-	defer result.Free()
+	defer puh.DBFree()
 	for {
 		row := result.FetchRow()
 		if row == nil {
@@ -85,7 +85,7 @@ func (p *Pokemon) loadAbilities() bool {
 		return false
 	}
 	
-	defer result.Free()
+	defer puh.DBFree()
 	for {
 		row := result.FetchRow()
 		if row == nil {
@@ -113,7 +113,7 @@ func (p *Pokemon) loadForms() bool {
 		return false
 	}
 	
-	defer result.Free()
+	defer puh.DBFree()
 	for {
 		row := result.FetchRow()
 		if row == nil {
@@ -141,7 +141,7 @@ func (p *Pokemon) loadMoves() bool {
 		return false
 	}
 	
-	defer result.Free()
+	defer puh.DBFree()
 	for {
 		row := result.FetchRow()
 		if row == nil {
@@ -172,7 +172,7 @@ func (p *Pokemon) loadTypes() bool {
 		return false
 	}
 	
-	defer result.Free()
+	defer puh.DBFree()
 	for {
 		row := result.FetchRow()
 		if row == nil {

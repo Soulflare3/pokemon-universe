@@ -88,6 +88,14 @@ func (p *Player) LoadData() bool {
 		return false
 	}
 	
+	// Load moves for each pokemon
+	for index, pokemon := range p.PokemonParty.Party {
+		if pokemon != nil {
+			fmt.Printf("Load pokemon moves for: %d - %s\n\r", index, pokemon.GetNickname())
+			pokemon.LoadMoves()
+		}
+	}
+	
 	// Load player storage items
 	logger.Println("Loading player items")
 	if !p.loadItems() {
@@ -114,7 +122,7 @@ func (p *Player) loadPlayerInfo() bool {
 		return false
 	}
 
-	defer result.Free()
+	defer puh.DBFree()
 	row := result.FetchRow()
 	if row == nil {
 		logger.Printf("[Error] No player data for %s (DB ID: %d)\n", p.name, p.dbid)
@@ -165,7 +173,7 @@ func (p *Player) loadPokemon() bool {
 	}
 
 	logger.Println("Loading player pokemon..")
-
+	defer puh.DBFree()	
 	for {
 		row := result.FetchRow()
 		if row == nil {
@@ -202,15 +210,6 @@ func (p *Player) loadPokemon() bool {
 		// Add to party if needed
 		if pokemon.InParty == 1 {
 			p.PokemonParty.AddSlot(pokemon, pokemon.Slot)
-		}
-	}
-	result.Free()
-
-	// Load moves for each pokemon
-	for index, pokemon := range p.PokemonParty.Party {
-		if pokemon != nil {
-			fmt.Printf("Load pokemon moves for: %d - %s\n\r", index, pokemon.GetNickname())
-			pokemon.LoadMoves()
 		}
 	}
 

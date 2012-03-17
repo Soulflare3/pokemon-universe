@@ -59,7 +59,7 @@ func (p *PlayerPokemon) LoadMoves() {
 		return
 	}
 	
-	defer result.Free()
+	defer puh.DBFree()
 	if result.RowCount() == 0 {
 		log.Printf("[WARNING] Pokemon (db id: %d) has zero moves\n", p.IdDb)
 	}

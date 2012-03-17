@@ -60,7 +60,7 @@ func (store *LocationStore) Load() error {
 		return err
 	}
 
-	defer result.Free()
+	defer puh.DBFree()
 	for {
 		row := result.FetchMap()
 		if row == nil {

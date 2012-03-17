@@ -86,6 +86,34 @@ func (m *PokemonManager) Load() bool {
 		return false
 	}
 	
+	// We load the actual pokemon data after we loaded the pokemon
+	for _, pokemon := range(m.pokemon) {
+		// Load base stats for this pokemon
+		if !pokemon.loadStats() {
+			return false
+		}
+		
+		// Fetch available abilities for this pokemon
+		if !pokemon.loadAbilities() {
+			return false
+		}
+		
+		// Fetch available forms for this pokemon
+		if !pokemon.loadForms() {
+			return false
+		}
+		
+		// Fetch learnable moves for this pokemon
+		if !pokemon.loadMoves() {
+			return false
+		}
+		
+		// Fetch pokemon types
+		if !pokemon.loadTypes() {
+			return false
+		}
+	}	
+	
 	// Load move messages
 	if !m.loadMoveMessages() {
 		return false
@@ -109,7 +137,7 @@ func (m *PokemonManager) loadMoves() bool {
 		return false
 	}
 	
-	defer result.Free()
+	defer puh.DBFree()
 	log.Println(" - Processing moves")
 	for {
 		row := result.FetchRow()
@@ -148,7 +176,7 @@ func (m *PokemonManager) loadAbilities() bool {
 		return false
 	}
 	
-	defer result.Free()
+	defer puh.DBFree()
 	log.Println(" - Processing abilities")
 	for {
 		row := result.FetchRow()
@@ -181,7 +209,7 @@ func (m *PokemonManager) loadPokemonSpecies() bool {
 		return false
 	}
 	
-	defer result.Free()
+	defer puh.DBFree()
 	log.Println(" - Processing pokemon species")
 	for {
 		row := result.FetchRow()
@@ -238,6 +266,7 @@ func (m *PokemonManager) loadPokemon() bool {
 		return false
 	}
 	
+	defer puh.DBFree()
 	log.Println(" - Processing pokemon")
 	for {
 		row := result.FetchRow()
@@ -257,35 +286,6 @@ func (m *PokemonManager) loadPokemon() bool {
 		// Add to map
 		m.pokemon[pokemon.PokemonId] = pokemon
 	}
-	result.Free()
-	
-	// We load the actual pokemon data after we loaded the pokemon
-	for _, pokemon := range(m.pokemon) {
-		// Load base stats for this pokemon
-		if !pokemon.loadStats() {
-			return false
-		}
-		
-		// Fetch available abilities for this pokemon
-		if !pokemon.loadAbilities() {
-			return false
-		}
-		
-		// Fetch available forms for this pokemon
-		if !pokemon.loadForms() {
-			return false
-		}
-		
-		// Fetch learnable moves for this pokemon
-		if !pokemon.loadMoves() {
-			return false
-		}
-		
-		// Fetch pokemon types
-		if !pokemon.loadTypes() {
-			return false
-		}
-	}
 	
 	return true
 }
@@ -298,7 +298,7 @@ func (m *PokemonManager) loadMoveMessages() bool {
 	}
 	
 	log.Println(" - Processing Move Messages")
-	defer result.Free()
+	defer puh.DBFree()
 	for {
 		row := result.FetchRow()
 		if row == nil {
@@ -328,7 +328,7 @@ func (m *PokemonManager) loadAbilityMessages() bool {
 	}
 	
 	log.Println(" - Processing Ability Messages")
-	defer result.Free()
+	defer puh.DBFree()
 	for {
 		row := result.FetchRow()
 		if row == nil {

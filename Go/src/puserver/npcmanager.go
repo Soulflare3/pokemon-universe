@@ -42,7 +42,7 @@ func (n *NpcManager) Load() bool {
 		return false
 	}
 	
-	defer result.Free()
+	defer puh.DBFree()
 	for {
 		row := result.FetchRow()
 		if row == nil {
