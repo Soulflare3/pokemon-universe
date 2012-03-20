@@ -57,6 +57,12 @@ func (p *Player) sendCreatureTurn(_creature pul.ICreature) {
 	}
 }
 
+func (p *Player) sendCreatureTurnExclusive(_creature pul.ICreature, _dir int) {
+	if p.Conn != nil {
+		p.Conn.SendCreatureTurn(_creature, _dir)
+	}
+}
+
 func (p *Player) sendCreatureAdd(_creature pul.ICreature) {
 	if p.Conn != nil {
 		p.Conn.SendCreatureAdd(_creature)
@@ -111,4 +117,9 @@ func (p *Player) sendFriendUpdate(_name string, _online bool) {
 
 func (p *Player) sendFriendRemove(_name string) {
 	p.Conn.SendFriendRemove(_name)
+}
+
+// --------------------- DIALOG ----------------------------//
+func (p *Player) sendDialog(_type int, _npcId uint64, _title string, _options []string) {
+	p.Conn.SendDialog(_type, _npcId, _title, _options)	
 }

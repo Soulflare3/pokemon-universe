@@ -59,24 +59,27 @@ func (c *Connection) HandleConnection() {
 func (c *Connection) ProcessPacket(_packet *pnet.Packet) {
 	header := _packet.ReadUint8()
 	switch header {
-	case pnet.HEADER_LOGIN:
-		c.SendPlayerData()
-
-	case pnet.HEADER_WALK:
-		c.ReceivePlayerWalk(_packet)
-
-	case pnet.HEADER_TURN:
-		c.ReceivePlayerTurn(_packet)
-
-	case pnet.HEADER_REFRESHWORLD:
-		c.ReceiveRefreshWorld()
-		
-	case pnet.HEADER_FRIENDUPDATE:
-		c.ReceiveFriendUpdate(_packet)
-		
-	case pnet.HEADER_CHAT:
-		c.ReceiveChat(_packet)
-	}	
+		case pnet.HEADER_LOGIN:
+			c.SendPlayerData()
+	
+		case pnet.HEADER_WALK:
+			c.ReceivePlayerWalk(_packet)
+	
+		case pnet.HEADER_TURN:
+			c.ReceivePlayerTurn(_packet)
+	
+		case pnet.HEADER_REFRESHWORLD:
+			c.ReceiveRefreshWorld()
+			
+		case pnet.HEADER_FRIENDUPDATE:
+			c.ReceiveFriendUpdate(_packet)
+			
+		case pnet.HEADER_CHAT:
+			c.ReceiveChat(_packet)
+			
+		case pnet.HEADER_DIALOG:
+			c.ReceiveDialogAnswer(_packet)
+	}
 }
 
 func (c *Connection) SendMessage(_message pnet.INetMessageWriter) {
@@ -227,6 +230,13 @@ func (c *Connection) SendFriendRemove(_name string) {
 	c.SendMessage(msg)
 }
 
+func (c *Connection) SendDialog(_type int, _npcId uint64, _title string, _options []string) {
+	msg := pnetmsg.NewDialogMessage(_type)
+	msg.SetNpcId(_npcId)
+	msg.SetQuestion(_title, _options)
+	c.SendMessage(msg)
+}
+
 // ------------------------------------------------------ //
 //                     RECEIVE
 // ------------------------------------------------------ //
@@ -265,5 +275,14 @@ func (c *Connection) ReceiveFriendUpdate(_packet *pnet.Packet) {
 		c.Owner.RemoveFriend(msg.Name)
 	} else {
 		c.Owner.AddFriend(msg.Name)
+	}
+}
+
+func (c *Connection) ReceiveDialogAnswer(_packet *pnet.Packet) {
+	msg := pnetmsg.NewDialogMessage(0)
+	msg.ReadPacket(_packet)
+	
+	if c.Owner.InteractingNpc != nil {
+		c.Owner.InteractingNpc.OnDialogueAnswer(c.Owner.GetUID(), msg.AnswerId)
 	}
 }

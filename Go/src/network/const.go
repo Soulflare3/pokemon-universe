@@ -24,6 +24,8 @@ const (
 	
 	HEADER_CHAT = 0x10
 	
+	HEADER_DIALOG = 0x12
+	
 	HEADER_FRIENDLIST = 0xA0
 	HEADER_FRIENDUPDATE = 0xA1
 
@@ -38,7 +40,7 @@ const (
 	HEADER_ADDCREATURE    = 0xC2
 	HEADER_REMOVECREATURE = 0xC3
 	
-	// Pokemon heaaders
+	// Pokemon headers
 	HEADER_POKEMONPARTY = 0xD0
 
 
@@ -54,6 +56,13 @@ const (
 	SPEAK_PRIVATE 	= 6
 	SPEAK_CHANNEL	= 7
 	SPEAK_BROADCAST = 255
+)
+
+const (
+	DIALOG_CLOSE	= 1
+	DIALOG_NPC		= 2
+	DIALOG_NPCTEXT	= 3
+	DIALOG_OPTIONS	= 4
 )
 
 const (

@@ -16,6 +16,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package main
 
+import (
+	pnet "network"
+)
+
 type NpcScript struct {
 	self *Npc
 }
@@ -39,16 +43,27 @@ func (s *NpcScript) SelfSay(message string) {
 }
 
 // Dialogue
-func (s *NpcScript) SendDialogue(cid uint64, title string, options ...string) {
-
+func (s *NpcScript) SendDialogue(_cid uint64, _title string, _options ...string) {
+	if player, ok := g_game.GetPlayerByGuid(_cid); ok {
+		if len(_options) > 0 {
+			player.sendDialog(pnet.DIALOG_NPC, s.self.GetUID(), _title, _options)
+		} else {
+			player.sendDialog(pnet.DIALOG_NPCTEXT, s.self.GetUID(), _title, _options)
+		}	
+	}
 }
 
-func (s *NpcScript) HideDialogue(cid uint64) {
-
+func (s *NpcScript) HideDialogue(_cid uint64) {
+	if player, ok := g_game.GetPlayerByGuid(_cid); ok {
+		player.sendDialog(pnet.DIALOG_CLOSE, 0, "", nil)
+	}
 }
 
-func (s *NpcScript) EndDialogue(cid uint64) {
-
+func (s *NpcScript) EndDialogue(_cid uint64) {
+	if player, ok := g_game.GetPlayerByGuid(_cid); ok {
+		s.self.RemoveInteractingPlayer(player)
+		player.sendDialog(pnet.DIALOG_CLOSE, 0, "", nil)
+	}
 }
 
 // Pokecenter
@@ -76,15 +91,45 @@ func (s *NpcScript) SetQuestProgress(cid uint64, questId int, progress int) {
 }
 
 // Items
-func (s *NpcScript) AddItem(cid uint64, itemId int, amount int) {
+func (s *NpcScript) AddItem(cid uint64, itemId int64, amount int) (ret bool) {
+	ret = false
+	
+	// Get creature
+	if player, found := g_game.GetPlayerByGuid(cid); found {
+		// Get item
+		if item, ok := g_game.Items.GetItemByItemId(itemId); ok {
+			// Find free slot
+			slot := player.Backpack.GetFreeSlotForCategory(item.CategoryId)
+			// Add to backpack
+			ret = player.Backpack.AddItem(itemId, amount, slot)
+		}
+	}
+	
+	return
 }
 
-func (s *NpcScript) CheckItem(cid uint64, itemId, amount int) bool {
-	return false
+func (s *NpcScript) CheckItem(cid uint64, itemId int64, amount int) (ret bool) {
+	ret = false
+	
+	// Get creature
+	if player, found := g_game.GetPlayerByGuid(cid); found {
+		if item := player.Backpack.GetItemFromIndex(itemId); item != nil {
+			ret = (item.GetCount() >= amount)
+		}
+	}
+	
+	return
 }
 
-func (s *NpcScript) RemoveItem(cid uint64, itemId int, amount int) {
-
+func (s *NpcScript) RemoveItem(cid uint64, itemId int64, amount int) (ret bool) {
+	ret = false
+	
+	// Get creature
+	if player, found := g_game.GetPlayerByGuid(cid); found {
+		ret = player.Backpack.UpdateItemByIndex(itemId, amount)
+	}
+	
+	return
 }
 
 // Golds

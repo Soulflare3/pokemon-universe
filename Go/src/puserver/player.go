@@ -43,6 +43,7 @@ type Player struct {
 
 	Location       	*Location
 	LastPokeCenter 	*Tile
+	InteractingNpc	*Npc
 
 	Money          	int
 	TimeoutCounter	int

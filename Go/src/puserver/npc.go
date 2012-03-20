@@ -18,9 +18,11 @@ package main
 
 import (
 	"container/list"
+	"math"
 	
 	"npclib"
 	"putools/log"
+	pnet "network"
 	pul "pulogic"
 	puh "puhelper"
 )
@@ -28,9 +30,11 @@ import (
 type Npc struct {
 	Creature
 	
-	dbid		int
-	script_name	string
-	script 		npclib.NpcInteractionInterface
+	dbid				int
+	script_name			string
+	script 				npclib.NpcInteractionInterface
+	
+	interactingPlayers	PlayerList
 }
 
 func NewNpc() *Npc {
@@ -41,6 +45,8 @@ func NewNpc() *Npc {
 	n.VisibleCreatures = make(pul.CreatureList)
 	n.ConditionList = list.New()
 	n.script = nil
+	
+	n.interactingPlayers = make(PlayerList)
 	
 	return &n
 }
@@ -149,8 +155,56 @@ func (n *Npc) RemoveVisibleCreature(_creature pul.ICreature) {
 
 // -------------------------------------------------------- //
 
-func (n *Npc) SelfSay(_message string) {
+func (n *Npc) AddInteractingPlayer(_player *Player) {
+	n.interactingPlayers[_player.GetUID()] = _player
+	_player.InteractingNpc = n
+}
 
+func (n *Npc) HasInteractingPlayer(_player *Player) bool {
+	_, found := n.interactingPlayers[_player.GetUID()]
+	return found
+}
+
+func (n *Npc) RemoveInteractingPlayer(_player *Player) {
+	_player.InteractingNpc = nil
+	delete(n.interactingPlayers, _player.GetUID())
+}
+
+func (n *Npc) SelfSay(_message string) {
+	g_game.internalCreatureSay(n, pnet.SPEAK_NORMAL, _message)
+}
+
+func (n *Npc) StartDialog(_player *Player) {
+	if !n.HasInteractingPlayer(_player) {
+		n.AddInteractingPlayer(_player)
+		
+		// Calculate turn direction
+		playerPos := _player.GetPosition()
+		npcPos := n.GetPosition()
+		diff := playerPos.Sub(npcPos)
+		
+		var tan float64 = 10
+		if diff.X != 0 {
+			tan = float64(diff.Y / diff.X)
+		}
+
+		direction := DIR_SOUTH // Default		
+		if math.Abs(tan) < 1 {
+			if diff.X > 0 {
+				direction = DIR_WEST
+			} else {
+				direction = DIR_EAST
+			}
+		} else if diff.Y > 0 {
+			direction = DIR_NORTH
+		}
+		
+		// Turn creature for this player only
+		_player.sendCreatureTurnExclusive(n, direction)
+		
+		// Start conversation
+		n.OnDialogueAnswer(_player.GetUID(), 0)
+	}
 }
 
 func (n *Npc) OnDialogueAnswer(_cid uint64, _answer int) {
