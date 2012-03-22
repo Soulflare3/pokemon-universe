@@ -11,11 +11,17 @@ import (
 	"putools/log"
 )
 
-var g_map *Map = NewMap()
-var g_npc *NpcList = NewNpcList()
-var g_dblock sync.Mutex
-var g_server *Server
-var g_config *conf.ConfigFile
+const (
+	IS_DEBUG = false
+)
+
+var (
+	g_map *Map = NewMap()
+	g_npc *NpcList = NewNpcList()
+	g_dblock sync.Mutex
+	g_server *Server
+	g_config *conf.ConfigFile
+)
 
 func initConfig(configFile *string) bool {
 	c, err := conf.ReadConfigFile("data/" + *configFile)

@@ -59,6 +59,8 @@ func (t *Tile) AddLayer(_layer int, _sprite int) (layer *TileLayer) {
 	if layer == nil {
 		layer = &TileLayer{Layer: _layer, SpriteID: _sprite}
 		t.Layers[_layer] = layer
+	} else {
+		t.Layers[_layer].SpriteID = _sprite
 	}
 
 	return
@@ -70,7 +72,7 @@ func (t *Tile) AddEvent(_event ITileEvent) {
 
 // GetLayer returns a TileLayer object if the layer exists, otherwise nil
 func (t *Tile) GetLayer(_layer int) *TileLayer {
-	if layer, ok := t.Layers[_layer]; !ok {
+	if layer, ok := t.Layers[_layer]; ok {
 		return layer
 	}
 

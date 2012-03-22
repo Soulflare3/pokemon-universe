@@ -61,16 +61,21 @@ func (c *Client) HandleClient() {
 		copy(packet.Buffer[2:], databuffer[:])
 
 		header := packet.ReadUint8()
+		fmt.Printf("Header: %v\n", header)
 		switch header {
 		case 0x00: // Login
 			username := packet.ReadString()
 			password := packet.ReadString()
 			if c.checkAccount(username, password) {
+				fmt.Println("- Send login")
 				c.loggedIn = true
 				c.SendLogin(0)
+				fmt.Println("- Send map list")
 				c.SendMapList()
+				fmt.Println("- Send npc list")
 				c.SendNpcList()
 			} else {
+				fmt.Println("- Send login false")
 				c.SendLogin(1)
 			}
 			
@@ -173,9 +178,13 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 		tile, exists := g_map.GetTileFromCoordinates(x, y, z)
 		var query string
 		
+		if IS_DEBUG {
+			fmt.Printf("Tile Exists - %v - Layers: %d\n", exists, numLayers) 
+		}			
+		
 		if numLayers > 0 {
 			if !exists { // Tile does not exists, create it
-				query := fmt.Sprintf("INSERT INTO tile (x, y, z, movement, idlocation) VALUES (%d, %d, %d, %d, 0)", x, y, z, movement)
+				query = fmt.Sprintf("INSERT INTO tile (x, y, z, movement, idlocation) VALUES (%d, %d, %d, %d, 0)", x, y, z, movement)
 				if err := puh.DBQuery(query); err != nil {
 					return
 				}
@@ -184,12 +193,20 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 				tile.Blocking = movement
 				tile.DbId = int64(puh.DBGetLastInsertId())
 				
+				if IS_DEBUG {
+					fmt.Printf("New Tile - X: %d - Y: %d - Z: %d - DbId: %d\n", x, y, z, tile.DbId) 
+				}
+				
 				// Add tile to map
 				g_map.AddTile(tile)
 			} else {
-				query := fmt.Sprintf("UPDATE tile SET movement='%d' WHERE idtile='%d'", movement, tile.DbId)
+				query = fmt.Sprintf("UPDATE tile SET movement='%d' WHERE idtile='%d'", movement, tile.DbId)
 				if err := puh.DBQuery(query); err != nil {
 					return
+				}
+				
+				if IS_DEBUG {
+					fmt.Printf("Update Tile - X: %d - Y: %d - Z: %d - DbId: %d\n", x, y, z, tile.DbId) 
 				}
 				
 				tile.Blocking = movement
@@ -208,11 +225,19 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 					
 					tileLayer = tile.AddLayer(layerId, sprite)
 					tileLayer.DbId = int64(puh.DBGetLastInsertId())
+					
+					if IS_DEBUG {
+						fmt.Printf("Add Layer - Tile Id: %d - Layer: %d - DbId: %d\n", tile.DbId, layerId, tileLayer.DbId) 
+					}
 				} else {
 					if (sprite == 0) { // Delete layer
 						query = fmt.Sprintf("DELETE FROM tile_layer WHERE idtile_layer='%d'", tileLayer.DbId)
 						if err := puh.DBQuery(query); err != nil {
 							return
+						}
+						
+						if IS_DEBUG {
+							fmt.Printf("Delete Layer - Tile Id: %d - DbId: %d\n", tile.DbId, tileLayer.DbId) 
 						}
 						
 						tile.RemoveLayer(layerId)						
@@ -221,6 +246,10 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 						if err := puh.DBQuery(query); err != nil {
 							return
 						}
+						
+						if IS_DEBUG {
+							fmt.Printf("Update Layer - Tile Id: %d - DbId: %d\n", tile.DbId, tileLayer.DbId) 
+						}						
 						
 						tileLayer.SpriteID = sprite
 					}
@@ -233,6 +262,10 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 					return
 				}
 				
+				if IS_DEBUG {
+					fmt.Printf("Delete Layer - Tile Id: %d\n", tile.DbId) 
+				}				
+				
 				// Check if tile has an event 
 				if tile.Event != nil {
 					if tile.Event.GetEventType() == 1 { // Warp/Teleport
@@ -240,13 +273,17 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 						query := fmt.Sprintf("DELETE FROM teleport WHERE idteleport = %d", warp.dbid)
 						if err := puh.DBQuery(query); err == nil {
 						}
-					}				
+					}
 				}
 				
 				query = fmt.Sprintf("DELETE FROM tile WHERE idtile='%d'", tile.DbId)
 				if err := puh.DBQuery(query); err != nil {
 					return
 				}
+				
+				if IS_DEBUG {
+					fmt.Printf("Delete Tile - Tile Id: %d\n", tile.DbId) 
+				}	
 				
 				tile.IsRemoved = true
 			}
