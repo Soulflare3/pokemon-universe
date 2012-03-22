@@ -540,7 +540,7 @@ func (c *Client) SendNpcList() {
 		packet.AddUint16(uint16(npc.Feet))
 		packet.AddUint16(uint16(npc.Position.X))
 		packet.AddUint16(uint16(npc.Position.Y))
-		packet.AddUint16(uint16(npc.Position.Y))
+		packet.AddUint16(uint16(npc.Position.Z))
 	}
 	
 	c.Send(packet)
@@ -559,7 +559,7 @@ func (c *Client) SendNpc(_id int) {
 	packet.AddUint16(uint16(npc.Feet))
 	packet.AddUint16(uint16(npc.Position.X))
 	packet.AddUint16(uint16(npc.Position.Y))
-	packet.AddUint16(uint16(npc.Position.Y))
+	packet.AddUint16(uint16(npc.Position.Z))
 	
 	c.Send(packet)
 }
