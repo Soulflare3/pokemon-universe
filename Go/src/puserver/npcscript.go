@@ -75,33 +75,40 @@ func (s *NpcScript) HealParty(cid uint64) {
 }
 
 // Market
-func (s *NpcScript) OpenShopWindow(cid uint64) {
+func (s *NpcScript) OpenShopWindow(_cid uint64) {
 }
 
-func (s *NpcScript) CloseShopWindow(cid uint64) {
+func (s *NpcScript) CloseShopWindow(_cid uint64) {
 }
 
 // Quest
-func (s *NpcScript) GetQuestProgress(cid uint64, questId int) int {
-	return 0
+func (s *NpcScript) GetQuestProgress(_cid uint64, _questId int) (status int) {
+	status = 0
+	if player, found := g_game.GetPlayerByGuid(_cid); found {
+		status = player.GetQuestStatus(int64(_questId))
+	}
+	
+	return
 }
 
-func (s *NpcScript) SetQuestProgress(cid uint64, questId int, progress int) {
-
+func (s *NpcScript) SetQuestProgress(_cid uint64, _questId int, _progress int) {
+	if player, found := g_game.GetPlayerByGuid(_cid); found {
+		player.SetQuestStatus(int64(_questId), _progress)
+	}
 }
 
 // Items
-func (s *NpcScript) AddItem(cid uint64, itemId int64, amount int) (ret bool) {
+func (s *NpcScript) AddItem(_cid uint64, _itemId int64, _amount int) (ret bool) {
 	ret = false
 	
 	// Get creature
-	if player, found := g_game.GetPlayerByGuid(cid); found {
+	if player, found := g_game.GetPlayerByGuid(_cid); found {
 		// Get item
-		if item, ok := g_game.Items.GetItemByItemId(itemId); ok {
+		if item, ok := g_game.Items.GetItemByItemId(_itemId); ok {
 			// Find free slot
 			slot := player.Backpack.GetFreeSlotForCategory(item.CategoryId)
 			// Add to backpack
-			ret = player.Backpack.AddItem(itemId, amount, slot)
+			ret = player.Backpack.AddItem(_itemId, _amount, slot)
 		}
 	}
 	

@@ -91,7 +91,7 @@ func (p *Player) sendCreatureChangeVisibility(_creature pul.ICreature, _visible 
 	if _creature.GetUID() != p.GetUID() {
 		if _visible {
 			p.AddVisibleCreature(_creature)
-		} else if !p.hasFlag(PlayerFlag_CanSenseInvisibility) {
+		} else if !p.HasFlag(PlayerFlag_CanSenseInvisibility) {
 			p.RemoveVisibleCreature(_creature)
 		}
 	}

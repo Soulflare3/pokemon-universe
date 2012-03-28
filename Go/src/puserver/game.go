@@ -48,6 +48,7 @@ type Game struct {
 	Chat				*Chat
 	Locations			*LocationStore
 	Items				*ItemStore
+	Quests				*QuestStore
 
 	mutexCreatureList   *sync.RWMutex
 	mutexPlayerList     *sync.RWMutex
@@ -88,6 +89,13 @@ func (the *Game) Load() (LostIt bool) {
 	logger.Println(" - Loading items")
 	if err := the.Items.Load(); !err {
 		logger.Println("[ERROR] Failed to load items...")
+		LostIt = false
+		return
+	}
+	
+	logger.Println(" - Loading quests")
+	if err := the.Quests.Load(); !err {
+		logger.Println("[ERROR] Failed to load quests...")
 		LostIt = false
 		return
 	}

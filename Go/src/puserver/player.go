@@ -44,6 +44,8 @@ type Player struct {
 	Location       	*Location
 	LastPokeCenter 	*Tile
 	InteractingNpc	*Npc
+	
+	Quests			PlayerQuestList
 
 	Money          	int
 	TimeoutCounter	int
@@ -69,6 +71,8 @@ func NewPlayer(_name string) *Player {
 	p.VisibleCreatures = make(pul.CreatureList)
 	p.ConditionList = list.New()
 	p.TimeoutCounter = 0
+	
+	p.Quests = make(PlayerQuestList)
 	
 	// Add self to visible creatures
 	p.VisibleCreatures[p.GetUID()] = p
@@ -316,6 +320,35 @@ func (p *Player) loadFriends() bool {
 	return true
 }
 
+func (p *Player) loadQuestsProgress() bool {
+	var query string = "SELECT idplayer_quests, idquest, status, created, finished FROM player_quests WHERE idplayer=%d"
+	result, err := puh.DBQuerySelect(fmt.Sprintf(query, p.dbid))
+	if err != nil {
+		return false
+	}
+	
+	defer puh.DBFree()
+	for  {
+		row := result.FetchRow()
+		if row == nil {
+			break
+		}
+		
+		dbid := puh.DBGetInt64(row[0])
+		questid := puh.DBGetInt64(row[1])
+		status := puh.DBGetInt(row[2])
+		created := puh.DBGetInt64(row[3]) // Unix seconds
+		finished := puh.DBGetInt64(row[4]) // Unix seconds
+		
+		if playerQuest := NewPlayerQuestExt(dbid, questid, status, created, finished); playerQuest != nil {
+			playerQuest.IsNew = false
+			p.Quests[questid] = playerQuest
+		}
+	}
+	
+	return true
+}
+
 // --------------------- SAVING ----------------------------//
 
 func (p *Player) SaveData() {
@@ -440,6 +473,23 @@ func (p *Player) saveFriends() {
 	}
 }
 
+func (p *Player) saveQuestProgress() {
+	for _, quest := range(p.Quests) {
+		var query string = ""
+		if quest.IsNew {
+			tmpQuery := "INSERT INTO player_quests (idplayer, idquest, status, created, finished) VALUES (%d, %d, %d, %d, %d)"
+			query = fmt.Sprintf(tmpQuery, p.dbid, quest.Quest.Dbid, quest.Status, quest.Created.Unix(), quest.Finished.Unix())
+		} else if quest.IsModified {
+			tmpQuery := "UPDATE player_quests SET status=%d, finished=%d WHERE idplayer_quests=%d"
+			query = fmt.Sprintf(tmpQuery, quest.Status, quest.Finished.Unix(), quest.Dbid)
+		}
+		
+		if len(query) > 0 {
+			puh.DBQuery(query)
+		}
+	}
+}
+
 // --------------------- INTERFACE ----------------------------//
 
 func (p *Player) GetType() int {
@@ -557,10 +607,31 @@ func (p *Player) HealParty() {
 	// TODO: Send update to client
 }
 
-func (p *Player) setFlags(_flags int64) {
+func (p *Player) SetFlags(_flags int64) {
 	p.GroupFlags = _flags
 }
 
-func (p *Player) hasFlag(_value uint64) bool {
+func (p *Player) HasFlag(_value uint64) bool {
 	return (0 != (p.GroupFlags & (1 << _value)))
+}
+
+func (p *Player) GetQuestStatus(_questId int64) (status int) {
+	status = 0
+	if quest, found := p.Quests[_questId]; found {
+		status = quest.Status
+	}
+	
+	return
+}
+
+func (p *Player) SetQuestStatus(_questId int64, _status int) {
+	quest, found := p.Quests[_questId]
+	if found {
+		quest.Status = _status
+	} else {
+		playerQuest := NewPlayerQuest(_questId, _status)
+		if playerQuest != nil {
+			p.Quests[_questId] = playerQuest
+		}
+	}
 }
