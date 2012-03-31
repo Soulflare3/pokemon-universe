@@ -211,7 +211,7 @@ func (g *Game) RemoveCreature(_guid uint64) {
 		
 		// Remove creature from all visible creature lists
 		for _, c := range g.Creatures {
-			c.RemoveVisibleCreature(object)
+			c.OnCreatureDisappear(object, true)
 		}
 	}
 }

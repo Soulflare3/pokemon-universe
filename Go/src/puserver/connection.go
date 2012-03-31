@@ -79,6 +79,9 @@ func (c *Connection) ProcessPacket(_packet *pnet.Packet) {
 			
 		case pnet.HEADER_DIALOG:
 			c.ReceiveDialogAnswer(_packet)
+			
+		case pnet.HEADER_QUESTUPDATE:
+			c.ReceiveQuestUpdate(_packet)
 	}
 }
 
@@ -116,10 +119,13 @@ func (c *Connection) SendPlayerData() {
 	// Send list to client
 	c.SendFriendList(c.Owner.Friends)
 	
+	// Send quests
+	c.SendQuestList(c.Owner.Quests)
+	
 	// Send map
 	c.SendMapData(DIR_NULL, c.Owner.GetPosition())
 	
-	// ready
+	// Ready to roll
 	readyMessage := &pnetmsg.LoginMessage{}
 	readyMessage.Status = pnetmsg.LOGINSTATUS_READY
 	c.SendMessage(readyMessage)
@@ -237,6 +243,23 @@ func (c *Connection) SendDialog(_type int, _npcId uint64, _title string, _option
 	c.SendMessage(msg)
 }
 
+func (c *Connection) SendQuestList(_quests PlayerQuestList) {
+	if len(_quests) > 0 {
+		msg := pnetmsg.NewQuestListMessage()
+		
+		for _, quest := range(_quests) {
+			msg.AddQuest(quest.Dbid, quest.Quest.Name, quest.Quest.Description, quest.Status)	
+		}
+		
+		c.SendMessage(msg)
+	}
+}
+
+func (c *Connection) SendQuestUpdate(_quest *PlayerQuest) {
+	msg := pnetmsg.NewQuestUpdateMessageExt(_quest.Dbid, _quest.Quest.Name, _quest.Quest.Description, _quest.Status)
+	c.SendMessage(msg)
+}
+
 // ------------------------------------------------------ //
 //                     RECEIVE
 // ------------------------------------------------------ //
@@ -284,5 +307,14 @@ func (c *Connection) ReceiveDialogAnswer(_packet *pnet.Packet) {
 	
 	if c.Owner.InteractingNpc != nil {
 		c.Owner.InteractingNpc.OnDialogueAnswer(c.Owner.GetUID(), msg.AnswerId)
+	}
+}
+
+func (c *Connection) ReceiveQuestUpdate(_packet *pnet.Packet) {
+	msg := pnetmsg.NewQuestUpdateMessage()
+	msg.ReadPacket(_packet)
+	
+	if msg.Removed {
+		c.Owner.AbandonQuest(msg.Id)
 	}
 }

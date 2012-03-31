@@ -32,6 +32,11 @@ type Friend struct {
 }
 
 func (p *Player) AddFriend(_name string) {
+	// Cannot add self
+	if _name == p.GetName() {
+		return
+	}
+
 	if f, found := p.GetFriend(_name); found {
 		if f.IsRemoved {
 			// Friend already exists, but is flagged for removal
@@ -83,9 +88,9 @@ func (p *Player) UpdateFriend(_name string, _online bool) {
 	if friend, found := p.GetFriend(_name); found {
 		friend.Online = _online
 		friend.IsRemoved = false
+		
+		p.sendFriendUpdate(_name, _online)
 	}
-	
-	p.sendFriendUpdate(_name, _online)
 }
 
 func (p *Player) GetFriend(_name string) (friend *Friend, found bool) {

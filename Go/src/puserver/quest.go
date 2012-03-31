@@ -32,7 +32,7 @@ func NewQuestStore() *QuestStore {
 }
 
 func (s *QuestStore) Load() bool {
-	result, err := puh.DBQuerySelect("SELECT idquests, name FROM quests")
+	result, err := puh.DBQuerySelect("SELECT idquests, name, description FROM quests")
 	if err != nil {
 		return false
 	}
@@ -45,7 +45,8 @@ func (s *QuestStore) Load() bool {
 		}
 		
 		quest := &Quest { Dbid: puh.DBGetInt64(row[0]),
-						  Name: puh.DBGetString(row[1]) }
+						  Name: puh.DBGetString(row[1]),
+						  Description: puh.DBGetString(row[2]) }
 		s.AddQuest(quest)
 	}
 	
@@ -62,8 +63,9 @@ func (s *QuestStore) GetQuest(_dbid int64) (quest *Quest, found bool) {
 }
 
 type Quest struct {
-	Dbid	int64
-	Name	string
+	Dbid		int64
+	Name		string
+	Description	string
 }
 
 func NewQuest(_dbid int64, _name string) *Quest {
@@ -83,6 +85,7 @@ type PlayerQuest struct {
 	// Saving variables
 	IsNew		bool
 	IsModified	bool
+	IsAbandoned bool
 }
 
 func NewPlayerQuest(_questId int64, _status int) *PlayerQuest {
@@ -98,7 +101,8 @@ func NewPlayerQuest(_questId int64, _status int) *PlayerQuest {
 								  Finished: time.Unix(0, 0),
 								  IsFinished: false,
 								  IsNew: true,
-								  IsModified: false }
+								  IsModified: false,
+								  IsAbandoned: false }
 	return &playerQuest
 }
 
@@ -118,16 +122,23 @@ func NewPlayerQuestExt(_dbid int64, _questId int64, _status int, _created int64,
 								  Finished: finishedTime,
 								  IsFinished: (_finished > 0),
 								  IsNew: true,
-								  IsModified: false }
+								  IsModified: false,
+								  IsAbandoned: false }
 	return &playerQuest
 }
 
 func (p *PlayerQuest) UpdateStatus(_newStatus int) {
-	p.Status = _newStatus
-	p.IsModified = true
-	
-	if p.Status == 100 {
-		p.IsFinished = true
-		p.Finished = time.Now()
+	if !p.IsAbandoned {
+		p.Status = _newStatus
+		p.IsModified = true
+		
+		if p.Status == 100 {
+			p.IsFinished = true
+			p.Finished = time.Now()
+		}
 	}
+}
+
+func (p *PlayerQuest) Abandon() {
+	p.IsAbandoned = true
 }

@@ -123,3 +123,12 @@ func (p *Player) sendFriendRemove(_name string) {
 func (p *Player) sendDialog(_type int, _npcId uint64, _title string, _options []string) {
 	p.Conn.SendDialog(_type, _npcId, _title, _options)	
 }
+
+// --------------------- QUESTS ----------------------------//
+func (p *Player) sendQuestList(_questList PlayerQuestList) {
+	p.Conn.SendQuestList(_questList)
+}
+
+func (p *Player) sendQuestUpdate(_quest *PlayerQuest) {
+	p.Conn.SendQuestUpdate(_quest)
+}
