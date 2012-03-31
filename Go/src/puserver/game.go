@@ -77,9 +77,9 @@ func NewGame() *Game {
 func (the *Game) Load() (LostIt bool) {
 	LostIt = true // fuck >:(
 	g_map = NewMap()
-	the.Locations = NewLocationStore()
-
+	
 	logger.Println(" - Loading locations")
+	the.Locations = NewLocationStore()
 	if err := the.Locations.Load(); err != nil {
 		logger.Println("[ERROR] Failed to load locations...")
 		LostIt = false
@@ -87,6 +87,7 @@ func (the *Game) Load() (LostIt bool) {
 	}
 	
 	logger.Println(" - Loading items")
+	the.Items = NewItemStore()
 	if err := the.Items.Load(); !err {
 		logger.Println("[ERROR] Failed to load items...")
 		LostIt = false
@@ -94,6 +95,7 @@ func (the *Game) Load() (LostIt bool) {
 	}
 	
 	logger.Println(" - Loading quests")
+	the.Quests = NewQuestStore()
 	if err := the.Quests.Load(); !err {
 		logger.Println("[ERROR] Failed to load quests...")
 		LostIt = false

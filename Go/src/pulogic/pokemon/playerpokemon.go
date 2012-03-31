@@ -41,7 +41,6 @@ type PlayerPokemon struct {
 	InParty		int
 	Slot		int
 	Nature		int
-	TotalHp		int
 	DamagedHp	int
 }
 
@@ -53,17 +52,13 @@ func NewPlayerPokemon(_playerId int) *PlayerPokemon {
 }
 
 func (p *PlayerPokemon) LoadMoves() {
-	var query string = "SELECT idplayer_pokemon_move, idmove, pp_used FROM player_pokemon_move WHERE idplayer_pokemon='%d'"
+	var query string = "SELECT idplayer_pokemon_move, idmove, pp_used FROM player_pokemon_move WHERE idplayer_pokemon=%d"
 	result, err := puh.DBQuerySelect(fmt.Sprintf(query, p.IdDb))
 	if err != nil {
 		return
 	}
 	
-	defer puh.DBFree()
-	if result.RowCount() == 0 {
-		log.Printf("[WARNING] Pokemon (db id: %d) has zero moves\n", p.IdDb)
-	}
-	
+	defer puh.DBFree()	
 	var index int = 0
 	for {
 		row := result.FetchRow()
@@ -76,6 +71,10 @@ func (p *PlayerPokemon) LoadMoves() {
 		ppUsed := puh.DBGetInt(row[2])
 		p.Moves[index] = NewPlayerPokemonMove(uniqueId, moveId, ppUsed)
 		index++
+	}
+	
+	if index == 0 {
+		log.Printf("[WARNING] Pokemon (db id: %d) has zero moves\n", p.IdDb)
 	}
 }
 
@@ -100,4 +99,8 @@ func (p *PlayerPokemon) GetNickname() string {
 
 func (p *PlayerPokemon) GetLevel() int {
 	return puh.CalculateLevelFromExperience(p.Experience)
+}
+
+func (p *PlayerPokemon) GetTotalHp() int {
+	return puh.HpForLevel(p.Base.Stats[POKESTAT_HP].BaseStat, p.Stats[POKESTAT_HP], p.GetLevel())
 }

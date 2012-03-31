@@ -143,6 +143,13 @@ func DBGetInt64(_row interface{}) int64 {
 	return 0
 }
 
+func DBGetUint64(_row interface{}) uint64 {
+		if _row != nil {
+		return _row.(uint64)
+	}
+	return 0
+}
+
 func DBGetFloat64(_row interface{}) float64 {
 	if _row != nil {
 		return float64(_row.(int64))

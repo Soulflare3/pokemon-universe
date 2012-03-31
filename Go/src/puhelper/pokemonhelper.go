@@ -17,7 +17,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package puhelper
 
 import (
+	"fmt"
 	"math"
+	"math/rand"
 )
 
 func CalculateLevelFromExperience(_exp float64) (level int) {
@@ -30,6 +32,18 @@ func ExperienceForLevel(_level int) (exp float64) {
 	exp = math.Floor(math.Pow(float64(_level), 4))
 	
 	return
+}
+
+func HpForLevel(_base int, _iv int, _level int) (hp int) {
+	hp = (((( 2 * _base ) + _iv) * _level / 100 ) + 10 + _level);
+	
+	return
+}
+
+func RandomIV() (iv int) {
+	iv = math.Intn(35) + 1
+	
+	return 
 }
 
 func GetTypeValueById(_id int) (toReturn string) {

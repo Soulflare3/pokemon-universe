@@ -51,6 +51,11 @@ func (m *SendPokemonData) WritePacket() pnet.IPacket {
 			packet.AddUint32(uint32(pokemon.Experience)) // Current EXP 
 			packet.AddUint32(uint32(puh.ExperienceForLevel(pokemonLevel + 1))) // Exp for next level
 			
+			hpTotal := pokemon.GetTotalHp()
+			hpLeft := hpTotal - pokemon.DamagedHp
+			packet.AddUint16(uint16(hpLeft))
+			packet.AddUint16(uint16(hpTotal))
+			
 			packet.AddUint16(uint16(pokemon.Base.Types[0]))
 			packet.AddUint16(uint16(pokemon.Base.Types[1]))
 			packet.AddUint16(uint16(pokemon.Nature))

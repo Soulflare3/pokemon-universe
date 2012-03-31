@@ -29,6 +29,10 @@ type IOMapDB struct{}
 var rowChan = make(chan mysql.Row)
 
 func processRows(_map *Map) {
+
+	_map.AddMap(0, "")
+	tiles := _map.tiles[0]
+	
 	for {
 		row := <-rowChan
 		if row == nil {
@@ -68,8 +72,8 @@ func processRows(_map *Map) {
 				tp_pos := pos.NewPositionFrom(tp_x, tp_y, tp_z)
 				tile.AddEvent(NewWarp(tp_pos))
 			}
-
-			_map.AddTile(tile)
+			
+			tiles[tile.Position.Hash()] = tile
 		}
 
 		tile.AddLayer(layer, sprite)
@@ -91,7 +95,7 @@ func (io *IOMapDB) LoadMap(_map *Map) error {
 	if err != nil {
 		return err
 	}
-	defer result.Free()
+	defer puh.DBFree()
 	
 	logger.Printf(" - Processing worldmap data from database")
 	count := 0

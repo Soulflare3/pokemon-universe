@@ -91,7 +91,7 @@ func (p *Player) loadPlayerInfo() bool {
 	if !ok {
 		logger.Printf("[Warning] Could not load position info for player %s (%d)\n", p.name, p.dbid)
 		//tile, _ = g_map.GetTileFrom(-510, -236, 0)
-		tile, _ = g_map.GetTileFrom(0, 0, 1)
+		tile, _ = g_map.GetTileFrom(38, 15, 1)
 		if tile == nil {
 			logger.Println("[Error] Could not load default position")
 			return false
@@ -127,8 +127,7 @@ func (p *Player) loadPokemon() bool {
 	if err != nil {
 		return false
 	}
-
-	logger.Println("Loading player pokemon..")
+	
 	defer puh.DBFree()	
 	for {
 		row := result.FetchRow()
@@ -142,13 +141,13 @@ func (p *Player) loadPokemon() bool {
 		pokemon.Base = pkmn.GetInstance().GetPokemon(pokemonId)
 		pokemon.Nickname = puh.DBGetString(row[1])
 		pokemon.IsBound = puh.DBGetInt(row[2])
-		pokemon.Experience = puh.DBGetFloat64(row[3])
-		pokemon.Stats[0] = puh.DBGetInt(row[4]) // HP
-		pokemon.Stats[1] = puh.DBGetInt(row[5]) // Attack
-		pokemon.Stats[2] = puh.DBGetInt(row[7]) // Defence
-		pokemon.Stats[3] = puh.DBGetInt(row[6]) // Spec Attack
-		pokemon.Stats[4] = puh.DBGetInt(row[8]) // Spec Defence
-		pokemon.Stats[5] = puh.DBGetInt(row[9]) // Speed
+		pokemon.Experience = float64(puh.DBGetUint64(row[3]))
+		pokemon.Stats[pkmn.POKESTAT_HP] = puh.DBGetInt(row[4]) // HP
+		pokemon.Stats[pkmn.POKESTAT_ATTACK] = puh.DBGetInt(row[5]) // Attack
+		pokemon.Stats[pkmn.POKESTAT_DEFENSE] = puh.DBGetInt(row[7]) // Defence
+		pokemon.Stats[pkmn.POKESTAT_SPECIALATTACK] = puh.DBGetInt(row[6]) // Spec Attack
+		pokemon.Stats[pkmn.POKESTAT_SPECIALDEFENCE] = puh.DBGetInt(row[8]) // Spec Defence
+		pokemon.Stats[pkmn.POKESTAT_SPEED] = puh.DBGetInt(row[9]) // Speed
 		pokemon.Happiness = puh.DBGetInt(row[10])
 		pokemon.Gender = puh.DBGetInt(row[11])
 		pokemon.InParty = puh.DBGetInt(row[12])

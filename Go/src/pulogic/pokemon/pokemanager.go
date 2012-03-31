@@ -130,8 +130,7 @@ func (m *PokemonManager) loadMoves() bool {
 	var query string = "SELECT id, identifier, type_id, power, accuracy, priority, target_id, damage_class_id," +
 		" effect_id, effect_chance, contest_type_id, contest_effect_id, super_contest_effect_id, pp, flavor_text" +
 		" FROM moves" +
-		" RIGHT JOIN move_flavor_text ON id_move  = id" + 
-		" WHERE version_group_id = 11"
+		" LEFT JOIN move_flavor_text ON id_move = id"
 	result, err := puh.DBQuerySelect(query)
 	if err != nil {
 		return false
@@ -392,7 +391,13 @@ func (m *PokemonManager) GetAbilityNameById(_abilityId int) (toReturn string) {
 }
 
 func (m *PokemonManager) GetMoveById(_moveId int) *Move {
-	return m.moves[_moveId]
+	move, found := m.moves[_moveId]
+	
+	if !found {
+		log.Printf("Could not find move with id: %d\n", _moveId)
+	}
+	
+	return move
 }
 
 func (m *PokemonManager) GetMoveNameById(_moveId int) (toReturn string) {

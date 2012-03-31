@@ -16,6 +16,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package pokemon
 
+import "fmt"
+
 type PlayerPokemonMove struct {
 	Move *Move
 	
@@ -26,6 +28,10 @@ type PlayerPokemonMove struct {
 func NewPlayerPokemonMove(_dbid int64, _moveId int, _currentPP int) *PlayerPokemonMove {
 	pMove := PlayerPokemonMove{ DbId: _dbid, CurrentPP: _currentPP }
 	pMove.Move = GetInstance().GetMoveById(_moveId)
+	
+	if pMove.Move == nil {
+		fmt.Printf("MOVE IS NIL - %d\n", _moveId) 
+	}
 	
 	return &pMove
 }
