@@ -60,6 +60,10 @@ public class PU_Protocol
 				receiveChat(packet);
 				break;
 				
+			case PU_Packet.HEADER_POKEMONPARTY:
+				receivePokemonData(packet);
+				break;
+				
 			default:
 				PUWeb.log("Received packet with unknown header: " + header);
 		}
@@ -356,6 +360,61 @@ public class PU_Protocol
 				if(chatPanel != null)
 				{
 					chatPanel.addMessage(channel, text);
+				}
+			}
+		}
+	}
+	
+	public void receivePokemonData(PU_Packet packet)
+	{
+		for(int i = 0; i < 6; i++)
+		{
+			int slot = packet.readUint8();
+			long id = packet.readUint32();
+			if(id != 0)
+			{
+				PU_Pokemon pokemon = new PU_Pokemon();
+				pokemon.setId(id);
+				pokemon.setSpeciesId(packet.readUint16());
+				pokemon.setName(packet.readString());
+				pokemon.setLevel(packet.readUint16());
+				pokemon.setExpCurrent(packet.readUint32());
+				pokemon.setExpTnl(packet.readUint32());
+				pokemon.setExpPerc((int)Math.floor(((float)pokemon.getExpCurrent()/(float)pokemon.getExpTnl())*100.0f));
+				pokemon.setHp(packet.readUint16());
+				pokemon.setHpmax(packet.readUint16());
+				pokemon.setType1(packet.readUint16());
+				pokemon.setType2(packet.readUint16());
+				pokemon.setNature(packet.readUint16());
+				pokemon.setSex(packet.readUint8());
+				
+				for(int stat = 0; stat < 6; stat++)
+				{
+					pokemon.setStat(stat, packet.readUint8());
+				}
+				
+				for(int j = 0; j < 4; j++)
+				{
+					int attackSlot = packet.readUint8();
+					long attackId = packet.readUint32();
+					if(attackId != 0)
+					{
+						PU_Attack attack = new PU_Attack();
+						attack.setId(attackId);
+						attack.setName(packet.readString());
+						attack.setFlavor(packet.readString());
+						attack.setTypeName(packet.readString());
+						attack.setPp(packet.readUint8());
+						attack.setMaxPp(packet.readUint8());
+						attack.setPower(packet.readUint8());
+						attack.setAccuracy(packet.readUint8());
+						attack.setTargetId(packet.readUint8());
+						pokemon.setAttack(attackSlot, attack);
+					}
+				}
+				if(PUWeb.game().getSelf() != null)
+				{
+					PUWeb.game().getSelf().setPokemon(slot, pokemon);
 				}
 			}
 		}

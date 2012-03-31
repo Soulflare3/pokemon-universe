@@ -64,6 +64,9 @@ public class PUWeb implements EntryPoint
 				
 				// Load sprites
 				mResources.loadSprites();
+				
+				// Load pokemon images
+				mResources.loadPokemonImages();
 			}
 
 			@Override
@@ -204,7 +207,7 @@ public class PUWeb implements EntryPoint
 		if(font != null)
 		{
 			font.setColor(255, 255, 255);
-			font.drawText("FPS: " + mFPS, 764, 30);
+			font.drawText("FPS: " + mFPS, 910, 17);
 		}
 	}
 }

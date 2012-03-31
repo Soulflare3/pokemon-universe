@@ -5,6 +5,7 @@ import java.util.HashMap;
 import pu.web.client.resources.fonts.Fonts;
 import pu.web.client.resources.gui.GuiImageBundle;
 import pu.web.client.resources.gui.GuiImages;
+import pu.web.client.resources.pokemon.Pokemon;
 import pu.web.client.resources.tiles.Tiles;
 import pu.web.shared.ImageLoadEvent;
 
@@ -22,6 +23,9 @@ public class PU_Resources
 	private PU_Image[] mGuiImages = null;
 	private HashMap<Integer, PU_Image> mTiles = new HashMap<Integer, PU_Image>();
 	private HashMap<Long, PU_Image> mCreatureImages = new HashMap<Long, PU_Image>();
+	private HashMap<Integer, PU_Image> mPokeImage_Front = new HashMap<Integer, PU_Image>();
+	private HashMap<Integer, PU_Image> mPokeImage_Back = new HashMap<Integer, PU_Image>();
+	private HashMap<Integer, PU_Image> mPokeImage_Icon = new HashMap<Integer, PU_Image>();
 	
 	private int mFontCount = 0;
 	private int mFontCountLoaded = 0;
@@ -30,8 +34,10 @@ public class PU_Resources
 	private int mGuiImageCountLoaded = 0;
 	
 	private WebGLTexture mSpriteTexture = null;
+	private WebGLTexture mPokemonTexture = null;
 	
 	private boolean mSpritesLoaded = false;
+	private boolean mPokemonLoaded = false;
 	
 	public PU_Resources()
 	{
@@ -50,6 +56,9 @@ public class PU_Resources
 			complete = false;
 		
 		if(mSpritesLoaded)
+			complete = false;
+		
+		if(mPokemonLoaded)
 			complete = false;
 		
 		if(complete)
@@ -284,5 +293,106 @@ public class PU_Resources
 	{
 		long key = ((bodypart) | (id << 8) | (dir << 16) | (frame << 24));
 		return mCreatureImages.get(key);
+	}
+	
+	public void loadPokemonImages()
+	{
+		final ImageResource imageResource = Pokemon.INSTANCE.getPokemonBitmap();
+		final String imageInfo = Pokemon.INSTANCE.getPokemonInfo().getText();
+	
+		mPokemonTexture = PUWeb.engine().createEmptyTexture();
+		final ImageElement image = PUWeb.engine().getImageElement(imageResource);
+		loadImage(new ImageLoadEvent() 
+		{
+			@Override
+			public void loaded()
+			{
+				PUWeb.engine().fillTexture(mPokemonTexture, image);
+				
+				Document infoDom = XMLParser.parse(imageInfo);
+				
+				NodeList sprites = infoDom.getElementsByTagName("sprite");
+				for(int i = 0; i < sprites.getLength(); i++)
+				{
+					Element element = (Element) sprites.item(i);
+					
+					String name = element.getAttribute("n");
+					
+					PU_Rect texCoords = new PU_Rect();
+					texCoords.x = Integer.parseInt(element.getAttribute("x"));
+					texCoords.y = Integer.parseInt(element.getAttribute("y"));
+					texCoords.width = Integer.parseInt(element.getAttribute("w"));
+					texCoords.height = Integer.parseInt(element.getAttribute("h"));
+					
+					int offsetX = 0;
+					if(element.hasAttribute("oX"))
+						offsetX = Integer.parseInt(element.getAttribute("oX"));
+					
+					int offsetY = 0;
+					if(element.hasAttribute("oY"))
+						offsetY = Integer.parseInt(element.getAttribute("oY"));
+					
+					int width = texCoords.width;
+					if(element.hasAttribute("oW"))
+						width = Integer.parseInt(element.getAttribute("oW"));
+					
+					int height = texCoords.height;
+					if(element.hasAttribute("oH"))
+						height = Integer.parseInt(element.getAttribute("oH"));
+					
+					PU_Image spriteImage = new PU_Image(width, height, null);
+					spriteImage.setTextureCoords(texCoords, image.getWidth(), image.getHeight());
+					spriteImage.setOffsetX(offsetX);
+					spriteImage.setOffsetY(offsetY);
+					
+					if(name.contains("back/"))
+					{
+						int id = Integer.parseInt(name.replace("back/", ""));
+						mPokeImage_Back.put(id, spriteImage);
+					}
+					else if(name.contains("front/"))
+					{
+						int id = Integer.parseInt(name.replace("front/", ""));
+						mPokeImage_Front.put(id, spriteImage);
+					}
+					else if(name.contains("icon/"))
+					{
+						int id = Integer.parseInt(name.replace("icon/", ""));
+						mPokeImage_Icon.put(id, spriteImage);
+					}	
+				}
+								
+				mPokemonLoaded = true;
+				checkComplete();
+			}
+
+			@Override
+			public void error()
+			{
+				PUWeb.log("Error loading sprites");
+				mPokemonLoaded = false;
+				checkComplete();
+			}
+		}, image);
+	}
+	
+	public WebGLTexture getPokemonTexture()
+	{
+		return mPokemonTexture;
+	}
+	
+	public PU_Image getPokemonFront(int id)
+	{
+		return mPokeImage_Front.get(id);
+	}
+	
+	public PU_Image getPokemonBack(int id)
+	{
+		return mPokeImage_Back.get(id);
+	}
+	
+	public PU_Image getPokemonIcon(int id)
+	{
+		return mPokeImage_Icon.get(id);
 	}
 }

@@ -16,7 +16,7 @@ public class PU_Player extends PU_Creature
 	
 	private PU_BodyPart[] mBodyParts = new PU_BodyPart[NUM_BODYPARTS];
 	
-	//pokemon
+	private PU_Pokemon[] mPokemon = new PU_Pokemon[6];
 	
 	public PU_Player(long id)
 	{
@@ -310,5 +310,26 @@ public class PU_Player extends PU_Creature
 			}
 		}
 		return false;
+	}
+	
+	public void setPokemon(int slot, PU_Pokemon pokemon)
+	{
+		this.mPokemon[slot] = pokemon;
+	}
+	
+	public PU_Pokemon getPokemon(int slot)
+	{
+		return this.mPokemon[slot];
+	}
+	
+	public int getPokemonCount()
+	{
+		int count = 0;
+		for(int i = 0; i < 6; i++)
+		{
+			if(this.mPokemon[i] != null)
+				count++;
+		}
+		return count;
 	}
 }

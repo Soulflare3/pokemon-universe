@@ -27,6 +27,7 @@ public class PU_Packet
     public static final byte HEADER_REFRESHCOMPLETE = (byte)0x03;
     public static final byte HEADER_REFRESHWORLD    = (byte)0xC4;
     
+    public static final byte HEADER_POKEMONPARTY = (byte)0xD0;
     public static final byte HEADER_REFRESHPOKEMON    = (byte)0xD1;
     //
 	

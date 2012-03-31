@@ -14,4 +14,22 @@ public interface GuiImageBundle extends ClientBundle
 	
 	@Source(value = { "chatpanel.png" })
 	ImageResource getChatpanel();
+	
+	@Source(value = { "pokemangbar.png" })
+	ImageResource getPokemonBar();
+	
+	@Source(value = { "pokemangslot.png" })
+	ImageResource getPokemonSlot();
+	
+	@Source(value = { "hpbar_exp.png" })
+	ImageResource getHpBarExp();
+	
+	@Source(value = { "hpbar_green.png" })
+	ImageResource getHpBarGreen();
+	
+	@Source(value = { "hpbar_yellow.png" })
+	ImageResource getHpBarYellow();
+	
+	@Source(value = { "hpbar_red.png" })
+	ImageResource getHpBarRed();
 }
