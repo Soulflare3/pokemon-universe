@@ -17,7 +17,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package puhelper
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 )
@@ -41,7 +40,7 @@ func HpForLevel(_base int, _iv int, _level int) (hp int) {
 }
 
 func RandomIV() (iv int) {
-	iv = math.Intn(35) + 1
+	iv = rand.Intn(35) + 1
 	
 	return 
 }
