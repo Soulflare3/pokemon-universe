@@ -116,6 +116,9 @@ func (c *Client) HandleClient() {
 		case 0x09: //Edit Npc Position
 			go c.ReceiveEditNpcPosition(packet)
 			
+		case 0x10: //Delete Npc
+			go c.ReceiveDeleteNpc(packet)	
+			
 		default:
 			fmt.Printf("Unknown header: %d", header)
 			
@@ -328,11 +331,9 @@ func (c *Client) ReceiveRemoveMap(_packet *Packet) {
 		defer g_dblock.Unlock()	
 	
 		query := fmt.Sprintf("DELETE FROM map WHERE idmap='%d'", mapId)
+		fmt.Print(query)
 		if puh.DBQuery(query) == nil {
 			g_map.DeleteMap(mapId)
-			
-			// Send map deleted to clients
-			// TODO
 			
 			// Send new list to clients
 			g_server.SendMapListUpdateToClients()
@@ -486,6 +487,23 @@ func (c *Client) ReceiveEditNpcPosition(_packet *Packet) {
 	}
 }
 
+func (c *Client) ReceiveDeleteNpc(_packet *Packet) {
+	if !c.loggedIn {
+		return
+	}
+	
+	npcId := _packet.ReadUint16()
+		
+	g_dblock.Lock()
+	defer g_dblock.Unlock()
+	query := fmt.Sprintf("DELETE FROM npc WHERE idnpc='%d'", npcId)
+	result := puh.DBQuery(query)
+	if result == nil {
+		g_npc.DeleteNpc(int(npcId));
+		g_server.SendDeleteNpcToClients(int(npcId))
+	}
+}
+
 // //////////////////////////////////////////////
 // SEND
 // //////////////////////////////////////////////
@@ -597,6 +615,15 @@ func (c *Client) SendNpc(_id int) {
 	packet.AddUint16(uint16(npc.Position.X))
 	packet.AddUint16(uint16(npc.Position.Y))
 	packet.AddUint16(uint16(npc.Position.Z))
+	
+	c.Send(packet)
+}
+
+func (c *Client) SendDeleteNpc(_id int) {
+	packet := NewPacketExt(0x06)
+	
+	npc, _ := g_npc.Npcs[_id]
+	packet.AddUint16(uint16(npc.Id))
 	
 	c.Send(packet)
 }

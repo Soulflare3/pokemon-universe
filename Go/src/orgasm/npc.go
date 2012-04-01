@@ -96,3 +96,11 @@ func (m *NpcList) UpdateNpcPosition(_npcId int, _position pos.Position) {
 		npc.Position = _position;
 	} 
 }
+
+func (m *NpcList) DeleteNpc(_npcId int) {
+
+// Delete NPC
+delete(m.Npcs, _npcId)
+
+}
+

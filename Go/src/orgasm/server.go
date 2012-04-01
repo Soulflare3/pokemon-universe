@@ -71,3 +71,9 @@ func (s *Server) SendNpcToClients(_id int) {
 		client.SendNpc(_id)
 	}
 }
+
+func (s *Server) SendDeleteNpcToClients(_id int) {
+	for _, client := range(s.clients) {
+		client.SendDeleteNpc(_id)
+	}
+}
