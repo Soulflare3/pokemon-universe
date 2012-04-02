@@ -327,15 +327,11 @@ func (c *Client) ReceiveRemoveMap(_packet *Packet) {
 	
 	// Check if map id exists
 	if _, ok := g_map.GetMap(mapId); ok {	
-		g_dblock.Lock()
-		defer g_dblock.Unlock()	
-	
-		query := fmt.Sprintf("DELETE FROM map WHERE idmap='%d'", mapId)
-		fmt.Print(query)
-		if puh.DBQuery(query) == nil {
+		
+		query := fmt.Sprintf("DELETE map, tile, tile_layer FROM map LEFT JOIN tile ON map.idmap = tile.z LEFT JOIN tile_layer ON tile.idtile = tile_layer.idtile WHERE map.idmap= '%d'", mapId)
+		
+		if puh.DBQuery(query) == nil{
 			g_map.DeleteMap(mapId)
-			
-			// Send new list to clients
 			g_server.SendMapListUpdateToClients()
 		}
 	}
@@ -494,11 +490,8 @@ func (c *Client) ReceiveDeleteNpc(_packet *Packet) {
 	
 	npcId := _packet.ReadUint16()
 		
-	g_dblock.Lock()
-	defer g_dblock.Unlock()
 	query := fmt.Sprintf("DELETE FROM npc WHERE idnpc='%d'", npcId)
-	result := puh.DBQuery(query)
-	if result == nil {
+	if puh.DBQuery(query) == nil {
 		g_npc.DeleteNpc(int(npcId));
 		g_server.SendDeleteNpcToClients(int(npcId))
 	}
