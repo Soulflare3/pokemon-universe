@@ -315,6 +315,7 @@ func (g *Game) OnCreatureMove(_creature pul.ICreature, _direction int) (ret int)
 	}
 	if ret = destinationTile.AddCreature(_creature, true); ret == RET_NOTPOSSIBLE {
 		currentTile.AddCreature(_creature, false) // Something went wrong, put creature back on old tile
+		_creature.SetTile(currentTile)
 		return
 	}
 

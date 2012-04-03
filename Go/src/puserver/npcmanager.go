@@ -17,19 +17,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package main
 
 import (
-	"npclib"
+	"time"
 	
+	"npclib"
+	"putools/log"
 	puh "puhelper"
 )
 
 type NpcManager struct {
-	npcLib		*npclib.NpcLib
-	npcList		map[int]*Npc
+	npcLib			*npclib.NpcLib
+	npcList			map[int]*Npc
+	
+	autoWalkEnable	bool
 }
 
 func NewNpcManager() *NpcManager {
 	npcManager := NpcManager {}
 	npcManager.npcLib = npclib.NewNpcLib()
+	npcManager.autoWalkEnable = false
 	
 	return &npcManager
 }
@@ -65,5 +70,36 @@ func (n *NpcManager) Load() bool {
 		}
 	}
 	
+	n.StartAutoWalkNpc()
+	
 	return true
+}
+
+func (n *NpcManager) StartAutoWalkNpc() {
+	logger.Println("Starting NPC ticker...")
+	if !n.autoWalkEnable {
+		n.autoWalkEnable = true
+		go n.autoWalkRoutine()
+	}
+}
+
+func (n *NpcManager) autoWalkRoutine() {
+	for _, npc := range(n.npcList) {
+		npc.AutoWalk()
+	}
+	
+	go func() {
+		time.Sleep(time.Second)
+		
+		if n.autoWalkEnable {
+			n.autoWalkRoutine()
+		}
+	}()
+}
+
+func (n *NpcManager) StopAutoWalkNpc() {
+	logger.Println("Stopping NPC ticker...")
+	if n.autoWalkEnable {
+		n.autoWalkEnable = false
+	}
 }
