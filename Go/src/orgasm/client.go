@@ -116,11 +116,14 @@ func (c *Client) HandleClient() {
 		case 0x09: //Edit Npc Position
 			go c.ReceiveEditNpcPosition(packet)
 			
-		case 0x10: //Delete Npc
-			go c.ReceiveDeleteNpc(packet)	
+		case 0x0A: //Delete Npc
+			go c.ReceiveDeleteNpc(packet)
+			
+		case 0x0B: //Retreive NPC pokemon
+			go c.ReceiveGetNpcPokemon(packet)	
 			
 		default:
-			fmt.Printf("Unknown header: %d", header)
+			fmt.Printf("Unknown header: %d\n", header)
 			
 		}
 	}
@@ -416,9 +419,8 @@ func (c *Client) ReceiveAddNpc(_packet *Packet) {
 		if puh.DBQuery(query) == nil {
 			npcId := int(puh.DBGetLastInsertId())
 			
-			outfitQuery := fmt.Sprintf("INSERT INTO npc_outfit (idnpc,head,nek,upper,lower,feet) VALUES ('%d','0', '0', '0', '0', '0')",npcId)
+			outfitQuery := fmt.Sprintf("INSERT INTO npc_outfit (idnpc,head,nek,upper,lower,feet) VALUES ('%d','0', '0', '0', '0', '0')", npcId)
 			if puh.DBQuery(outfitQuery) == nil {
-			
 				g_npc.AddNpc(npcId, npcName, 0, 0, 0, 0, 0, pos.NewPositionFrom(0,0,0))
 				g_server.SendNpcToClients(npcId)
 			}
@@ -448,11 +450,7 @@ func (c *Client) ReceiveEditNpcAppearence(_packet *Packet) {
 		if result == nil {
 			
 			outfitQuery := fmt.Sprintf("UPDATE npc_outfit SET head=%d, nek=%d, upper=%d, lower=%d, feet=%d WHERE idnpc = %d", head, nek, upper, lower, feet, npcId)
-			
-			result := puh.DBQuery(outfitQuery)
-			
-			if result == nil {
-			
+			if puh.DBQuery(outfitQuery) == nil {
 				g_npc.UpdateNpcAppearance(int(npcId), npcName, int(head), int(nek), int(upper), int(lower), int(feet))
 				g_server.SendNpcToClients(int(npcId))
 			}
@@ -495,6 +493,16 @@ func (c *Client) ReceiveDeleteNpc(_packet *Packet) {
 		g_npc.DeleteNpc(int(npcId));
 		g_server.SendDeleteNpcToClients(int(npcId))
 	}
+}
+
+func (c *Client) ReceiveGetNpcPokemon(_packet *Packet) {
+	if !c.loggedIn {
+		return
+	}
+	
+	npcId := int(_packet.ReadUint16())
+	
+	c.SendNpcPokemon(npcId)
 }
 
 // //////////////////////////////////////////////
@@ -578,8 +586,8 @@ func (c *Client) SendNpcList() {
 	packet := NewPacketExt(0x04)
 	packet.AddUint16(uint16(len(g_npc.Npcs)))
 	
-	for _, npc := range(g_npc.Npcs) {
-		packet.AddUint16(uint16(npc.Id))
+	for _id, npc := range(g_npc.Npcs) {
+		packet.AddUint16(uint16(_id))
 		packet.AddString(npc.Name)
 		packet.AddUint16(uint16(npc.Head))
 		packet.AddUint16(uint16(npc.Nek))
@@ -594,11 +602,11 @@ func (c *Client) SendNpcList() {
 	c.Send(packet)
 }
 
-func (c *Client) SendNpc(_id int) {
+func (c *Client) SendNpc(_npcid int) {
 	packet := NewPacketExt(0x05)
 	
-	npc, _ := g_npc.Npcs[_id]
-	packet.AddUint16(uint16(npc.Id))
+	npc, _ := g_npc.Npcs[_npcid]
+	packet.AddUint16(uint16(_npcid))
 	packet.AddString(npc.Name)
 	packet.AddUint16(uint16(npc.Head))
 	packet.AddUint16(uint16(npc.Nek))
@@ -614,9 +622,30 @@ func (c *Client) SendNpc(_id int) {
 
 func (c *Client) SendDeleteNpc(_id int) {
 	packet := NewPacketExt(0x06)
+	packet.AddUint16(uint16(_id))
 	
-	npc, _ := g_npc.Npcs[_id]
-	packet.AddUint16(uint16(npc.Id))
+	c.Send(packet)
+}
+
+func (c *Client) SendNpcPokemon(_npcid int) {
+	packet := NewPacketExt(0x07)
+	packet.AddUint16(uint16(_npcid))
+	
+	npc, _ := g_npc.Npcs[_npcid]
+	packet.AddUint16(uint16(len(npc.Pokemons)))
+	
+	for _id, pokemon := range(npc.Pokemons) {
+		packet.AddUint16(uint16(_id))
+		packet.AddString(pokemon.Name)
+		packet.AddUint16(uint16(pokemon.Hp))
+		packet.AddUint16(uint16(pokemon.Att))
+		packet.AddUint16(uint16(pokemon.Att_spec))
+		packet.AddUint16(uint16(pokemon.Def))
+		packet.AddUint16(uint16(pokemon.Def_spec))
+		packet.AddUint16(uint16(pokemon.Speed))
+		packet.AddUint16(uint16(pokemon.Gender))
+		packet.AddUint16(uint16(pokemon.Held_item))
+	}
 	
 	c.Send(packet)
 }

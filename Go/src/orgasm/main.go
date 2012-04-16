@@ -87,7 +87,7 @@ func main() {
 	//fmt.Printf("[Succeeded] (%d images loaded)\n", len(ImagesMap))
 
 	// Get maps 
-	fmt.Printf("Retrieving map names..")
+	fmt.Printf("Retrieving map names...")
 	g_map.LoadMapList()
 	fmt.Printf("[Succeeded] (%d maps loaded)\n", g_map.GetNumMaps())
 	
@@ -100,6 +100,10 @@ func main() {
 	fmt.Printf("Retrieving NPCs...")
 	g_npc.LoadNpcList()
 	fmt.Printf("[Succeeded] (%d NPCs loaded)\n", g_npc.GetNumNpcs())
+	
+	fmt.Printf("Retrieving NPC Pokemon...")
+	g_npc.LoadNpcPokemon()
+	fmt.Printf("[Succeeded] (%d Pokemons loaded)\n", g_npc.GetNumPokemons())
 	
 	// Set up server
 	fmt.Printf("Running server...")
