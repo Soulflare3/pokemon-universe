@@ -636,6 +636,7 @@ func (c *Client) SendNpcPokemon(_npcid int) {
 	
 	for _id, pokemon := range(npc.Pokemons) {
 		packet.AddUint16(uint16(_id))
+		packet.AddUint16(uint16(pokemon.pokId))
 		packet.AddString(pokemon.Name)
 		packet.AddUint16(uint16(pokemon.Hp))
 		packet.AddUint16(uint16(pokemon.Att))
