@@ -18,6 +18,7 @@ type Npc struct {
 }
 
 type NpcPokemon struct {
+	pokId int
 	Name 	string
   	Hp int
   	Att int
@@ -69,7 +70,7 @@ func (m *NpcList) LoadNpcList() (succeed bool, error string) {
 }
 
 func (m *NpcList) LoadNpcPokemon() (succeed bool, error string) {
-		var query string = "SELECT idnpc, idnpc_pokemon, iv_hp, iv_attack, iv_attack_spec, iv_defence, iv_defence_spec, iv_speed, gender, held_item FROM npc_pokemon"
+		var query string = "SELECT idnpc, idnpc_pokemon, idpokemon, iv_hp, iv_attack, iv_attack_spec, iv_defence, iv_defence_spec, iv_speed, gender, held_item FROM npc_pokemon"
 		
 		result, err := puh.DBQuerySelect(query)
 		if err != nil {
@@ -85,18 +86,19 @@ func (m *NpcList) LoadNpcPokemon() (succeed bool, error string) {
 			}
 			
 			idNpc := puh.DBGetInt(row[0])
-			idPokemon := puh.DBGetInt(row[1])
-			hp := puh.DBGetInt(row[2])
-			attack := puh.DBGetInt(row[3])		
-			attack_spec := puh.DBGetInt(row[4])
-			defence := puh.DBGetInt(row[5])
-			defence_spec := puh.DBGetInt(row[6])
-			speed := puh.DBGetInt(row[7])
-			gender := puh.DBGetInt(row[8])
-			held_item := puh.DBGetInt(row[9])
+			idNpcPokemon := puh.DBGetInt(row[1])
+			idPokemon := puh.DBGetInt(row[2])
+			hp := puh.DBGetInt(row[3])
+			attack := puh.DBGetInt(row[4])		
+			attack_spec := puh.DBGetInt(row[5])
+			defence := puh.DBGetInt(row[6])
+			defence_spec := puh.DBGetInt(row[7])
+			speed := puh.DBGetInt(row[8])
+			gender := puh.DBGetInt(row[9])
+			held_item := puh.DBGetInt(row[10])
 			
 			//TODO Pokemon Names
-			m.Npcs[idNpc].AddPokemon(idPokemon, "Pokemon Name", hp, attack, attack_spec, defence, defence_spec, speed, gender, held_item)
+			m.Npcs[idNpc].AddPokemon(idNpcPokemon, idPokemon, "Pokemon Name", hp, attack, attack_spec, defence, defence_spec, speed, gender, held_item)
 		}
 	return true, ""
 }
@@ -154,8 +156,9 @@ func (m *NpcList) DeleteNpc(_npcId int) {
 	delete(m.Npcs, _npcId)
 }
 
-func (m *Npc) AddPokemon(_id int, _name string, _hp int, _att int, _att_spec int, _def int, _def_spec int, _speed int, _gender int, _held_item int) {
-	npcPokemon := &NpcPokemon { 	Name : _name,
+func (m *Npc) AddPokemon(_id int, _pokId int, _name string, _hp int, _att int, _att_spec int, _def int, _def_spec int, _speed int, _gender int, _held_item int) {
+	npcPokemon := &NpcPokemon { 	pokId : _pokId,
+									Name : _name,
 									Hp : _hp,
 									Att : _att,
 									Att_spec : _att_spec,
