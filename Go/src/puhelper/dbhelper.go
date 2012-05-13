@@ -129,6 +129,13 @@ func DBGetString(_row interface{}) string {
 	return ""
 }
 
+func DBGetStringFromArray(_row interface{}) string {
+	if _row != nil {
+		return string(_row.([]uint8))
+	}
+	return ""
+}
+
 func DBGetInt(_row interface{}) int {
 	if _row != nil {
 		return int(_row.(int64))
