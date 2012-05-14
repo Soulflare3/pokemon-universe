@@ -47,6 +47,17 @@ func (p *Packet) SetHeader() {
 	p.MsgSize += 2
 }
 
+func (p *Packet) ReadByteArray() []byte {
+	length := p.ReadUint16()
+	if uint16(length) >= (PACKET_MAXSIZE+p.readPos) {
+		return nil
+	}
+	
+	v := []byte(p.Buffer[p.readPos:p.readPos+uint16(length)])
+	p.readPos += uint16(length)
+	return v
+}
+
 func (p *Packet) ReadUint8() uint8 {
 	v := p.Buffer[p.readPos]
 	p.readPos += 1
@@ -88,6 +99,23 @@ func (p *Packet) ReadString() string {
 	v := string(p.Buffer[p.readPos:p.readPos+uint16(stringlen)])
 	p.readPos += uint16(stringlen)
 	return v
+}
+
+func (p *Packet) AddByteArray(_value []byte) bool {
+	length := uint16(len(_value))
+	if !p.CanAdd(length) {
+		return false
+	}
+	
+	p.AddUint16(uint16(length))
+	for i, _ := range _value { 
+		p.Buffer[p.readPos+uint16(i)] = _value[i]
+	}
+	
+	p.readPos += length
+	p.MsgSize += uint16(length)
+	
+	return true
 }
 
 func (p *Packet) AddUint8(_value uint8) bool {
@@ -162,6 +190,7 @@ func (p *Packet) AddUint64(_value uint64) bool {
 	
 	return true
 }
+
 func (p *Packet) AddString(_value string) bool {
 	stringlen := uint16(len(_value))
 	if !p.CanAdd(stringlen) {

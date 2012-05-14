@@ -119,8 +119,12 @@ func (c *Client) HandleClient() {
 		case 0x0A: //Delete Npc
 			go c.ReceiveDeleteNpc(packet)
 			
-		case 0x0B: //Retreive NPC pokemon
-			go c.ReceiveGetNpcPokemon(packet)	
+		case 0x0B: //Retreive NPC pokemon and Events
+			go c.ReceiveGetNpcPokemonAndEvents(packet)	
+			
+		case 0x0C:
+			go c.ReceiveNpcEvents(packet)
+			
 			
 		default:
 			fmt.Printf("Unknown header: %d\n", header)
@@ -421,9 +425,14 @@ func (c *Client) ReceiveAddNpc(_packet *Packet) {
 			
 			outfitQuery := fmt.Sprintf("INSERT INTO npc_outfit (idnpc,head,nek,upper,lower,feet) VALUES ('%d','0', '0', '0', '0', '0')", npcId)
 			if puh.DBQuery(outfitQuery) == nil {
-				g_npc.AddNpc(npcId, npcName, 0, 0, 0, 0, 0, pos.NewPositionFrom(0,0,0))
-				g_server.SendNpcToClients(npcId)
+				eventQuery := fmt.Sprintf("INSERT INTO npc_events (idnpc) VALUES ('%d')", npcId)
+				if puh.DBQuery(eventQuery) == nil {
+					g_npc.AddNpc(npcId, npcName, 0, 0, 0, 0, 0, pos.NewPositionFrom(0,0,0), "")
+					g_server.SendNpcToClients(npcId)
+				}
 			}
+			
+			
 		}
 	}
 }
@@ -495,7 +504,7 @@ func (c *Client) ReceiveDeleteNpc(_packet *Packet) {
 	}
 }
 
-func (c *Client) ReceiveGetNpcPokemon(_packet *Packet) {
+func (c *Client) ReceiveGetNpcPokemonAndEvents(_packet *Packet) {
 	if !c.loggedIn {
 		return
 	}
@@ -503,6 +512,23 @@ func (c *Client) ReceiveGetNpcPokemon(_packet *Packet) {
 	npcId := int(_packet.ReadUint16())
 	
 	c.SendNpcPokemon(npcId)
+	c.SendNpcEvents(npcId)
+}
+
+func (c *Client) ReceiveNpcEvents(_packet *Packet) {
+	if !c.loggedIn {
+		return
+	}
+	
+	npcId := _packet.ReadUint16()
+	events := _packet.ReadString()
+
+	query := fmt.Sprintf("UPDATE npc_events SET event='%s' WHERE idnpc='%d'", events, npcId)
+	if err := puh.DBQuery(query); err == nil {
+		g_npc.Npcs[int(npcId)].SetEvents(events)
+	} else{
+		fmt.Printf("SQL Error: %s\n", err)
+	}
 }
 
 // //////////////////////////////////////////////
@@ -647,6 +673,14 @@ func (c *Client) SendNpcPokemon(_npcid int) {
 		packet.AddUint16(uint16(pokemon.Gender))
 		packet.AddUint16(uint16(pokemon.Held_item))
 	}
+	
+	c.Send(packet)
+}
+
+func (c *Client) SendNpcEvents(_id int) {
+	packet := NewPacketExt(0x08)
+	packet.AddUint16(uint16(_id))
+	packet.AddString(g_npc.Npcs[_id].Events)
 	
 	c.Send(packet)
 }
