@@ -16,6 +16,7 @@ type Npc struct {
   	Position pos.Position
 	Pokemons map[int]*NpcPokemon
 	Events string
+	EventInitId int
 }
 
 type NpcPokemon struct {
@@ -40,7 +41,7 @@ func NewNpcList() *NpcList{
 }
 
 func (m *NpcList) LoadNpcList() (succeed bool, error string) {
-	var query string = "SELECT npc.idnpc, npc.name, npc_outfit.head, npc_outfit.nek, npc_outfit.upper, npc_outfit.lower, npc_outfit.feet, npc.position, npc_events.event FROM npc INNER JOIN npc_outfit ON npc.idnpc = npc_outfit.idnpc INNER JOIN npc_events ON npc.idnpc = npc_events.idnpc ORDER BY npc.idnpc"
+	var query string = "SELECT npc.idnpc, npc.name, npc_outfit.head, npc_outfit.nek, npc_outfit.upper, npc_outfit.lower, npc_outfit.feet, npc.position, npc_events.event, npc_events.initId FROM npc INNER JOIN npc_outfit ON npc.idnpc = npc_outfit.idnpc INNER JOIN npc_events ON npc.idnpc = npc_events.idnpc ORDER BY npc.idnpc"
 		
 	result, err := puh.DBQuerySelect(query)
 	if err != nil {
@@ -64,8 +65,9 @@ func (m *NpcList) LoadNpcList() (succeed bool, error string) {
 		feet := puh.DBGetInt(row[6])
 		positionHash := puh.DBGetInt64(row[7])
 		events := puh.DBGetStringFromArray(row[8])
+		eventInitId := puh.DBGetInt(row[9])
 		
-		m.AddNpc(idNpc, nameNpc, head, nek, upper, lower, feet, pos.NewPositionFromHash(positionHash), events)
+		m.AddNpc(idNpc, nameNpc, head, nek, upper, lower, feet, pos.NewPositionFromHash(positionHash), events, eventInitId)
 	}
 	
 	return true, ""
@@ -105,8 +107,9 @@ func (m *NpcList) LoadNpcPokemon() (succeed bool, error string) {
 	return true, ""
 }
 
-func (m *Npc) SetEvents(_events string) {
+func (m *Npc) SetEvents(_events string, _eventInitId int) {
 	m.Events = _events 
+	m.EventInitId = _eventInitId
 	
 }
 
@@ -122,7 +125,11 @@ func (m *NpcList) GetNumPokemons() int {
 	return count
 }
 
-func (m *NpcList) AddNpc(_npcId int, _npcName string, _head int, _nek int, _upper int, _lower int, _feet int, _position pos.Position, _events string) {
+func (m *NpcList) AddEmptyNpc(_npcId int, _npcName string) {
+	m.AddNpc(_npcId, _npcName, 0, 0, 0, 0, 0, pos.NewPositionFrom(0,0,0), "", 0);
+}
+
+func (m *NpcList) AddNpc(_npcId int, _npcName string, _head int, _nek int, _upper int, _lower int, _feet int, _position pos.Position, _events string, _eventInitId int) {
 	npc := &Npc { Name: _npcName,
 				  Head: _head,
 				  Nek: _nek,
@@ -131,7 +138,8 @@ func (m *NpcList) AddNpc(_npcId int, _npcName string, _head int, _nek int, _uppe
 				  Feet: _feet, 
 				  Position: _position,
 				  Pokemons: make(map[int]*NpcPokemon),
-				  Events: _events }
+				  Events: _events,
+				  EventInitId: _eventInitId }
 			
 		m.Npcs[_npcId] = npc
 }

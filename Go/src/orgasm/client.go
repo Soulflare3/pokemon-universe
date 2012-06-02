@@ -427,7 +427,7 @@ func (c *Client) ReceiveAddNpc(_packet *Packet) {
 			if puh.DBQuery(outfitQuery) == nil {
 				eventQuery := fmt.Sprintf("INSERT INTO npc_events (idnpc) VALUES ('%d')", npcId)
 				if puh.DBQuery(eventQuery) == nil {
-					g_npc.AddNpc(npcId, npcName, 0, 0, 0, 0, 0, pos.NewPositionFrom(0,0,0), "")
+					g_npc.AddEmptyNpc(npcId, npcName)
 					g_server.SendNpcToClients(npcId)
 				}
 			}
@@ -522,11 +522,12 @@ func (c *Client) ReceiveNpcEvents(_packet *Packet) {
 	
 	npcId := _packet.ReadUint16()
 	events := _packet.ReadString()
+	eventInitId := _packet.ReadUint16()
 
-	query := fmt.Sprintf("UPDATE npc_events SET event='%s' WHERE idnpc='%d'", events, npcId)
+	query := fmt.Sprintf("UPDATE npc_events SET event='%s', initId='%d' WHERE idnpc='%d'", events, eventInitId, npcId)
 	if err := puh.DBQuery(query); err == nil {
-		g_npc.Npcs[int(npcId)].SetEvents(events)
-	} else{
+		g_npc.Npcs[int(npcId)].SetEvents(events, int(eventInitId))
+	} else {
 		fmt.Printf("SQL Error: %s\n", err)
 	}
 }
@@ -681,6 +682,7 @@ func (c *Client) SendNpcEvents(_id int) {
 	packet := NewPacketExt(0x08)
 	packet.AddUint16(uint16(_id))
 	packet.AddString(g_npc.Npcs[_id].Events)
+	packet.AddUint16(uint16(g_npc.Npcs[_id].EventInitId))
 	
 	c.Send(packet)
 }
