@@ -21,6 +21,7 @@ var (
 	g_dblock sync.Mutex
 	g_server *Server
 	g_config *conf.ConfigFile
+	version string
 )
 
 func initConfig(configFile *string) bool {
@@ -69,10 +70,11 @@ func main() {
 	flag.Parse()
 	
 	// Load config file
-	fmt.Println(" - Loading config file")
+	fmt.Printf("Loading config file...")
 	if initConfig(configFile) == false {
 		return
 	}
+	fmt.Printf("[Succeeded]\n")
 
 	// Connect to database 
 	fmt.Printf("Connecting to database...")
@@ -105,9 +107,14 @@ func main() {
 	g_npc.LoadNpcPokemon()
 	fmt.Printf("[Succeeded] (%d Pokemons loaded)\n", g_npc.GetNumPokemons())
 	
+	fmt.Println("Initialisation completed!\n")
+	
 	// Set up server
+	version, _ = g_config.GetString("default", "version")
+	fmt.Println("Current server is suited for client version " + version)
 	fmt.Printf("Running server...")
 	serverPort, ok := g_config.GetInt("default", "port")
+	
 	if ok == nil || serverPort <= 0 {
 		serverPort = 6171
 	}

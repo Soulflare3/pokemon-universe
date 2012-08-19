@@ -66,19 +66,23 @@ func (c *Client) HandleClient() {
 		case 0x00: // Login
 			username := packet.ReadString()
 			password := packet.ReadString()
-			if c.checkAccount(username, password) {
-				fmt.Println("- Send login")
-				c.loggedIn = true
-				c.SendLogin(0)
-				fmt.Println("- Send map list")
-				c.SendMapList()
-				fmt.Println("- Send npc list")
-				c.SendNpcList()
+			ver := packet.ReadString()
+			if (ver == version) {
+				if c.checkAccount(username, password) {
+					fmt.Println("- Send login")	
+					c.loggedIn = true
+					c.SendLogin(0)
+					fmt.Println("- Send map list")
+					c.SendMapList()
+					fmt.Println("- Send npc list")
+					c.SendNpcList()
+				} else {
+					fmt.Println("- Send login false")
+					c.SendLogin(1)
+				}
 			} else {
-				fmt.Println("- Send login false")
-				c.SendLogin(1)
+				c.SendLogin(2)
 			}
-			
 		case 0x01: // Request map piece
 			if c.loggedIn {
 				x := int(packet.ReadInt16())
@@ -539,6 +543,9 @@ func (c *Client) ReceiveNpcEvents(_packet *Packet) {
 func (c *Client) SendLogin(_status int) {
 	packet := NewPacketExt(0x00)
 	packet.AddUint8(uint8(_status))
+	if (_status == 2){
+		packet.AddString(version)
+	}
 	c.Send(packet)
 }
 
