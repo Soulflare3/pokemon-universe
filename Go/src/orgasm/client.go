@@ -542,7 +542,7 @@ func (c *Client) ReceiveNpcEvents(_packet *Packet) {
 
 func (c *Client) SendLogin(_status int) {
 	packet := NewPacketExt(0x00)
-	packet.AddUint8(uint8(_status))
+	packet.AddUint16(uint16(_status))
 	if (_status == 2){
 		packet.AddString(version)
 	}
