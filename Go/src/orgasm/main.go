@@ -103,9 +103,9 @@ func main() {
 	g_npc.LoadNpcList()
 	fmt.Printf("[Succeeded] (%d NPCs loaded)\n", g_npc.GetNumNpcs())
 	
-	fmt.Printf("Retrieving NPC Pokemon...")
-	g_npc.LoadNpcPokemon()
-	fmt.Printf("[Succeeded] (%d Pokemons loaded)\n", g_npc.GetNumPokemons())
+//	fmt.Printf("Retrieving NPC Pokemon...")
+//	g_npc.LoadNpcPokemon()
+//	fmt.Printf("[Succeeded] (%d Pokemons loaded)\n", g_npc.GetNumPokemons())
 	
 	fmt.Println("Initialisation completed!\n")
 	

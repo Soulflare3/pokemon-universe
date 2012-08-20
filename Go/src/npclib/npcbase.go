@@ -13,3 +13,9 @@ func (n *NpcBase) OnBuy(cid uint64, callback int) {
 
 func (n *NpcBase) OnShopWindowClose(cid uint64) {
 }
+
+func (n *NpcBase) OnBattleWin(cid uint64) {
+}
+
+func (n *NpcBase) OnBattleLose(cid uint64) {
+}

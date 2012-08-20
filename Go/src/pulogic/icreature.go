@@ -18,6 +18,7 @@ package pulogic
 
 import (
 	"pulogic/pokemon"
+	pnet "network"
 	pos "putools/pos"
 )
 
@@ -63,4 +64,6 @@ type ICreature interface {
 type IBattleCreature interface {
 	GetName() string
 	GetPokemonParty() *pokemon.PokemonParty
+	
+	SendBattleMessage(_message pnet.INetMessageWriter)
 }

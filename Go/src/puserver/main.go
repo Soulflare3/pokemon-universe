@@ -71,7 +71,7 @@ func main() {
 	if !pokemonManager.Load() {
 		return
 	}
-
+	
 	logger.Println("Loading game data")
 	g_game = NewGame()
 	if !g_game.Load() {

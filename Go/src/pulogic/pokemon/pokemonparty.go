@@ -18,6 +18,7 @@ package pokemon
 
 type PokemonParty struct {
 	Party	[]*PlayerPokemon
+	Active	int
 }
 
 func NewPokemonParty() *PokemonParty {
@@ -50,4 +51,25 @@ func (p *PokemonParty) HealParty() {
 			p.Party[i].DamagedHp = 0
 		}
 	}
+}
+
+func (p *PokemonParty) FirstAvailablePokemon() *PlayerPokemon {
+	var retPokemon *PlayerPokemon = nil
+	for i := 0; i < 6; i++ {
+		if p.Party[i] != nil && !p.Party[i].IsFainted() {
+			retPokemon = p.Party[i]
+			break
+		}
+	}
+	
+	return retPokemon
+}
+
+func (p *PokemonParty) GetActivePokemon() *PlayerPokemon {
+	pokemon := p.Party[p.Active]
+	if pokemon == nil {
+		pokemon = p.FirstAvailablePokemon()
+	}
+	
+	return pokemon
 }

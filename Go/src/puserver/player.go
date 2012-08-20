@@ -19,6 +19,8 @@ package main
 import (
 	"container/list"
 	
+	"pubattle"
+	pnet "network"
 	pul "pulogic"
 	pkmn "pulogic/pokemon"
 	puh "puhelper"
@@ -48,6 +50,8 @@ type Player struct {
 	Money          	int
 	TimeoutCounter	int
 	GroupFlags		int64
+	
+	BattleClient	*pubattle.POClient
 }
 
 func NewPlayer(_name string) *Player {
@@ -193,6 +197,26 @@ func (p *Player) RemoveVisibleCreature(_creature pul.ICreature) {
 	// http://tip.golang.org/doc/effective_go.html#maps
 	delete(p.VisibleCreatures, _creature.GetUID())
 	p.sendCreatureRemove(_creature)
+}
+
+// -----------------------  BATTLE ---------------------- //
+func (p *Player) InitializeBattle() {
+	host, err := g_config.GetString("battle", "host")
+	if err != nil {
+		host = "localhost"
+	}
+	port, err := g_config.GetString("battle", "port")
+	if err != nil {
+		port = "5080"
+	}
+	
+	p.BattleClient = pubattle.NewPOClient(p)
+	p.BattleClient.Connect(host, port)
+}
+
+// ------------------  BATTLE INTERFACE ----------------- //
+func (p *Player) SendBattleMessage(_message pnet.INetMessageWriter) {
+	p.Conn.SendMessage(_message)
 }
 
 // ------------------------------------------------------ //

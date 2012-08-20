@@ -21,6 +21,11 @@ const (
 )
 
 type ITileEvent interface {
+	GetDbId() int64
 	GetEventType() int
 	ToPacket(_packet *Packet)
+	UpdateFromPacket(_packet *Packet)
+	
+	Save() bool
+	Delete() bool
 }

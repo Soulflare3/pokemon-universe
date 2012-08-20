@@ -104,3 +104,7 @@ func (p *PlayerPokemon) GetLevel() int {
 func (p *PlayerPokemon) GetTotalHp() int {
 	return puh.HpForLevel(p.Base.Stats[POKESTAT_HP].BaseStat, p.Stats[POKESTAT_HP], p.GetLevel())
 }
+
+func (p *PlayerPokemon) IsFainted() bool {
+	return (p.DamagedHp >= p.GetTotalHp())
+}

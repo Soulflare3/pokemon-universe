@@ -120,6 +120,8 @@ func (b *Battle) WriteToHist(_message string) {
 	//defer b.histMutex.Unlock()
 	
 	b.histDelta = b.histDelta + _message
+	
+	SendBattleEvent_Message(b.owner.player, _message)
 }
 
 func (b *Battle) ReceiveCommand(_packet *pnet.QTPacket) {
@@ -313,7 +315,8 @@ func (b *Battle) receivedChangePP(_packet *pnet.QTPacket) {
 	b.displayedMoves[moveNum].CurrentPP = newPP
 	b.myTeam.Pokes[0].Moves[moveNum].CurrentPP = newPP
 	
-	// TODO: Send updateMovePP to PUClient
+	// Send updateMovePP to PUClient
+	SendBattleEvent_ChangePP(b.owner.player, 0, moveNum, newPP)
 }
 
 func (b *Battle) receivedChangeHp(_packet *pnet.QTPacket, _player int) {
@@ -327,7 +330,8 @@ func (b *Battle) receivedChangeHp(_packet *pnet.QTPacket, _player int) {
 		b.currentPoke(_player).LifePercent = newHp
 	}
 	
-	// TODO: Send HP update to PU Client
+	// Send HP update to PU Client
+	SendBattleEvent_ChangeHP(b.owner.player, 0, newHp)
 }
 
 func (b *Battle) receivedKo(_player int) {

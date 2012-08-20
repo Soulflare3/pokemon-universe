@@ -140,6 +140,7 @@ func (m *Map) LoadTiles() (succeed bool, msg string) {
 		tile, found := m.GetTileFromPosition(position)
 		if found == false {
 			tile = NewTile(position)
+			tile.IsNew = false
 			tile.DbId = puh.DBGetInt64(row[11])
 			tile.Blocking = blocking
 

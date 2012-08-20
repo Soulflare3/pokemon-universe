@@ -49,6 +49,7 @@ type Game struct {
 	Locations			*LocationStore
 	Items				*ItemStore
 	Quests				*QuestStore
+	Time				*TimeService
 
 	mutexCreatureList   *sync.RWMutex
 	mutexPlayerList     *sync.RWMutex
@@ -77,6 +78,10 @@ func NewGame() *Game {
 func (the *Game) Load() (LostIt bool) {
 	LostIt = true // fuck >:(
 	g_map = NewMap()
+	
+	logger.Println(" - Starting time/weather service")
+	the.Time = NewTimeService()
+	the.Time.Start()
 	
 	logger.Println(" - Loading locations")
 	the.Locations = NewLocationStore()

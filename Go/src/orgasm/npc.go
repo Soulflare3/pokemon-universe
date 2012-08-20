@@ -4,45 +4,38 @@ import (
 	"fmt"
 	puh "puhelper"
 	pos "putools/pos"
+	pul "pulogic"
 )
 
 type Npc struct {
+	DbId	int64
   	Name 	string
-  	Head 	int
-  	Nek 	int
-  	Upper 	int
-	Lower	int
-  	Feet 	int
+  	
+  	Outfit
+  	
   	Position pos.Position
-	Pokemons map[int]*NpcPokemon
+	Pokemons map[int64]*NpcPokemon
 	Events string
 	EventInitId int
+	
+	IsNew		bool
+	IsModified	bool
+	IsRemoved	bool
 }
 
-type NpcPokemon struct {
-	pokId int
-	Name 	string
-  	Hp int
-  	Att int
-  	Att_spec int
-  	Def int
-  	Def_spec int
-  	Speed int
-  	Gender int
-  	Held_item int
+func NewNpc() *Npc {
+	return &Npc { IsNew: true,
+				  Pokemons: make(map[int64]*NpcPokemon),
+				  Outfit: NewOutfit() }
 }
 
-type NpcList struct {
-	Npcs	map[int]*Npc
-}
-
-func NewNpcList() *NpcList{
-	return &NpcList { Npcs: make(map[int]*Npc) }
-}
-
-func (m *NpcList) LoadNpcList() (succeed bool, error string) {
-	var query string = "SELECT npc.idnpc, npc.name, npc_outfit.head, npc_outfit.nek, npc_outfit.upper, npc_outfit.lower, npc_outfit.feet, npc.position, npc_events.event, npc_events.initId FROM npc INNER JOIN npc_outfit ON npc.idnpc = npc_outfit.idnpc INNER JOIN npc_events ON npc.idnpc = npc_events.idnpc ORDER BY npc.idnpc"
-		
+func (m *Npc) LoadPokemon() (bool, string) {
+	if m.IsNew {
+		// If an NPC is new, it isn't saved in the database so it can't have any pokemon in there
+		return true, ""
+	}
+	
+	query := fmt.Sprintf(QUERY_SELECT_NPC_POKEMON, m.DbId)
 	result, err := puh.DBQuerySelect(query)
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -52,58 +45,27 @@ func (m *NpcList) LoadNpcList() (succeed bool, error string) {
 	defer puh.DBFree()
 	for {
 		row := result.FetchRow()
-			if row == nil {
-				break
-			}
+		if row == nil {
+			break
+		}
 		
-		idNpc := puh.DBGetInt(row[0])
-		nameNpc := puh.DBGetString(row[1])		
-		head := puh.DBGetInt(row[2])
-		nek := puh.DBGetInt(row[3])
-		upper := puh.DBGetInt(row[4])
-		lower := puh.DBGetInt(row[5])
-		feet := puh.DBGetInt(row[6])
-		positionHash := puh.DBGetInt64(row[7])
-		events := puh.DBGetStringFromArray(row[8])
-		eventInitId := puh.DBGetInt(row[9])
+		pokemon := NewNpcPokemon()
+		pokemon.IsNew = false
+		pokemon.DbId = puh.DBGetInt64(row[0])
+		pokemon.pokId = puh.DBGetInt(row[1])
+		pokemon.Hp = puh.DBGetInt(row[2])
+		pokemon.Att = puh.DBGetInt(row[3])		
+		pokemon.Att_spec = puh.DBGetInt(row[4])
+		pokemon.Def = puh.DBGetInt(row[5])
+		pokemon.Def_spec = puh.DBGetInt(row[6])
+		pokemon.Speed = puh.DBGetInt(row[7])
+		pokemon.Gender = puh.DBGetInt(row[8])
+		pokemon.Held_item = puh.DBGetInt(row[9])
+		pokemon.Name = "Pokemon Name"
 		
-		m.AddNpc(idNpc, nameNpc, head, nek, upper, lower, feet, pos.NewPositionFromHash(positionHash), events, eventInitId)
-	}
+		m.Pokemons[pokemon.DbId] = pokemon
+	}	
 	
-	return true, ""
-}
-
-func (m *NpcList) LoadNpcPokemon() (succeed bool, error string) {
-		var query string = "SELECT idnpc, idnpc_pokemon, idpokemon, iv_hp, iv_attack, iv_attack_spec, iv_defence, iv_defence_spec, iv_speed, gender, held_item FROM npc_pokemon"
-		
-		result, err := puh.DBQuerySelect(query)
-		if err != nil {
-			fmt.Printf(err.Error())
-			return false, err.Error()
-		}
-		
-		defer puh.DBFree()
-		for {
-		row := result.FetchRow()
-			if row == nil {
-				break
-			}
-			
-			idNpc := puh.DBGetInt(row[0])
-			idNpcPokemon := puh.DBGetInt(row[1])
-			idPokemon := puh.DBGetInt(row[2])
-			hp := puh.DBGetInt(row[3])
-			attack := puh.DBGetInt(row[4])		
-			attack_spec := puh.DBGetInt(row[5])
-			defence := puh.DBGetInt(row[6])
-			defence_spec := puh.DBGetInt(row[7])
-			speed := puh.DBGetInt(row[8])
-			gender := puh.DBGetInt(row[9])
-			held_item := puh.DBGetInt(row[10])
-			
-			//TODO Pokemon Names
-			m.Npcs[idNpc].AddPokemon(idNpcPokemon, idPokemon, "Pokemon Name", hp, attack, attack_spec, defence, defence_spec, speed, gender, held_item)
-		}
 	return true, ""
 }
 
@@ -111,75 +73,116 @@ func (m *Npc) SetEvents(_events string, _eventInitId int) {
 	m.Events = _events 
 	m.EventInitId = _eventInitId
 	
+	m.IsModified = true
 }
 
-func (m *NpcList) GetNumNpcs() int {
-	return len(m.Npcs)
+func (m *Npc) SetName(_name string) {
+	m.Name = _name
+	m.IsModified = true
 }
 
-func (m *NpcList) GetNumPokemons() int {
-	var count int
-	for _, npc := range(m.Npcs) {
-		count += len(npc.Pokemons)
+func (m *Npc) SetPositionByCoordinates(_x, _y, _z int) {
+	m.Position.X = _x
+	m.Position.Y = _y
+	m.Position.Z = _z
+	m.IsModified = true
+}
+
+func (m *Npc) AddPokemon(_pokemon *NpcPokemon) bool {
+	_pokemon.NpcId = m.DbId
+	return _pokemon.Save()
+}
+
+func (m *Npc) DeletePokemon(_pokemon *NpcPokemon) bool {
+	if _, ok := m.Pokemons[_pokemon.DbId]; ok {
+		return _pokemon.Delete()
 	}
-	return count
+	
+	return false
 }
 
-func (m *NpcList) AddEmptyNpc(_npcId int, _npcName string) {
-	m.AddNpc(_npcId, _npcName, 0, 0, 0, 0, 0, pos.NewPositionFrom(0,0,0), "", 0);
+func (m *Npc) SetOutfitPart(_part pul.OutfitPart, _key int) {
+	m.Outfit.data[_part] = _key
+	m.IsModified = true
 }
 
-func (m *NpcList) AddNpc(_npcId int, _npcName string, _head int, _nek int, _upper int, _lower int, _feet int, _position pos.Position, _events string, _eventInitId int) {
-	npc := &Npc { Name: _npcName,
-				  Head: _head,
-				  Nek: _nek,
-				  Upper: _upper,
-				  Lower: _lower,
-				  Feet: _feet, 
-				  Position: _position,
-				  Pokemons: make(map[int]*NpcPokemon),
-				  Events: _events,
-				  EventInitId: _eventInitId }
-			
-		m.Npcs[_npcId] = npc
+func (m *Npc) GetOutfitPart(_part pul.OutfitPart) int {
+	return m.Outfit.data[_part]
 }
 
-func (m *NpcList) UpdateNpcAppearance(_npcId int, _npcName string, _head int, _nek int, _upper int, _lower int, _feet int) {
-	// Get Npc from list
-	npc, found := m.Npcs[_npcId]
-	if found {
-		npc.Name = _npcName
-		npc.Head = _head
-		npc.Nek = _nek
-		npc.Upper = _upper
-		npc.Lower = _lower
-		npc.Feet = _feet
+func (m *Npc) Save() bool {
+	if m.IsNew {
+		query := fmt.Sprintf(QUERY_INSERT_NPC, m.Name)
+		if puh.DBQuery(query) == nil {
+			m.DbId = int64(puh.DBGetLastInsertId())
+		} else {
+			return false
+		}
+		
+		outfitQuery := fmt.Sprintf(QUERY_INSERT_NPC_OUTFIT, m.DbId, m.GetOutfitPart(pul.OUTFIT_HEAD), m.GetOutfitPart(pul.OUTFIT_NEK), m.GetOutfitPart(pul.OUTFIT_UPPER), m.GetOutfitPart(pul.OUTFIT_LOWER), m.GetOutfitPart(pul.OUTFIT_FEET))
+		if puh.DBQuery(outfitQuery) != nil {
+			return false
+		}
+		
+		eventQuery := fmt.Sprintf(QUERY_INSERT_NPC_EVENT, m.DbId)
+		if puh.DBQuery(eventQuery) != nil {
+			return false
+		}
+	} else if m.IsModified {
+		query := fmt.Sprintf(QUERY_UPDATE_NPC, m.Name, m.Position.Hash(), m.DbId)
+		if puh.DBQuery(query) != nil {
+			return false
+		}
+		
+		outfitQuery := fmt.Sprintf(QUERY_UPDATE_NPC_OUTFIT, m.GetOutfitPart(pul.OUTFIT_HEAD), m.GetOutfitPart(pul.OUTFIT_NEK), m.GetOutfitPart(pul.OUTFIT_UPPER), m.GetOutfitPart(pul.OUTFIT_LOWER), m.GetOutfitPart(pul.OUTFIT_FEET), m.DbId)
+		if puh.DBQuery(outfitQuery) != nil {
+			return false
+		}
+		
+		eventQuery := fmt.Sprintf(QUERY_UPDATE_NPC_EVENT, m.Events, m.EventInitId, m.DbId)
+		if puh.DBQuery(eventQuery) != nil {
+			return false
+		}
 	}
+	
+	for _, pokemon := range(m.Pokemons) {
+		pokemon.Save()
+	}
+	
+	m.IsNew = false
+	m.IsModified = false
+
+	return true
 }
 
-func (m *NpcList) UpdateNpcPosition(_npcId int, _position pos.Position) {
-	// Get Npc from list
-	npc, found := m.Npcs[_npcId]
-	if found {
-		npc.Position = _position;
-	} 
-}
-
-func (m *NpcList) DeleteNpc(_npcId int) {
+func (m *Npc) Delete() bool {
+	// Delete outfit
+	outfitQuery := fmt.Sprintf(QUERY_DELETE_NPC_OUTFIT, m.DbId)
+	if puh.DBQuery(outfitQuery) != nil {
+		return false
+	}
+	
+	// Delete pokemon
+	for _, pokemon := range(m.Pokemons) {
+		if !pokemon.Delete() {
+			return false
+		}
+	}
+	
+	// Delete events
+	eventQuery := fmt.Sprintf(QUERY_DELETE_NPC_EVENT, m.DbId)
+	if puh.DBQuery(eventQuery) != nil {
+		return false
+	}
+	
 	// Delete NPC
-	delete(m.Npcs, _npcId)
-}
+	npcQuery := fmt.Sprintf(QUERY_DELETE_NPC, m.DbId)
+	if puh.DBQuery(npcQuery) != nil {
+		return false
+	}
+	
+	// Remove from npc map
+	delete(g_npc.Npcs, m.DbId)
 
-func (m *Npc) AddPokemon(_id int, _pokId int, _name string, _hp int, _att int, _att_spec int, _def int, _def_spec int, _speed int, _gender int, _held_item int) {
-	npcPokemon := &NpcPokemon { 	pokId : _pokId,
-									Name : _name,
-									Hp : _hp,
-									Att : _att,
-									Att_spec : _att_spec,
-									Def : _def,
-									Def_spec : _def_spec,
-									Speed : _speed,
-									Gender : _gender,
-									Held_item : _held_item }
-	m.Pokemons[_id] = npcPokemon
+	return true
 }

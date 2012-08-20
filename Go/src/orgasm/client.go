@@ -10,7 +10,7 @@ import (
 	"container/list"
 	
 	puh "puhelper"
-	pos "putools/pos"
+	pul "pulogic"
 )
 
 var AutoClientId int = 0
@@ -61,74 +61,50 @@ func (c *Client) HandleClient() {
 		copy(packet.Buffer[2:], databuffer[:])
 
 		header := packet.ReadUint8()
-		fmt.Printf("Header: %v\n", header)
+		
+		if !c.loggedIn && header != HEADER_LOGIN {
+			fmt.Println("Received header but user is not logged in!")
+			continue
+		}
+		
 		switch header {
-		case 0x00: // Login
-			username := packet.ReadString()
-			password := packet.ReadString()
-			ver := packet.ReadString()
-			if (ver == version) {
-				if c.checkAccount(username, password) {
-					fmt.Println("- Send login")	
-					c.loggedIn = true
-					c.SendLogin(0)
-					fmt.Println("- Send map list")
-					c.SendMapList()
-					fmt.Println("- Send npc list")
-					c.SendNpcList()
-				} else {
-					fmt.Println("- Send login false")
-					c.SendLogin(1)
-				}
-			} else {
-				c.SendLogin(2)
-			}
-		case 0x01: // Request map piece
-			if c.loggedIn {
-				x := int(packet.ReadInt16())
-				y := int(packet.ReadInt16())
-				z := int(packet.ReadUint16())
-				w := int(packet.ReadUint16())
-				h := int(packet.ReadUint16())
+		case HEADER_LOGIN: // Login
+			c.ReceiveLogin(packet)
+		case HEADER_REQUEST_MAP_PIECE: // Request map piece
+			go c.RequestMapPiece(packet)
 
-				c.SendArea(x, y, z, w + x, h + y)
-			}
-
-		case 0x02: // Tile changes
+		case HEADER_TILE_CHANGE: // Tile changes
 			go c.ReceiveChange(packet)
 			
-		case 0x03: // Request map list
-			if c.loggedIn {
-				c.SendMapList()
-			}
+		case HEADER_REQUEST_MAP_LIST: // Request map list
+			go c.SendMapList()
 			
-		case 0x04: // Add map
+		case HEADER_ADD_MAP: // Add map
 			go c.ReceiveAddMap(packet)
 			
-		case 0x05: // Delete map
+		case HEADER_DELETE_MAP: // Delete map
 			go c.ReceiveRemoveMap(packet)
 			
-		case 0x06: // Update tile event
+		case HEADER_UPDATE_TILEEVENT: // Update tile event
 			go c.ReceiveTileEventUpdate(packet)
 			
-		case 0x07: // Add Npc
+		case HEADER_ADD_NPC: // Add Npc
 			go c.ReceiveAddNpc(packet)
 			
-		case 0x08: //Edit Npc Appearance
+		case HEADER_EDIT_NPC_OUTFIT: //Edit Npc Appearance
 			go c.ReceiveEditNpcAppearence(packet)
 			
-		case 0x09: //Edit Npc Position
+		case HEADER_EDIT_NPC_POSITION: //Edit Npc Position
 			go c.ReceiveEditNpcPosition(packet)
 			
-		case 0x0A: //Delete Npc
+		case HEADER_DELETE_NPC: //Delete Npc
 			go c.ReceiveDeleteNpc(packet)
 			
-		case 0x0B: //Retreive NPC pokemon and Events
+		case HEADER_GET_NPC_DATA: //Retreive NPC pokemon and Events
 			go c.ReceiveGetNpcPokemonAndEvents(packet)	
 			
-		case 0x0C:
+		case HEADER_GET_NPC_EVENTS:
 			go c.ReceiveNpcEvents(packet)
-			
 			
 		default:
 			fmt.Printf("Unknown header: %d\n", header)
@@ -138,9 +114,25 @@ func (c *Client) HandleClient() {
 	fmt.Printf("Client disconnected: %d\n", c.id)
 }
 
-func (c *Client) checkAccount(_username string, _password string) bool {
-	var query string = fmt.Sprintf("SELECT * FROM mapchange_account WHERE username = '%s'", _username)
+func (c *Client) ReceiveLogin(_packet *Packet) {
+	username := _packet.ReadString()
+	password := _packet.ReadString()
+	if c.checkAccount(username, password) {
+		fmt.Println("- Send login")
+		c.loggedIn = true
+		c.SendLogin(0)
+		fmt.Println("- Send map list")
+		c.SendMapList()
+		fmt.Println("- Send npc list")
+		c.SendNpcList()
+	} else {
+		fmt.Println("- Send login false")
+		c.SendLogin(1)
+	}	
+}
 
+func (c *Client) checkAccount(_username string, _password string) bool {
+	var query string = fmt.Sprintf(QUERY_SELECT_ACCOUNT, _username)
 	result, err := puh.DBQuerySelect(query);
 	if err != nil {
 		return false
@@ -166,14 +158,19 @@ func (c *Client) passwordTest(_plain string, _hash string) bool {
 	return (sha1Hash == original)
 }
 
-func (c *Client) ReceiveChange(_packet *Packet) {
-	if !c.loggedIn {
-		return
+func (c *Client) RequestMapPiece(_packet *Packet) {
+	if c.loggedIn {
+		x := int(_packet.ReadInt16())
+		y := int(_packet.ReadInt16())
+		z := int(_packet.ReadUint16())
+		w := int(_packet.ReadUint16())
+		h := int(_packet.ReadUint16())
+
+		c.SendArea(x, y, z, w + x, h + y)
 	}
+}
 
-	g_dblock.Lock()
-	defer g_dblock.Unlock()
-
+func (c *Client) ReceiveChange(_packet *Packet) {
 	numTiles := int(_packet.ReadUint16())
 	if numTiles <= 0 { // Zero tile selected bug
 		return
@@ -185,46 +182,29 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 		x := int(_packet.ReadInt16())
 		y := int(_packet.ReadInt16())
 		z := int(_packet.ReadUint16())
-		movement := int(_packet.ReadUint16())
+		blocking := int(_packet.ReadUint16())
 		numLayers := int(_packet.ReadUint16())
 		
 		// Check if tile already exists
 		tile, exists := g_map.GetTileFromCoordinates(x, y, z)
-		var query string
 		
 		if IS_DEBUG {
 			fmt.Printf("Tile Exists - %v - Layers: %d\n", exists, numLayers) 
 		}			
 		
 		if numLayers > 0 {
-			if !exists { // Tile does not exists, create it
-				query = fmt.Sprintf("INSERT INTO tile (x, y, z, movement, idlocation) VALUES (%d, %d, %d, %d, 0)", x, y, z, movement)
-				if err := puh.DBQuery(query); err != nil {
-					return
+			if !exists { // Tile does not exists, create it		
+				if IS_DEBUG {
+					fmt.Printf("New Tile - X: %d - Y: %d - Z: %d\n", x, y, z) 
 				}
 				
 				tile = NewTileExt(x, y, z)
-				tile.Blocking = movement
-				tile.DbId = int64(puh.DBGetLastInsertId())
-				
-				if IS_DEBUG {
-					fmt.Printf("New Tile - X: %d - Y: %d - Z: %d - DbId: %d\n", x, y, z, tile.DbId) 
-				}
-				
-				// Add tile to map
-				g_map.AddTile(tile)
-			} else {
-				query = fmt.Sprintf("UPDATE tile SET movement='%d' WHERE idtile='%d'", movement, tile.DbId)
-				if err := puh.DBQuery(query); err != nil {
-					return
-				}
-				
-				if IS_DEBUG {
-					fmt.Printf("Update Tile - X: %d - Y: %d - Z: %d - DbId: %d\n", x, y, z, tile.DbId) 
-				}
-				
-				tile.Blocking = movement
+			} else if IS_DEBUG {
+				fmt.Printf("Update Tile - X: %d - Y: %d - Z: %d - DbId: %d\n", x, y, z, tile.DbId) 
 			}
+			
+			// Set/update blocking
+			tile.SetBlocking(blocking)
 
 			for j := 0; j < numLayers; j++ {
 				layerId := int(_packet.ReadUint16())
@@ -232,74 +212,41 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 			
 				tileLayer := tile.GetLayer(layerId)
 				if tileLayer == nil {
-					query = fmt.Sprintf("INSERT INTO tile_layer (idtile, layer, sprite) VALUES (%d, %d, %d)", tile.DbId, layerId, sprite)
-					if err := puh.DBQuery(query); err != nil {
-						return
-					}
-					
-					tileLayer = tile.AddLayer(layerId, sprite)
-					tileLayer.DbId = int64(puh.DBGetLastInsertId())
-					
 					if IS_DEBUG {
 						fmt.Printf("Add Layer - Tile Id: %d - Layer: %d - DbId: %d\n", tile.DbId, layerId, tileLayer.DbId) 
 					}
+					
+					// Add and save new tile layer
+					tileLayer = tile.AddLayer(layerId, sprite)
 				} else {
-					if (sprite == 0) { // Delete layer
-						query = fmt.Sprintf("DELETE FROM tile_layer WHERE idtile_layer='%d'", tileLayer.DbId)
-						if err := puh.DBQuery(query); err != nil {
-							return
-						}
-						
+					if (sprite == 0) {				
 						if IS_DEBUG {
 							fmt.Printf("Delete Layer - Tile Id: %d - DbId: %d\n", tile.DbId, tileLayer.DbId) 
 						}
 						
-						tile.RemoveLayer(layerId)						
+						// Remove layer, this will also remove the layer from database
+						tile.RemoveLayer(tileLayer)						
 					} else {
-						query = fmt.Sprintf("UPDATE tile_layer SET sprite='%d' WHERE idtile_layer='%d'", sprite, tileLayer.DbId)
-						if err := puh.DBQuery(query); err != nil {
-							return
-						}
-						
 						if IS_DEBUG {
 							fmt.Printf("Update Layer - Tile Id: %d - DbId: %d\n", tile.DbId, tileLayer.DbId) 
 						}						
 						
-						tileLayer.SpriteID = sprite
+						// Update tile layer with new sprite id
+						tileLayer.SetSpriteId(sprite)
 					}
 				}
 			}
+			
+			// Save tile to database
+			tile.Save()
 		} else {
 			if exists {
-				query = fmt.Sprintf("DELETE FROM tile_layer WHERE idtile='%d'", tile.DbId)
-				if err := puh.DBQuery(query); err != nil {
-					return
-				}
-				
-				if IS_DEBUG {
-					fmt.Printf("Delete Layer - Tile Id: %d\n", tile.DbId) 
-				}				
-				
-				// Check if tile has an event 
-				if tile.Event != nil {
-					if tile.Event.GetEventType() == 1 { // Warp/Teleport
-						warp := tile.Event.(*Warp)
-						query := fmt.Sprintf("DELETE FROM teleport WHERE idteleport = %d", warp.dbid)
-						if err := puh.DBQuery(query); err == nil {
-						}
-					}
-				}
-				
-				query = fmt.Sprintf("DELETE FROM tile WHERE idtile='%d'", tile.DbId)
-				if err := puh.DBQuery(query); err != nil {
-					return
-				}
-				
 				if IS_DEBUG {
 					fmt.Printf("Delete Tile - Tile Id: %d\n", tile.DbId) 
 				}	
 				
-				tile.IsRemoved = true
+				// Remove tile from database
+				tile.Delete()
 			}
 		}
 		
@@ -310,16 +257,9 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 }
 
 func (c *Client) ReceiveAddMap(_packet *Packet) {
-	if !c.loggedIn {
-		return
-	}
-	
 	mapName := _packet.ReadString()
-	if len(mapName) > 0 {
-		g_dblock.Lock()
-		defer g_dblock.Unlock()
-		
-		query := fmt.Sprintf("INSERT INTO map (name) VALUES ('%s')", mapName)
+	if len(mapName) > 0 {	
+		query := fmt.Sprintf(QUERY_INSERT_MAP, mapName)
 		if puh.DBQuery(query) == nil {
 			mapId := int(puh.DBGetLastInsertId())
 			g_map.AddMap(mapId, mapName)
@@ -330,16 +270,11 @@ func (c *Client) ReceiveAddMap(_packet *Packet) {
 }
 
 func (c *Client) ReceiveRemoveMap(_packet *Packet) {
-	if !c.loggedIn {
-		return
-	}
-	
 	mapId := int(_packet.ReadUint16())
 	
 	// Check if map id exists
 	if _, ok := g_map.GetMap(mapId); ok {	
-		
-		query := fmt.Sprintf("DELETE map, tile, tile_layer FROM map LEFT JOIN tile ON map.idmap = tile.z LEFT JOIN tile_layer ON tile.idtile = tile_layer.idtile WHERE map.idmap= '%d'", mapId)
+		query := fmt.Sprintf(QUERY_DELETE_MAP, mapId)
 		
 		if puh.DBQuery(query) == nil{
 			g_map.DeleteMap(mapId)
@@ -349,10 +284,6 @@ func (c *Client) ReceiveRemoveMap(_packet *Packet) {
 }
 
 func (c *Client) ReceiveTileEventUpdate(_packet *Packet) {
-	if !c.loggedIn {
-		return;
-	}
-	
 	x := int(_packet.ReadInt16())
 	y := int(_packet.ReadInt16())
 	z := int(_packet.ReadInt16())
@@ -360,179 +291,105 @@ func (c *Client) ReceiveTileEventUpdate(_packet *Packet) {
 	if tile, found := g_map.GetTileFromCoordinates(x, y, z); found {	
 		eventType := int(_packet.ReadUint8())
 		
-		g_dblock.Lock()
-		defer g_dblock.Unlock()
-		
-		if eventType == 0 { // Remove event
-			if tile.Event != nil {
-				if tile.Event.GetEventType() == 1 { // Warp/Teleport
-					warp := tile.Event.(*Warp)
-					query := fmt.Sprintf("DELETE FROM teleport WHERE idteleport = %d", warp.dbid)
-					if err := puh.DBQuery(query); err == nil {
-						// Update tile
-						query = fmt.Sprintf("UPDATE tile SET idteleport = 0 WHERE idtile = %d", tile.DbId)
-						if updateErr := puh.DBQuery(query); updateErr == nil {
-							tile.Event = nil;
-						}
-					}
-				}
-			}
+		if eventType == TILEEVENT_NONE { // Remove event
+			tile.RemoveEvent()
 		} else if tile.Event != nil && tile.Event.GetEventType() == eventType { // Update
-			if eventType == 1 {
-				warp := tile.Event.(*Warp)
-				toX := int(_packet.ReadInt16())
-				toY := int(_packet.ReadInt16())
-				toZ := int(_packet.ReadInt16())
-				
-				query := fmt.Sprintf("UPDATE teleport SET x = %d, y = %d, z = %d WHERE idteleport = %d", toX, toY, toZ, warp.dbid)
-				if err := puh.DBQuery(query); err == nil {
-					warp.destination.X = toX
-					warp.destination.Y = toY
-					warp.destination.Z = toZ
-				}
-			}
+			tile.Event.UpdateFromPacket(_packet)
+			tile.Event.Save()
 		} else { // Add
-			if eventType == 1 {
-				toX := int(_packet.ReadInt16())
-				toY := int(_packet.ReadInt16())
-				toZ := int(_packet.ReadInt16())
-				tp_pos := pos.NewPositionFrom(toX, toY, toZ)
-				warp := NewWarp(tp_pos)
-				
-				query := fmt.Sprintf("INSERT INTO teleport (x, y, z) VALUES (%d, %d, %d)", toX, toY, toZ)
-				if err := puh.DBQuery(query); err == nil {
-					warp.dbid = int64(puh.DBGetLastInsertId())
-					
-					updateQuery := fmt.Sprintf("UPDATE tile SET idteleport = %d WHERE idtile = %d", warp.dbid, tile.DbId)
-					if updateErr := puh.DBQuery(updateQuery); updateErr == nil {
-						tile.AddEvent(warp)
-					}
-				}
+			var newEvent ITileEvent = nil
+			if eventType == TILEEVENT_WARP {
+				newEvent = NewWarpFromPacket(_packet)
+			}
+			
+			if newEvent != nil {
+				tile.AddEvent(newEvent)
+				tile.Save()
 			}
 		}
 	}
 }
 
 func (c *Client) ReceiveAddNpc(_packet *Packet) {
-	if !c.loggedIn {
-		return
-	}
-	
 	npcName := _packet.ReadString()
 	if len(npcName) > 0 {
-		g_dblock.Lock()
-		defer g_dblock.Unlock()
-		
-		query := fmt.Sprintf("INSERT INTO npc (name) VALUES ('%s')", npcName)
-		if puh.DBQuery(query) == nil {
-			npcId := int(puh.DBGetLastInsertId())
-			
-			outfitQuery := fmt.Sprintf("INSERT INTO npc_outfit (idnpc,head,nek,upper,lower,feet) VALUES ('%d','0', '0', '0', '0', '0')", npcId)
-			if puh.DBQuery(outfitQuery) == nil {
-				eventQuery := fmt.Sprintf("INSERT INTO npc_events (idnpc) VALUES ('%d')", npcId)
-				if puh.DBQuery(eventQuery) == nil {
-					g_npc.AddEmptyNpc(npcId, npcName)
-					g_server.SendNpcToClients(npcId)
-				}
-			}
-			
-			
-		}
+		// New NPC object
+		npc := NewNpc()
+		npc.Name = npcName
+				
+		g_npc.AddNpc(npc)
+		g_server.SendNpcToClients(npc.DbId)
 	}
 }
 
 func (c *Client) ReceiveEditNpcAppearence(_packet *Packet) {
-	if !c.loggedIn {
-		return
-	}
-	
-	npcId := _packet.ReadUint16()
+	npcId := int64(_packet.ReadUint16())
 	npcName := _packet.ReadString()
-	head := _packet.ReadUint16()
-	nek := _packet.ReadUint16()
-	upper := _packet.ReadUint16()
-	lower := _packet.ReadUint16()
-	feet := _packet.ReadUint16()
+	head := int(_packet.ReadUint16())
+	nek := int(_packet.ReadUint16())
+	upper := int(_packet.ReadUint16())
+	lower := int(_packet.ReadUint16())
+	feet := int(_packet.ReadUint16())
 	
 	if len(npcName) > 0 {
-		g_dblock.Lock()
-		defer g_dblock.Unlock()
-		query := fmt.Sprintf("UPDATE npc SET name='%s' WHERE idnpc='%d'", npcName, npcId)
-		
-		result := puh.DBQuery(query)
-		if result == nil {
+		if npc, ok := g_npc.GetNpcById(npcId); ok {
+			npc.SetName(npcName)
+			npc.SetOutfitPart(pul.OUTFIT_HEAD, head)
+			npc.SetOutfitPart(pul.OUTFIT_NEK, nek)
+			npc.SetOutfitPart(pul.OUTFIT_UPPER, upper)
+			npc.SetOutfitPart(pul.OUTFIT_LOWER, lower)
+			npc.SetOutfitPart(pul.OUTFIT_FEET, feet)
 			
-			outfitQuery := fmt.Sprintf("UPDATE npc_outfit SET head=%d, nek=%d, upper=%d, lower=%d, feet=%d WHERE idnpc = %d", head, nek, upper, lower, feet, npcId)
-			if puh.DBQuery(outfitQuery) == nil {
-				g_npc.UpdateNpcAppearance(int(npcId), npcName, int(head), int(nek), int(upper), int(lower), int(feet))
-				g_server.SendNpcToClients(int(npcId))
+			if npc.Save() {			
+				g_server.SendNpcToClients(npc.DbId)
 			}
 		}
 	}
 }
 
 func (c *Client) ReceiveEditNpcPosition(_packet *Packet) {
-	if !c.loggedIn {
-		return
-	}
+	npcId := int64(_packet.ReadUint16())
+	x := int(_packet.ReadUint16())
+	y := int(_packet.ReadUint16())
+	z := int(_packet.ReadUint16())
 	
-	npcId := _packet.ReadUint16()
-	x := _packet.ReadUint16()
-	y := _packet.ReadUint16()
-	z := _packet.ReadUint16()
-	
-	position := pos.NewPositionFrom(int(x),int(y),int(z))
-	positionHash := position.Hash()
-	
-	g_dblock.Lock()
-	defer g_dblock.Unlock()
-	query := fmt.Sprintf("UPDATE npc SET position=%d WHERE idnpc='%d'", positionHash, npcId)
-	result := puh.DBQuery(query)
-	if result == nil {
-		g_npc.UpdateNpcPosition(int(npcId), position)
-		g_server.SendNpcToClients(int(npcId))
-	}
+	if npc, ok := g_npc.GetNpcById(npcId); ok {
+		npc.SetPositionByCoordinates(x, y, z)
+		
+		if npc.Save() {
+			g_server.SendNpcToClients(npcId)
+		}
+	}		
 }
 
 func (c *Client) ReceiveDeleteNpc(_packet *Packet) {
-	if !c.loggedIn {
-		return
-	}
-	
-	npcId := _packet.ReadUint16()
+	npcId := int64(_packet.ReadUint16())
 		
-	query := fmt.Sprintf("DELETE FROM npc WHERE idnpc='%d'", npcId)
-	if puh.DBQuery(query) == nil {
-		g_npc.DeleteNpc(int(npcId));
-		g_server.SendDeleteNpcToClients(int(npcId))
+	if npc, ok := g_npc.GetNpcById(npcId); ok {
+		if npc.Delete() {
+			g_server.SendDeleteNpcToClients(npcId)
+		}
 	}
 }
 
 func (c *Client) ReceiveGetNpcPokemonAndEvents(_packet *Packet) {
-	if !c.loggedIn {
-		return
-	}
-	
-	npcId := int(_packet.ReadUint16())
+	npcId := int64(_packet.ReadUint16())
 	
 	c.SendNpcPokemon(npcId)
 	c.SendNpcEvents(npcId)
 }
 
 func (c *Client) ReceiveNpcEvents(_packet *Packet) {
-	if !c.loggedIn {
-		return
-	}
-	
-	npcId := _packet.ReadUint16()
+	npcId := int64(_packet.ReadUint16())
 	events := _packet.ReadString()
-	eventInitId := _packet.ReadUint16()
+	eventInitId := int(_packet.ReadUint16())
 
-	query := fmt.Sprintf("UPDATE npc_events SET event='%s', initId='%d' WHERE idnpc='%d'", events, eventInitId, npcId)
-	if err := puh.DBQuery(query); err == nil {
-		g_npc.Npcs[int(npcId)].SetEvents(events, int(eventInitId))
-	} else {
-		fmt.Printf("SQL Error: %s\n", err)
+
+	if npc, ok := g_npc.GetNpcById(npcId); ok {
+		npc.Events = events
+		npc.EventInitId = eventInitId
+		
+		npc.Save()
 	}
 }
 
@@ -591,7 +448,7 @@ func (c *Client) SendArea(_x, _y, _z, _w, _h int) {
 				for _, layer := range tile.Layers {
 					if layer != nil {
 						packet.AddUint8(uint8(layer.Layer))
-						packet.AddUint16(uint16(layer.SpriteID))
+						packet.AddUint16(uint16(layer.SpriteId))
 					}
 				}
 			}
@@ -623,11 +480,11 @@ func (c *Client) SendNpcList() {
 	for _id, npc := range(g_npc.Npcs) {
 		packet.AddUint16(uint16(_id))
 		packet.AddString(npc.Name)
-		packet.AddUint16(uint16(npc.Head))
-		packet.AddUint16(uint16(npc.Nek))
-		packet.AddUint16(uint16(npc.Upper))
-		packet.AddUint16(uint16(npc.Lower))
-		packet.AddUint16(uint16(npc.Feet))
+		packet.AddUint16(uint16(npc.GetOutfitPart(pul.OUTFIT_HEAD)))
+		packet.AddUint16(uint16(npc.GetOutfitPart(pul.OUTFIT_NEK)))
+		packet.AddUint16(uint16(npc.GetOutfitPart(pul.OUTFIT_UPPER)))
+		packet.AddUint16(uint16(npc.GetOutfitPart(pul.OUTFIT_LOWER)))
+		packet.AddUint16(uint16(npc.GetOutfitPart(pul.OUTFIT_FEET)))
 		packet.AddUint16(uint16(npc.Position.X))
 		packet.AddUint16(uint16(npc.Position.Y))
 		packet.AddUint16(uint16(npc.Position.Z))
@@ -636,17 +493,17 @@ func (c *Client) SendNpcList() {
 	c.Send(packet)
 }
 
-func (c *Client) SendNpc(_npcid int) {
+func (c *Client) SendNpc(_npcid int64) {
 	packet := NewPacketExt(0x05)
 	
-	npc, _ := g_npc.Npcs[_npcid]
+	npc, _ := g_npc.GetNpcById(_npcid)
 	packet.AddUint16(uint16(_npcid))
 	packet.AddString(npc.Name)
-	packet.AddUint16(uint16(npc.Head))
-	packet.AddUint16(uint16(npc.Nek))
-	packet.AddUint16(uint16(npc.Upper))
-	packet.AddUint16(uint16(npc.Lower))
-	packet.AddUint16(uint16(npc.Feet))
+	packet.AddUint16(uint16(npc.GetOutfitPart(pul.OUTFIT_HEAD)))
+	packet.AddUint16(uint16(npc.GetOutfitPart(pul.OUTFIT_NEK)))
+	packet.AddUint16(uint16(npc.GetOutfitPart(pul.OUTFIT_UPPER)))
+	packet.AddUint16(uint16(npc.GetOutfitPart(pul.OUTFIT_LOWER)))
+	packet.AddUint16(uint16(npc.GetOutfitPart(pul.OUTFIT_FEET)))
 	packet.AddUint16(uint16(npc.Position.X))
 	packet.AddUint16(uint16(npc.Position.Y))
 	packet.AddUint16(uint16(npc.Position.Z))
@@ -654,18 +511,18 @@ func (c *Client) SendNpc(_npcid int) {
 	c.Send(packet)
 }
 
-func (c *Client) SendDeleteNpc(_id int) {
+func (c *Client) SendDeleteNpc(_id int64) {
 	packet := NewPacketExt(0x06)
 	packet.AddUint16(uint16(_id))
 	
 	c.Send(packet)
 }
 
-func (c *Client) SendNpcPokemon(_npcid int) {
+func (c *Client) SendNpcPokemon(_npcid int64) {
 	packet := NewPacketExt(0x07)
 	packet.AddUint16(uint16(_npcid))
 	
-	npc, _ := g_npc.Npcs[_npcid]
+	npc, _ := g_npc.GetNpcById(_npcid)
 	packet.AddUint16(uint16(len(npc.Pokemons)))
 	
 	for _id, pokemon := range(npc.Pokemons) {
@@ -685,11 +542,13 @@ func (c *Client) SendNpcPokemon(_npcid int) {
 	c.Send(packet)
 }
 
-func (c *Client) SendNpcEvents(_id int) {
+func (c *Client) SendNpcEvents(_id int64) {
+	npc, _ := g_npc.GetNpcById(_id)
+	
 	packet := NewPacketExt(0x08)
 	packet.AddUint16(uint16(_id))
-	packet.AddString(g_npc.Npcs[_id].Events)
-	packet.AddUint16(uint16(g_npc.Npcs[_id].EventInitId))
+	packet.AddString(npc.Events)
+	packet.AddUint16(uint16(npc.EventInitId))
 	
 	c.Send(packet)
 }

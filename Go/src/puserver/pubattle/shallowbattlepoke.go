@@ -75,6 +75,18 @@ func (s *ShallowBattlePoke) ChangeStatus(_status uint) {
 	s.fullStatus = s.fullStatus & ^(uint32(1 << STATUS_KEOD) | 0x3F)
 	
 	// Add new status
-	s.fullStatus = s.fullStatus | (1 << _status)
+	s.fullStatus = s.fullStatus | (1 << _status)	
+}
+
+func (s *ShallowBattlePoke) GetStatus() int {
+	if (s.fullStatus & uint32(1 << STATUS_KEOD)) != 0 {
+		return STATUS_KEOD
+	}
 	
+	x := s.fullStatus & 0x3F
+	var i int
+	for i = 0; x > 1; i++ {
+		x /= 2
+	}
+	return i
 }

@@ -48,6 +48,10 @@ func NewPOClient(_player pul.IBattleCreature) (*POClient, error) {
 }
 
 func (c *POClient) UpdatePokemonData() {
+	if c.player.GetType() != 2 { // Player
+		return
+	}
+
 	playerParty := c.player.GetPokemonParty()
 	for i := 0; i < 6; i++ {
 		if poke := c.battle.myTeam.Pokes[i]; poke != nil {
@@ -71,9 +75,10 @@ func (c *POClient) UpdatePokemonData() {
 	}
 }
 
-func (c *POClient) Connect() {
+func (c *POClient) Connect(_host string, _port string) {
 	c.socket = NewPOClientSocket(c)
-	c.socket.Connect("localhost", "5080") // TODO: Put this in server config
+	//c.socket.Connect("localhost", "5080")
+	c.socket.Connect(_host, _port)
 }
 
 func (c *POClient) ProcessPacket(_packet *pnet.QTPacket) {
@@ -177,7 +182,31 @@ func (c *POClient) battleMessage(_packet *pnet.QTPacket) {
 	}
 }
 
-// --------------------- Send Packets ---------------------------
+// --------------------- Send Packets --------------------------- //
 func (c *POClient) keepAlive() {
 	c.SendMessage(pnet.NewQTPacket(), COMMAND_KeepAlive)
+}
+
+// --------------------- Send to PU Client --------------------------- //
+func (c *POClient) UpdatePokes(_player int) {
+	if _player == c.battle.me {
+		c.UpdateMyPoke()
+	} else {
+		c.UpdateOppPoke()
+	}
+}
+
+func (c *POClient) UpdateMyPoke() {
+	if poke := c.battle.currentPoke(c.battle.me); poke != nil {
+		packet := pnet.NewPacketExt(pnet.HEADER_BATTLE_UPDATEMYPOKE)
+		packet.AddString(poke.RNick)
+		packet.AddUint32(uint32(poke.Level))
+		packet.AddUint8(uint8(poke.Gender))
+		packet.AddUint32(uint32(poke.GetStatus()))
+		
+	}
+}
+
+func (c *POClient) UpdateOppPoke() {
+
 }

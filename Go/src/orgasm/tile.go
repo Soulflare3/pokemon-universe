@@ -1,28 +1,10 @@
 package main
 
 import (
+	"fmt"
 	pos "putools/pos"
+	puh "puhelper"
 )
-
-const (
-	TILEBLOCK_BLOCK       int = 1
-	TILEBLOCK_WALK            = 2
-	TILEBLOCK_SURF            = 3
-	TILEBLOCK_TOP             = 4
-	TILEBLOCK_BOTTOM          = 5
-	TILEBLOCK_RIGHT           = 6
-	TILEBLOCK_LEFT            = 7
-	TILEBLOCK_TOPRIGHT        = 8
-	TILEBLOCK_BOTTOMRIGHT     = 9
-	TILEBLOCK_BOTTOMLEFT      = 10
-	TILEBLOCK_TOPLEFT         = 11
-)
-
-type TileLayer struct {
-	DbId	 int64
-	Layer    int
-	SpriteID int
-}
 
 type LayerMap map[int]*TileLayer
 type Tile struct {
@@ -34,6 +16,8 @@ type Tile struct {
 	Layers    	LayerMap
 	Event    	ITileEvent
 	
+	IsNew		bool
+	IsModified	bool
 	IsRemoved	bool
 }
 
@@ -43,6 +27,8 @@ func NewTile(_pos pos.Position) *Tile {
 	t.Blocking = TILEBLOCK_WALK
 	t.Layers = make(LayerMap)
 	// t.Location = nil
+	
+	t.IsNew = true;
 
 	return t
 }
@@ -57,10 +43,10 @@ func NewTileExt(_x int, _y int, _z int) *Tile {
 func (t *Tile) AddLayer(_layer int, _sprite int) (layer *TileLayer) {
 	layer = t.GetLayer(_layer)
 	if layer == nil {
-		layer = &TileLayer{Layer: _layer, SpriteID: _sprite}
+		layer = NewTileLayer(_layer, _sprite)
 		t.Layers[_layer] = layer
 	} else {
-		t.Layers[_layer].SpriteID = _sprite
+		t.Layers[_layer].SetSpriteId(_sprite)
 	}
 
 	return
@@ -68,6 +54,23 @@ func (t *Tile) AddLayer(_layer int, _sprite int) (layer *TileLayer) {
 
 func (t *Tile) AddEvent(_event ITileEvent) {
 	t.Event = _event
+	t.IsModified = true
+	
+	t.Event.Save()
+}
+
+func (t *Tile) RemoveEvent() {
+	if t.Event != nil {
+		if t.Event.Delete() {
+			t.Event = nil
+			t.IsModified = true
+		}
+	}
+}
+
+func (t *Tile) SetBlocking(_blocking int) {
+	t.Blocking = _blocking
+	t.IsModified = true
 }
 
 // GetLayer returns a TileLayer object if the layer exists, otherwise nil
@@ -79,7 +82,76 @@ func (t *Tile) GetLayer(_layer int) *TileLayer {
 	return nil
 }
 
-func (t *Tile) RemoveLayer(_layer int) {
-	delete(t.Layers, _layer)
+func (t *Tile) RemoveLayer(_layer *TileLayer) {
+	if _layer != nil {
+		if _layer.Delete() {
+			delete(t.Layers, _layer.Layer)
+		}
+	}
 }
 
+// Save tile (including children) to database
+func (t *Tile) Save() bool {
+	var eventDbId int64 = 0
+
+	// Check if tile has an event 
+	if t.Event != nil {
+		t.Event.Save()
+		
+		eventDbId = t.Event.GetDbId()
+	}
+	
+	var query string
+	if t.IsNew {
+		query = fmt.Sprintf(QUERY_INSERT_TILE, t.Position.X, t.Position.Y, t.Position.Z, t.Blocking, eventDbId)
+	} else if t.IsModified { // Tile is probably changed, update it in the database
+		query = fmt.Sprintf(QUERY_UPDATE_TILE, t.Blocking, eventDbId, t.DbId)
+	}
+	
+	if len(query) > 0 {
+		if err := puh.DBQuery(query); err != nil {
+			return false
+		}
+		
+		if t.IsNew {
+			t.DbId = int64(puh.DBGetLastInsertId())
+		}
+	}
+	
+	t.IsNew = false
+	t.IsModified = false
+	
+	// Add tile to map
+	g_map.AddTile(t)
+	
+	// Save all layers (if needed)
+	for _, tl := range t.Layers {
+		if !tl.Save() {
+			return false
+		}
+	}
+	
+	return true
+}
+
+// Remove tile (including children) from database
+func (t *Tile) Delete() bool {
+	// Delete all layers
+	for _, tl := range t.Layers {
+		tl.Delete()
+	}
+
+	// Check if tile has an event 
+	if t.Event != nil {
+		t.Event.Delete()
+	}
+	
+	query := fmt.Sprintf(QUERY_DELETE_TILE, t.DbId)
+	if err := puh.DBQuery(query); err != nil {
+		return false
+	}
+				
+	t.IsRemoved = true
+	
+	return true
+}

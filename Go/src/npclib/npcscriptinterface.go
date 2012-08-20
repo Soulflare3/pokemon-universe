@@ -29,6 +29,9 @@ type NpcScriptInterface interface {
 	AddMoney(cid uint64, amount int)
 	CheckMoney(cid uint64, amount int) bool
 	RemoveMoney(cid uint64, amount int)
+	
+	// Battle
+	StartBattle(cid uint64)
 }
 
 type NpcInteractionInterface interface {
@@ -41,4 +44,8 @@ type NpcInteractionInterface interface {
 	// Market stuff
 	OnBuy(cid uint64, callback int)
 	OnShopWindowClose(cid uint64)
+	
+	// Battle
+	OnBattleWin(cid uint64)
+	OnBattleLose(cid uint64)
 }

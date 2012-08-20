@@ -162,3 +162,8 @@ func (s *NpcScript) RemoveMoney(cid uint64, amount int) {
 		player.SetMoney(-amount)
 	}
 }
+
+// Battle
+func (s *NpcScript) StartBattle(cid uint64) {
+
+}
