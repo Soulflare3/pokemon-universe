@@ -117,18 +117,23 @@ func (c *Client) HandleClient() {
 func (c *Client) ReceiveLogin(_packet *Packet) {
 	username := _packet.ReadString()
 	password := _packet.ReadString()
-	if c.checkAccount(username, password) {
-		fmt.Println("- Send login")
-		c.loggedIn = true
-		c.SendLogin(0)
-		fmt.Println("- Send map list")
-		c.SendMapList()
-		fmt.Println("- Send npc list")
-		c.SendNpcList()
+	ver := _packet.ReadString()
+	if ver == version {
+		if c.checkAccount(username, password) {
+			fmt.Println("- Send login")
+			c.loggedIn = true
+			c.SendLogin(0)
+			fmt.Println("- Send map list")
+			c.SendMapList()
+			fmt.Println("- Send npc list")
+			c.SendNpcList()
+		} else {
+			fmt.Println("- Send login false")
+			c.SendLogin(1)
+		}
 	} else {
-		fmt.Println("- Send login false")
-		c.SendLogin(1)
-	}	
+		c.SendLogin(2)
+	}
 }
 
 func (c *Client) checkAccount(_username string, _password string) bool {
