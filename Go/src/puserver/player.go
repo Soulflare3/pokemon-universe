@@ -19,7 +19,7 @@ package main
 import (
 	"container/list"
 	
-	"pubattle"
+	"puserver/pubattle"
 	pnet "network"
 	pul "pulogic"
 	pkmn "pulogic/pokemon"
@@ -210,7 +210,7 @@ func (p *Player) InitializeBattle() {
 		port = "5080"
 	}
 	
-	p.BattleClient = pubattle.NewPOClient(p)
+	p.BattleClient, _ = pubattle.NewPOClient(p)
 	p.BattleClient.Connect(host, port)
 }
 

@@ -10,7 +10,7 @@ func SendBattleEvent_ChangePP(_player pul.IBattleCreature, _pokemonId int, _move
 	message := netmsg.NewBattleEventMessage(pnet.BATTLEEVENT_CHANGEPP)
 	message.PokemonId = uint32(_pokemonId)
 	message.MoveSlotId = uint32(_moveSlotId)
-	message.NewPP = uint32(_newPP)
+	message.NewPP = uint8(_newPP)
 	
 	_player.SendBattleMessage(message)
 }

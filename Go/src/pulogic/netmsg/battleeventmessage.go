@@ -41,7 +41,7 @@ func (m *BattleEventMessage) GetHeader() uint8 {
 
 // WritePacket write the needed object data to a Packet and returns it
 func (m *BattleEventMessage) WritePacket() pnet.IPacket {
-	packet := pnet.NewPacketExt(m.GetHeader())
+	var packet pnet.IPacket = pnet.NewPacketExt(m.GetHeader())
 	packet.AddUint32(m.EventType)
 	
 	switch m.EventType {

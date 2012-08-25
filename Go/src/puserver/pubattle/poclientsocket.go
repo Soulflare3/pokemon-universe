@@ -156,10 +156,12 @@ func (s *POClientSocket) SendMessage(_buffer pnet.IPacket, _header int) {
 	packet := pnet.NewQTPacket()
 	packet.AddUint8(uint8(_header))
 	if !packet.AddBuffer(_buffer.GetBufferSlice()) {
-		fmt.Println("[ERROR} PACKET IS TOO LARGE, CAN NOT ADD BUFFER!")
+		fmt.Println("[ERROR] PACKET IS TOO LARGE, CAN NOT ADD BUFFER!")
 		return
 	}
 	packet.SetHeader()
+	
+	fmt.Printf("Sending packet with header: %v\n",  _header)
 
 	// Send message to the big bad internetz and pray for it to arrive
 	s.socket.Write(packet.Buffer[0:packet.MsgSize])

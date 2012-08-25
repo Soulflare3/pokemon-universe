@@ -1,6 +1,7 @@
 package main
 
 import (
+	 "fmt"
 	puh "puhelper"
 	pos "putools/pos"
 )
@@ -51,6 +52,9 @@ func (m *Map) DeleteMap(_id int) {
 func (m *Map) AddTile(_tile *Tile) {
 	if _, found := m.GetTileFromPosition(_tile.Position); !found {
 		tiles := m.tileMap[_tile.Position.Z]
+		if tiles == nil {
+			tiles = make(map[int64]*Tile)
+		}
 		tiles[_tile.Position.Hash()] = _tile
 	}
 }
@@ -75,6 +79,9 @@ func (m *Map) GetTileFromPosition(_pos pos.Position) (*Tile, bool) {
 func (m *Map) GetTile(_hash int64) (*Tile, bool) {
 	mapId := pos.NewPositionFromHash(_hash).Z
 	tiles := m.tileMap[mapId]
+	if tiles == nil {
+		tiles = make(map[int64]*Tile)
+	}
 	tile, found := tiles[_hash]
 	return tile, found
 }
@@ -115,13 +122,18 @@ func (m *Map) LoadTiles() (succeed bool, msg string) {
 	if err != nil {
 		return false, err.Error()
 	}
-
+	
+	count := 0
+	
 	defer puh.DBFree()
 	for {
 		row := result.FetchRow()
 		if row == nil {
 			break
 		}
+		
+		count++
+		fmt.Printf("\rRetrieving tiles... %d", count)
 
 		x := puh.DBGetInt(row[0])
 		y := puh.DBGetInt(row[1])
@@ -138,10 +150,11 @@ func (m *Map) LoadTiles() (succeed bool, msg string) {
 		// idlocation := DBGetInt(row[3])
 
 		tile, found := m.GetTileFromPosition(position)
+		
 		if found == false {
 			tile = NewTile(position)
 			tile.IsNew = false
-			tile.DbId = puh.DBGetInt64(row[11])
+			tile.DbId = int64(puh.DBGetUint64(row[11]))
 			tile.Blocking = blocking
 
 			// Get location
@@ -159,15 +172,15 @@ func (m *Map) LoadTiles() (succeed bool, msg string) {
 				
 				warp := NewWarp(tp_pos)
 				warp.dbid = int64(tp_id)
-				tile.AddEvent(warp)
+				tile.Event = warp
 			}
-
+			
 			m.AddTile(tile)
 		}
-
 		tileLayer := tile.AddLayer(layer, sprite)
 		tileLayer.DbId = puh.DBGetInt64(row[12])
 	}
+	fmt.Printf("\rRetrieving tiles... Done")
 	return true, ""
 }
 

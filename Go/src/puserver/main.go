@@ -20,6 +20,7 @@ import (
 	"flag"
 	"fmt"
 	"runtime"
+	"time"
 
 	"goconf"
 	"gomysql"
@@ -66,22 +67,30 @@ func main() {
 		return
 	}
 
-	logger.Println("Loadig Pokemon data")
+	logger.Println("Loading Pokemon data")
 	pokemonManager := pokemon.GetInstance()
 	if !pokemonManager.Load() {
 		return
 	}
 	
-	logger.Println("Loading game data")
-	g_game = NewGame()
-	if !g_game.Load() {
-		logger.Println("Failed to load game data...")
-		return
-	}
+//	logger.Println("Loading game data")
+//	g_game = NewGame()
+//	if !g_game.Load() {
+//		logger.Println("Failed to load game data...")
+//		return
+//	}
+	
+	logger.Println("Create new player object")
+	p := NewPlayer("Mr_Dark")
+	logger.Println("Start battle")
+	p.InitializeBattle()
+//	logger.Println("Starting server")
+//	g_server = NewServer()
+//	g_server.Start()
 
-	logger.Println("Starting server")
-	g_server = NewServer()
-	g_server.Start()
+	for {
+		time.Sleep(1e9)
+	}
 }
 
 // Initialize configuration file

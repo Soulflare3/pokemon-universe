@@ -16,9 +16,11 @@ DIRS=\
 	
 install: 
 	go install $(DIRS)
+	cp puserver/puserver.exe ../bin/puserver.exe
 	
 build: 
 	go build $(DIRS)
+	cp puserver/puserver.exe ../bin/puserver.exe
 
 clean:
 	go clean $(DIRS)

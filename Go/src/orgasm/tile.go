@@ -52,6 +52,7 @@ func (t *Tile) AddLayer(_layer int, _sprite int) (layer *TileLayer) {
 	return
 }
 
+// Don't use this method when loading tiles, only for manually editing, adding
 func (t *Tile) AddEvent(_event ITileEvent) {
 	t.Event = _event
 	t.IsModified = true

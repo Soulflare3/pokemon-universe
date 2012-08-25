@@ -64,6 +64,7 @@ type ICreature interface {
 type IBattleCreature interface {
 	GetName() string
 	GetPokemonParty() *pokemon.PokemonParty
+	GetType() int
 	
 	SendBattleMessage(_message pnet.INetMessageWriter)
 }

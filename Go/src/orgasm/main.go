@@ -9,6 +9,7 @@ import (
 	"goconf"
 	puh "puhelper"
 	"putools/log"
+	"pulogic/pokemon"
 )
 
 const (
@@ -62,7 +63,7 @@ func initDatabase() bool {
 
 func main() {
 	fmt.Println("***************************************")
-	fmt.Println("** Pokemon Universe - Mapserver v0.3 **")
+	fmt.Println("** Pokemon Universe - Mapserver v0.4 **")
 	fmt.Println("***************************************")
 	
 	// Flags
@@ -72,6 +73,7 @@ func main() {
 	// Load config file
 	fmt.Printf("Loading config file...")
 	if initConfig(configFile) == false {
+		fmt.Printf("[FAILED]\n")
 		return
 	}
 	fmt.Printf("[Succeeded]\n")
@@ -79,14 +81,17 @@ func main() {
 	// Connect to database 
 	fmt.Printf("Connecting to database...")
 	if initDatabase() == false {
+		fmt.Printf("[FAILED]\n")
 		return
 	}
 	fmt.Printf("[Succeeded]\n")
-
-	// Load images
-	//fmt.Printf("Loading tile images...")
-	//LoadImages()
-	//fmt.Printf("[Succeeded] (%d images loaded)\n", len(ImagesMap))
+	
+	fmt.Printf("Loading all Pokemon data...")
+	pokemonManager := pokemon.GetInstance()
+	if !pokemonManager.Load() {
+		return
+	}
+	fmt.Printf("[Succeeded]\n")
 
 	// Get maps 
 	fmt.Printf("Retrieving map names...")

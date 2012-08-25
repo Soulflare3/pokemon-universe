@@ -83,6 +83,7 @@ func (c *POClient) Connect(_host string, _port string) {
 
 func (c *POClient) ProcessPacket(_packet *pnet.QTPacket) {
 	header := int(_packet.ReadUint8())
+	fmt.Printf("Received header %v\n", header)
 	switch header {
 	case COMMAND_Login: // 2
 		c.login(_packet)
