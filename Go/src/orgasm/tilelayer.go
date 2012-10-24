@@ -22,10 +22,10 @@ func NewTileLayer(_layer, _spriteId int) *TileLayer {
 	return tl
 }
 
-func (tl *TileLayer) Save() bool {
+func (tl *TileLayer) Save(_tileId int64) bool {
 	var query string
 	if tl.IsNew {
-		query = fmt.Sprintf(QUERY_INSERT_TILELAYER, tl.DbId, tl.Layer, tl.SpriteId)
+		query = fmt.Sprintf(QUERY_INSERT_TILELAYER, _tileId, tl.Layer, tl.SpriteId)
 	} else if tl.IsModified {
 		query = fmt.Sprintf(QUERY_UPDATE_TILELAYER, tl.SpriteId, tl.DbId)
 	}

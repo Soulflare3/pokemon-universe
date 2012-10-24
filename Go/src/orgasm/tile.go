@@ -111,6 +111,7 @@ func (t *Tile) Save() bool {
 	
 	if len(query) > 0 {
 		if err := puh.DBQuery(query); err != nil {
+			fmt.Printf("[ERROR] Save failed - error: %s\n", err) 
 			return false
 		}
 		
@@ -127,7 +128,7 @@ func (t *Tile) Save() bool {
 	
 	// Save all layers (if needed)
 	for _, tl := range t.Layers {
-		if !tl.Save() {
+		if !tl.Save(t.DbId) {
 			return false
 		}
 	}

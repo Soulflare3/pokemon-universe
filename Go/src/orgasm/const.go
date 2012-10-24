@@ -22,6 +22,11 @@ const (
 	QUERY_INSERT_TILE string = "INSERT INTO tile (x, y, z, movement, idlocation, idtile_event) VALUES (%d, %d, %d, %d, 0, %d)"
 	QUERY_UPDATE_TILE string = "UPDATE tile SET movement='%d', idtile_event='%d' WHERE idtile='%d'"
 	QUERY_DELETE_TILE string = "DELETE FROM tile WHERE idtile='%d'"
+	QUERY_LOAD_TILES string = 	"SELECT t.`x`, t.`y`, t.`z`, t.`idlocation`, t.`movement`, t.`idtile_event`," +
+								" tl.`sprite`, tl.`layer`," +
+								" t.`idtile`, tl.`idtile_layer`" +
+								" FROM tile `t`" +
+								" INNER JOIN tile_layer `tl` ON t.`idtile` = tl.`idtile`" 
 	
 	QUERY_INSERT_EVENT string = "INSERT INTO tile_events (eventtype, param1, param2, param3, param4, param5, param6, param7, param8) " + 
 									"VALUES (%d, %s, %s, %s, %s, %s, %s, %s, %s)"

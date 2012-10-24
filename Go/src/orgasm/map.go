@@ -110,17 +110,12 @@ func (m *Map) LoadMapList() (succeed bool, error string) {
 	return true, ""
 }
 
-func (m *Map) LoadTiles() (succeed bool, msg string) {
-	var query string = "SELECT t.`x`, t.`y`, t.`z`, t.`idlocation`, t.`movement`, t.`idteleport`," +
-		" tl.`sprite`, tl.`layer`, tp.`x` AS `tp_x`, tp.`y` AS `tp_y`, tp.`z` AS `tp_z`," +
-		" t.`idtile`, tl.`idtile_layer`" +
-		" FROM tile `t`" +
-		" INNER JOIN tile_layer `tl` ON tl.`idtile` = t.`idtile`" +
-		" LEFT JOIN teleport `tp` ON tp.`idteleport` = t.`idteleport`"
+func (m *Map) LoadTiles() (succeed bool) {
 
-	result, err := puh.DBQuerySelect(query)
+	result, err := puh.DBQuerySelect(QUERY_LOAD_TILES)
 	if err != nil {
-		return false, err.Error()
+		fmt.Printf("[ERROR] %s\n", err.Error())
+		return false
 	}
 	
 	count := 0
@@ -142,10 +137,10 @@ func (m *Map) LoadTiles() (succeed bool, msg string) {
 		layer := puh.DBGetInt(row[7])
 		sprite := puh.DBGetInt(row[6])
 		blocking := puh.DBGetInt(row[4])
-		// row `idteleport` may be null sometimes.
-		var tp_id = 0
+		// row `idtile_event` may be null sometimes.
+		var te_id = 0
 		if row[5] != nil {
-			tp_id = puh.DBGetInt(row[5])
+			te_id = puh.DBGetInt(row[5])
 		}
 		// idlocation := DBGetInt(row[3])
 
@@ -154,7 +149,7 @@ func (m *Map) LoadTiles() (succeed bool, msg string) {
 		if found == false {
 			tile = NewTile(position)
 			tile.IsNew = false
-			tile.DbId = int64(puh.DBGetInt64(row[11]))
+			tile.DbId = int64(puh.DBGetInt64(row[8]))
 			tile.Blocking = blocking
 
 			// Get location
@@ -163,25 +158,21 @@ func (m *Map) LoadTiles() (succeed bool, msg string) {
 			//	tile.Location = location
 			// }
 
-			// Teleport event
-			if tp_id > 0 {
-				tp_x := puh.DBGetInt(row[8])
-				tp_y := puh.DBGetInt(row[9])
-				tp_z := puh.DBGetInt(row[10])
-				tp_pos := pos.NewPositionFrom(tp_x, tp_y, tp_z)
-				
-				warp := NewWarp(tp_pos)
-				warp.dbid = int64(tp_id)
-				tile.Event = warp
+			//TODO tile events
+			// Event
+			if te_id > 0 {
+				//Do some tile event stuff, like teleports
 			}
 			
 			m.AddTile(tile)
 		}
 		tileLayer := tile.AddLayer(layer, sprite)
-		tileLayer.DbId = puh.DBGetInt64(row[12])
+		tileLayer.DbId = puh.DBGetInt64(row[9])
+
 	}
+	
 	fmt.Printf("\rRetrieving tiles... Done")
-	return true, ""
+	return true
 }
 
 func (m *Map) ProcessMapChanges() {
