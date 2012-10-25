@@ -27,7 +27,7 @@ func (tl *TileLayer) Save(_tileId int64) bool {
 	if tl.IsNew {
 		query = fmt.Sprintf(QUERY_INSERT_TILELAYER, _tileId, tl.Layer, tl.SpriteId)
 	} else if tl.IsModified {
-		query = fmt.Sprintf(QUERY_UPDATE_TILELAYER, tl.SpriteId, tl.DbId)
+		query = fmt.Sprintf(QUERY_UPDATE_TILELAYER, tl.SpriteId, tl.DbId, _tileId)
 	}
 	
 	if query != "" {		
@@ -37,6 +37,9 @@ func (tl *TileLayer) Save(_tileId int64) bool {
 		
 		if tl.IsNew {
 			tl.DbId = int64(puh.DBGetLastInsertId())
+			if IS_DEBUG {
+				fmt.Printf("Added New tilelayer to DB - DbId: %d\n", tl.DbId) 
+			}
 		}
 	}
 

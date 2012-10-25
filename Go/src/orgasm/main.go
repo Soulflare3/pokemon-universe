@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	IS_DEBUG = false
+	IS_DEBUG = true
 )
 
 var (

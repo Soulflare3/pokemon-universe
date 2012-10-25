@@ -117,6 +117,9 @@ func (t *Tile) Save() bool {
 		
 		if t.IsNew {
 			t.DbId = int64(puh.DBGetLastInsertId())
+			if IS_DEBUG {
+				fmt.Printf("Added New tile to DB - DbId: %d\n", t.DbId) 
+			}
 		}
 	}
 	

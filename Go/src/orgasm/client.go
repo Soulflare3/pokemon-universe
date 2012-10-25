@@ -200,12 +200,12 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 		if numLayers > 0 {
 			if !exists { // Tile does not exists, create it		
 				if IS_DEBUG {
-					fmt.Printf("New Tile - X: %d - Y: %d - Z: %d\n", x, y, z) 
+					fmt.Printf("New Tile - X: %d - Y: %d - Z: %d - blocking: %d\n", x, y, z, blocking) 
 				}
 				
 				tile = NewTileExt(x, y, z)
 			} else if IS_DEBUG {
-				fmt.Printf("Update Tile - X: %d - Y: %d - Z: %d - DbId: %d\n", x, y, z, tile.DbId) 
+				fmt.Printf("Update Tile - X: %d - Y: %d - Z: %d - blocking: %d - DbId: %d\n", x, y, z, blocking, tile.DbId) 
 			}
 			
 			// Set/update blocking
@@ -218,7 +218,7 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 				tileLayer := tile.GetLayer(layerId)
 				if tileLayer == nil {
 					if IS_DEBUG {
-						fmt.Printf("Add Layer - Tile Id: %d - Layer: %d - DbId: %d\n", tile.DbId, layerId, tileLayer.DbId) 
+						fmt.Printf("Add Layer - Layer: %d\n", layerId) 
 					}
 					
 					// Add and save new tile layer
@@ -226,14 +226,14 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 				} else {
 					if (sprite == 0) {				
 						if IS_DEBUG {
-							fmt.Printf("Delete Layer - Tile Id: %d - DbId: %d\n", tile.DbId, tileLayer.DbId) 
+							fmt.Printf("Delete Layer - DbId: %d\n", tileLayer.DbId) 
 						}
 						
 						// Remove layer, this will also remove the layer from database
 						tile.RemoveLayer(tileLayer)						
 					} else {
 						if IS_DEBUG {
-							fmt.Printf("Update Layer - Tile Id: %d - DbId: %d\n", tile.DbId, tileLayer.DbId) 
+							fmt.Printf("Update Layer - DbId: %d\n", tileLayer.DbId) 
 						}						
 						
 						// Update tile layer with new sprite id
