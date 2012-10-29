@@ -43,7 +43,7 @@ func NewTileExt(_x int, _y int, _z int) *Tile {
 func (t *Tile) AddLayer(_layer int, _sprite int) (layer *TileLayer) {
 	layer = t.GetLayer(_layer)
 	if layer == nil {
-		layer = NewTileLayer(_layer, _sprite)
+		layer = NewTileLayer(_layer, _sprite, t.DbId)
 		t.Layers[_layer] = layer
 	} else {
 		t.Layers[_layer].SetSpriteId(_sprite)
@@ -131,7 +131,7 @@ func (t *Tile) Save() bool {
 	
 	// Save all layers (if needed)
 	for _, tl := range t.Layers {
-		if !tl.Save(t.DbId) {
+		if !tl.Save() {
 			return false
 		}
 	}

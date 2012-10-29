@@ -175,6 +175,7 @@ func (c *Client) RequestMapPiece(_packet *Packet) {
 	}
 }
 
+//Receive Tiles
 func (c *Client) ReceiveChange(_packet *Packet) {
 	numTiles := int(_packet.ReadUint16())
 	if numTiles <= 0 { // Zero tile selected bug
@@ -210,7 +211,10 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 			
 			// Set/update blocking
 			tile.SetBlocking(blocking)
-
+			
+			// Save tile to database before inserting tilelayers
+			tile.Save()
+			
 			for j := 0; j < numLayers; j++ {
 				layerId := int(_packet.ReadUint16())
 				sprite := int(_packet.ReadUint16())
@@ -221,7 +225,7 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 						fmt.Printf("Add Layer - Layer: %d\n", layerId) 
 					}
 					
-					// Add and save new tile layer
+					// Add new tile layer
 					tileLayer = tile.AddLayer(layerId, sprite)
 				} else {
 					if (sprite == 0) {				
@@ -240,10 +244,9 @@ func (c *Client) ReceiveChange(_packet *Packet) {
 						tileLayer.SetSpriteId(sprite)
 					}
 				}
+				//Save the tile layer
+				tileLayer.Save()
 			}
-			
-			// Save tile to database
-			tile.Save()
 		} else {
 			if exists {
 				if IS_DEBUG {

@@ -168,6 +168,7 @@ func (m *Map) LoadTiles() (succeed bool) {
 		}
 		tileLayer := tile.AddLayer(layer, sprite)
 		tileLayer.DbId = puh.DBGetInt64(row[9])
+		tileLayer.IsNew = false
 
 	}
 	
