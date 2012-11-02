@@ -87,6 +87,9 @@ func (s *Server) HandleTileChange() {
 
 				// Set/update blocking
 				tile.SetBlocking(blocking)
+				
+				// Save tile to database
+				tile.Save()
 
 				for j := 0; j < numLayers; j++ {
 					layerId := int(packet.ReadUint16())
@@ -94,12 +97,16 @@ func (s *Server) HandleTileChange() {
 
 					tileLayer := tile.GetLayer(layerId)
 					if tileLayer == nil {
+					
+						// Add and save new tile layer
+						tileLayer = tile.AddLayer(layerId, sprite)
+						
+						//Save the tile layer
+						tileLayer.Save()
+						
 						if IS_DEBUG {
 							fmt.Printf("Add Layer - Tile Id: %d - Layer: %d - DbId: %d\n", tile.DbId, layerId, tileLayer.DbId)
 						}
-
-						// Add and save new tile layer
-						tileLayer = tile.AddLayer(layerId, sprite)
 					} else {
 						if sprite == 0 {
 							if IS_DEBUG {
@@ -116,11 +123,11 @@ func (s *Server) HandleTileChange() {
 							// Update tile layer with new sprite id
 							tileLayer.SetSpriteId(sprite)
 						}
+						
+						//Save the tile layer
+						tileLayer.Save()
 					}
 				}
-
-				// Save tile to database
-				tile.Save()
 			} else {
 				if exists {
 					if IS_DEBUG {
