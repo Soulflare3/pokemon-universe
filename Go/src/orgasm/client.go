@@ -19,11 +19,13 @@ type Client struct {
 	id int
 	socket   net.Conn
 	loggedIn bool
+
+	changeTileChan chan *Packet
 }
 
-func NewClient(_socket net.Conn) *Client {
+func NewClient(_socket net.Conn, _changeTileChan chan *Packet) *Client {
 	AutoClientId++
-	return &Client{id: AutoClientId, socket: _socket, loggedIn: false}
+	return &Client{id: AutoClientId, socket: _socket, loggedIn: false, changeTileChan: _changeTileChan}
 }
 
 func (c *Client) HandleClient() {
@@ -74,7 +76,7 @@ func (c *Client) HandleClient() {
 			go c.RequestMapPiece(packet)
 
 		case HEADER_TILE_CHANGE: // Tile changes
-			go c.ReceiveChange(packet)
+			c.changeTileChan <- packet
 			
 		case HEADER_REQUEST_MAP_LIST: // Request map list
 			go c.SendMapList()
