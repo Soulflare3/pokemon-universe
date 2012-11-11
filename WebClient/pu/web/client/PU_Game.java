@@ -3,6 +3,8 @@ package pu.web.client;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import pu.web.client.battle.PU_Battle;
+import pu.web.client.gui.impl.PU_BattlePanel;
 import pu.web.client.gui.impl.PU_ChatPanel;
 import pu.web.client.gui.impl.PU_OnscreenChat;
 import pu.web.client.gui.impl.PU_WorldPanel;
@@ -32,11 +34,29 @@ public class PU_Game
 	
 	private PU_WorldPanel mWorldPanel = null; 
 	private PU_ChatPanel mChatPanel = null;
+	private PU_BattlePanel mBattlePanel = null;
 	private PU_OnscreenChat mOnscreenChat = new PU_OnscreenChat();
+	
+	private PU_Battle mBattle = null;
 	
 	public PU_Game()
 	{
+
+	}
+	
+	public void initPanels()
+	{
+		mWorldPanel = new PU_WorldPanel(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT);
+		mWorldPanel.setVisible(false);
+		PUWeb.gui().getRoot().addChild(mWorldPanel);
 		
+		mBattlePanel = new PU_BattlePanel(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT);
+		mBattlePanel.setVisible(false);
+		PUWeb.gui().getRoot().addChild(mBattlePanel);
+		
+		mChatPanel = new PU_ChatPanel(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT);
+		mChatPanel.setVisible(false);
+		PUWeb.gui().getRoot().addChild(mChatPanel);
 	}
 	
 	public int getState()
@@ -58,10 +78,13 @@ public class PU_Game
 				PU_Font font = PUWeb.resources().getFont(Fonts.FONT_ARIALBLK_BOLD_14);
 				if(font != null)
 				{
-					font.drawText("Loading, please wait...", 10, 10);
+					font.drawText("Loading, please wait...", 100, 310);
 					
-					font.drawText("Fonts: " + PUWeb.resources().getFontLoadProgress() + "%", 10, 40);
-					font.drawText("GUI: " + PUWeb.resources().getGuiImageLoadProgress() + "%", 10, 70);
+					PUWeb.engine().setColor(255, 255, 255, 255);
+					PUWeb.engine().renderRect(100, 330, 764, 30);
+					
+					int progressSize = (int)(PUWeb.resources().getLoadProgress()* 761.0f);
+					PUWeb.engine().renderFillRect(102, 332, progressSize, 27);
 				}
 			}
 			break;
@@ -73,6 +96,7 @@ public class PU_Game
 			break;
 			
 			case GAMESTATE_WORLD:
+			case GAMESTATE_BATTLE_INIT:
 			{
 				drawWorld();
 				mOnscreenChat.draw();
@@ -362,21 +386,12 @@ public class PU_Game
 	
 	public void showChatPanel()
 	{
-		if(mChatPanel == null)
-		{
-			mChatPanel = new PU_ChatPanel(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT);
-			PUWeb.gui().getRoot().addChild(mChatPanel);
-		}
-		
 		mChatPanel.setVisible(true);
 	}
 	
 	public void hideChatPanel()
 	{
-		if(mChatPanel != null)
-		{
-			mChatPanel.setVisible(false);
-		}
+		mChatPanel.setVisible(false);
 	}
 	
 	public PU_ChatPanel getChatPanel()
@@ -386,27 +401,43 @@ public class PU_Game
 	
 	public void showWorldPanel()
 	{
-		if(mWorldPanel == null)
-		{
-			mWorldPanel = new PU_WorldPanel(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT);
-			PUWeb.gui().getRoot().addChild(mWorldPanel);
-		}
-		
 		mWorldPanel.setVisible(true);
 		mOnscreenChat.setVisible(true);
 	}
 	
 	public void hideWorldPanel()
 	{
-		if(mWorldPanel != null)
-		{
-			mWorldPanel.setVisible(false);
-			mOnscreenChat.setVisible(false);
-		}
+		mWorldPanel.setVisible(false);
+		mOnscreenChat.setVisible(false);
 	}
 	
 	public PU_OnscreenChat getOnscreenChat()
 	{
 		return mOnscreenChat;
+	}
+	
+	public void initBattle()
+	{	
+		this.mBattlePanel.init();
+	}
+	
+	public PU_Battle getBattle()
+	{
+		return this.mBattle;
+	}
+	
+	public void setBattle(PU_Battle battle)
+	{
+		this.mBattle = battle;
+	}
+	
+	public void showBattlePanel()
+	{	
+		this.mBattlePanel.setVisible(true);
+	}
+	
+	public void hideBattlePanel()
+	{
+		this.mBattlePanel.setVisible(false);
 	}
 }

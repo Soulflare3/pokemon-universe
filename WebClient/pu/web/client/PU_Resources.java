@@ -3,7 +3,6 @@ package pu.web.client;
 import java.util.HashMap;
 
 import pu.web.client.resources.fonts.Fonts;
-import pu.web.client.resources.gui.GuiImageBundle;
 import pu.web.client.resources.gui.GuiImages;
 import pu.web.client.resources.pokemon.Pokemon;
 import pu.web.client.resources.tiles.Tiles;
@@ -33,36 +32,83 @@ public class PU_Resources
 	private int mGuiImageCount = 0;
 	private int mGuiImageCountLoaded = 0;
 	
+	private int mSpriteCount = 0;
+	private int mSpriteCountLoaded = 0;
+	
+	private int mPokemonCount = 0;
+	private int mPokemonCountLoaded = 0;
+	
 	private WebGLTexture mSpriteTexture = null;
 	private WebGLTexture mPokemonTexture = null;
 	
-	private boolean mSpritesLoaded = false;
-	private boolean mPokemonLoaded = false;
+	private boolean mResourcesLoaded = false;
 	
 	public PU_Resources()
 	{
 		mFontCount = Fonts.FONT_COUNT;
-		mGuiImageCount = GuiImageBundle.IMAGE_COUNT;
+		mGuiImageCount = GuiImages.getImages().length;
 	}
 	
 	public void checkComplete()
 	{
-		boolean complete = true;
+		if(!mResourcesLoaded)
+		{
+			boolean complete = true;
+			
+			if(mFontCount <= 0 || mFontCount != mFontCountLoaded)
+			{
+				complete = false;
+			}
+			
+			if(mGuiImageCount <= 0 || mGuiImageCount != mGuiImageCountLoaded)
+			{
+				complete = false;
+			}
+			
+			if(mSpriteCount <= 0 || mSpriteCount != mSpriteCountLoaded)
+			{
+				complete = false;
+			}
+			
+			if(mPokemonCount <= 0 || mPokemonCount != mPokemonCountLoaded)
+			{
+				complete = false;
+			}
+			
+			if(complete)
+			{
+				mResourcesLoaded = true;
+				PUWeb.resourcesLoaded();
+			}	
+		}
+	}
+	
+	public float getLoadProgress()
+	{
+		float progress = 0.0f;
 		
-		if(mFontCount != mFontCountLoaded)
-			complete = false;
+		// Font progress (10%)
+		progress += ((float)mFontCountLoaded/(float)mFontCount)*0.1f;
 		
-		if(mGuiImageCount != mGuiImageCountLoaded)
-			complete = false;
+		// GUI progress (30%)
+		progress += ((float)mFontCountLoaded/(float)mFontCount)*0.3f;
 		
-		if(mSpritesLoaded)
-			complete = false;
+		// Sprites progress (30%)
+		if(mSpriteCount > 0)
+		{
+			progress += ((float)mSpriteCountLoaded/(float)mSpriteCount)*0.3f;	
+		}
 		
-		if(mPokemonLoaded)
-			complete = false;
+		// Pokemon progress (30%)
+		if(mPokemonCount > 0)
+		{
+			progress += ((float)mPokemonCountLoaded/(float)mPokemonCount)*0.3f;	
+		}
 		
-		if(complete)
-			PUWeb.resourcesLoaded();
+		// Check if loading is complete
+		checkComplete();
+		
+		return progress;
 	}
 	
 	public int getFontLoadProgress()
@@ -117,15 +163,12 @@ public class PU_Resources
 				setFont(fontId, new PU_Font(texture, fontInfo));
 				
 				mFontCountLoaded++;
-				checkComplete();
 			}
 
 			@Override
 			public void error()
 			{
 				mFontCountLoaded++;
-				checkComplete();
-				
 			}
 		}, image);
 	}
@@ -162,14 +205,12 @@ public class PU_Resources
 					}
 					
 					mGuiImageCountLoaded++;
-					checkComplete();
 				}
 
 				@Override
 				public void error()
 				{
 					mGuiImageCountLoaded++;
-					checkComplete();
 				}
 			}, image);
 		}
@@ -201,6 +242,7 @@ public class PU_Resources
 				Document infoDom = XMLParser.parse(imageInfo);
 				
 				NodeList sprites = infoDom.getElementsByTagName("sprite");
+				PU_Resources.this.mSpriteCount = sprites.getLength();
 				for(int i = 0; i < sprites.getLength(); i++)
 				{
 					Element element = (Element) sprites.item(i);
@@ -243,19 +285,14 @@ public class PU_Resources
 						// Tile sprite
 						parseTileSprite(name, spriteImage);
 					}
-					
+					PU_Resources.this.mSpriteCountLoaded++;
 				}
-								
-				mSpritesLoaded = true;
-				checkComplete();
 			}
 
 			@Override
 			public void error()
 			{
 				PUWeb.log("Error loading sprites");
-				mSpritesLoaded = false;
-				checkComplete();
 			}
 		}, image);
 	}
@@ -312,6 +349,7 @@ public class PU_Resources
 				Document infoDom = XMLParser.parse(imageInfo);
 				
 				NodeList sprites = infoDom.getElementsByTagName("sprite");
+				PU_Resources.this.mPokemonCount = sprites.getLength();
 				for(int i = 0; i < sprites.getLength(); i++)
 				{
 					Element element = (Element) sprites.item(i);
@@ -360,18 +398,15 @@ public class PU_Resources
 						int id = Integer.parseInt(name.replace("icon/", ""));
 						mPokeImage_Icon.put(id, spriteImage);
 					}	
+					
+					PU_Resources.this.mPokemonCountLoaded++;
 				}
-								
-				mPokemonLoaded = true;
-				checkComplete();
 			}
 
 			@Override
 			public void error()
 			{
 				PUWeb.log("Error loading sprites");
-				mPokemonLoaded = false;
-				checkComplete();
 			}
 		}, image);
 	}

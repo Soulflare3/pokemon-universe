@@ -5,6 +5,7 @@ import java.util.HashMap;
 import pu.web.client.PUWeb;
 import pu.web.client.PU_Image;
 import pu.web.client.PU_Rect;
+import pu.web.client.battle.PU_Battle;
 import pu.web.client.gui.OnKeyDownListener;
 import pu.web.client.gui.Panel;
 import pu.web.client.gui.TextField;
@@ -108,7 +109,14 @@ public class PU_ChatPanel extends Panel
 			if(button == 13)
 			{				
 				String message = mChatInput.getText();
-				PUWeb.connection().getProtocol().sendChat(PU_ChatChannel.CHANNEL_LOCAL, 7, message);	
+				PUWeb.connection().getProtocol().sendChat(PU_ChatChannel.CHANNEL_LOCAL, 7, message);
+				
+				if(message.equals("/test"))
+				{
+					PU_Battle battle = new PU_Battle(0);
+					battle.start();
+				}
+				
 				mChatInput.setText("");
 			}
 		}

@@ -20,7 +20,7 @@ public interface Fonts extends ClientBundle
 	public static int FONT_ARIALBLK_BOLD_14_OUTLINE = 1;
 	@Source(value = { "arialblk_bold_14_outline.fnt" })
 	TextResource arialBlk14OutlineInfo();
-	
+	 
 	@Source(value = { "arialblk_bold_14_outline.png" })
 	ImageResource arialBlk14OutlineBitmap();
 }

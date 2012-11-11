@@ -33,7 +33,7 @@ public class PUWeb implements EntryPoint
 	private int mFPS = 0;
 
 	public void onModuleLoad()
-	{
+	{	    
 		final Canvas webGLCanvas = Canvas.createIfSupported();
 		webGLCanvas.setCoordinateSpaceHeight(PU_Engine.SCREEN_HEIGHT);
         webGLCanvas.setCoordinateSpaceWidth(PU_Engine.SCREEN_WIDTH);
@@ -92,6 +92,8 @@ public class PUWeb implements EntryPoint
 	{
 		PUWeb.mGui = new GUIManager(0, 0, PU_Engine.SCREEN_WIDTH, PU_Engine.SCREEN_HEIGHT, mResources.getFont(Fonts.FONT_ARIALBLK_BOLD_14));
 		PUWeb.mEvents = new PU_Events(Document.get().getElementById("gwtGL"), PUWeb.mGui);
+		
+		mGame.initPanels();
 		
 		mGame.setState(PU_Game.GAMESTATE_LOGIN);
 		

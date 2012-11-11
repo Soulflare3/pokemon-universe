@@ -12,6 +12,10 @@ public class PU_Attack
 	private int mPower;
 	private int mAccuracy;
 	private int mTargetId;
+	private String mDescription;
+	private String mCategory;
+	private String mTarget;
+	private String mContact;
 
 	public PU_Attack()
 	{
@@ -116,5 +120,45 @@ public class PU_Attack
 	public void setTargetId(int mTargetId)
 	{
 		this.mTargetId = mTargetId;
+	}
+
+	public String getDescription()
+	{
+		return this.mDescription;
+	}
+	
+	public void setDescription(String description)
+	{
+		this.mDescription = description;
+	}
+	
+	public String getCategory()
+	{
+		return this.mCategory;
+	}
+	
+	public void setCategory(String category)
+	{
+		this.mCategory = category;
+	}
+	
+	public String getTarget()
+	{
+		return this.mTarget;
+	}
+	
+	public void setTarget(String target)
+	{
+		this.mTarget = target;
+	}
+	
+	public String getContact()
+	{
+		return this.mContact;
+	}
+	
+	public void setContact(String contact)
+	{
+		this.mContact = contact;
 	}
 }

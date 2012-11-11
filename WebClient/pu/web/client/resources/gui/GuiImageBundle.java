@@ -6,7 +6,6 @@ import com.google.gwt.resources.client.ImageResource;
 
 public interface GuiImageBundle extends ClientBundle
 {
-	public static int IMAGE_COUNT = 2;
 	static GuiImageBundle INSTANCE = GWT.create(GuiImageBundle.class);
 	
 	@Source(value = { "loginBg.png" })
@@ -32,4 +31,34 @@ public interface GuiImageBundle extends ClientBundle
 	
 	@Source(value = { "hpbar_red.png" })
 	ImageResource getHpBarRed();
+	
+	@Source(value = { "battle_background.png" })
+	ImageResource getBattleBackground();
+	
+	@Source(value = { "battle_hpbar_exp.png" })
+	ImageResource getBattleHpBarExp();
+	
+	@Source(value = { "battle_hpbar_green.png" })
+	ImageResource getBattleHpBarGreen();
+	
+	@Source(value = { "battle_hpbar_yellow.png" })
+	ImageResource getBattleHpBarYellow();
+	
+	@Source(value = { "battle_hpbar_red.png" })
+	ImageResource getBattleHpBarRed();
+	
+	@Source(value = { "battle_pokeball_dead.png" })
+	ImageResource getBattlePokeballDead();
+	
+	@Source(value = { "battle_pokeball_normal.png" })
+	ImageResource getBattlePokeballNormal();
+	
+	@Source(value = { "battle_pokeball_empty.png" })
+	ImageResource getBattlePokeballEmpty();
+	
+	@Source(value = { "battle_pokemon_enemy.png" })
+	ImageResource getBattlePokemonEnemy();
+	
+	@Source(value = { "battle_pokemon_self.png" })
+	ImageResource getBattlePokemonSelf();
 }
