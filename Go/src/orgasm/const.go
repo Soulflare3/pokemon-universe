@@ -19,7 +19,8 @@ const (
 const (
 	QUERY_SELECT_ACCOUNT string = "SELECT * FROM mapchange_account WHERE username = '%s'"
 	
-	QUERY_INSERT_TILE string = "INSERT INTO tile (x, y, z, movement, idlocation, idtile_event) VALUES (%d, %d, %d, %d, 0, %d)"
+	//TODO The idlocation and the idtielis a constant 1 yet
+	QUERY_INSERT_TILE string = "INSERT INTO tile (x, y, z, movement, idlocation, idtile_event) VALUES (%d, %d, %d, %d, 1, %d)"
 	QUERY_UPDATE_TILE string = "UPDATE tile SET movement='%d', idtile_event='%d' WHERE idtile='%d'"
 	QUERY_DELETE_TILE string = "DELETE FROM tile WHERE idtile='%d'"
 	QUERY_LOAD_TILES string = 	"SELECT t.`x`, t.`y`, t.`z`, t.`idlocation`, t.`movement`, t.`idtile_event`," +

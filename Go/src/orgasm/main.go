@@ -63,7 +63,7 @@ func initDatabase() bool {
 
 func main() {
 	fmt.Println("***************************************")
-	fmt.Println("** Pokemon Universe - Mapserver v0.4 **")
+	fmt.Println("** Pokemon Universe - Mapserver v0.5 **")
 	fmt.Println("***************************************")
 	
 	// Flags

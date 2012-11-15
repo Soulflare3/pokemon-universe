@@ -93,7 +93,7 @@ func (t *Tile) RemoveLayer(_layer *TileLayer) {
 
 // Save tile (including children) to database
 func (t *Tile) Save() bool {
-	var eventDbId int64 = 0
+	var eventDbId int64 = 1
 
 	// Check if tile has an event 
 	if t.Event != nil {
