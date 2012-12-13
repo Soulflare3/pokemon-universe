@@ -20,14 +20,16 @@ const (
 	QUERY_SELECT_ACCOUNT string = "SELECT * FROM mapchange_account WHERE username = '%s'"
 	
 	//TODO The idlocation and the idtielis a constant 1 yet
-	QUERY_INSERT_TILE string = "INSERT INTO tile (x, y, z, movement, idlocation, idtile_event) VALUES (%d, %d, %d, %d, 1, %d)"
-	QUERY_UPDATE_TILE string = "UPDATE tile SET movement='%d', idtile_event='%d' WHERE idtile='%d'"
-	QUERY_DELETE_TILE string = "DELETE FROM tile WHERE idtile='%d'"
+	QUERY_INSERT_TILE string = "INSERT INTO tile (idtile, x, y, z, movement, idlocation, idtile_event) VALUES (%d, %d, %d, %d, %d, 1, %d);\n"
+	QUERY_UPDATE_TILE string = "UPDATE tile SET movement='%d', idtile_event='%d' WHERE idtile='%d';\n"
+	QUERY_DELETE_TILE string = "DELETE FROM tile WHERE idtile='%d';\n"
 	QUERY_LOAD_TILES string = 	"SELECT t.`x`, t.`y`, t.`z`, t.`idlocation`, t.`movement`, t.`idtile_event`," +
 								" tl.`sprite`, tl.`layer`," +
 								" t.`idtile`, tl.`idtile_layer`" +
 								" FROM tile `t`" +
 								" INNER JOIN tile_layer `tl` ON t.`idtile` = tl.`idtile`" 
+								
+	QUERY_LOAD_TILE_ID string = "SELECT t.`id` FROM tile `t` WHERE t.`x` = %d AND t.`y` = %d AND t.`z` = %d"
 	
 	QUERY_INSERT_EVENT string = "INSERT INTO tile_events (eventtype, param1, param2, param3, param4, param5, param6, param7, param8) " + 
 									"VALUES (%d, %s, %s, %s, %s, %s, %s, %s, %s)"
@@ -35,9 +37,9 @@ const (
 									"param1='%s', param1='%s', param1='%s' WHERE idtile_event=%d"							
 	QUERY_DELETE_EVENT string = "DELETE FROM tile_events WHERE idtile_event = %d"
 
-	QUERY_INSERT_TILELAYER string = "INSERT INTO tile_layer (idtile, layer, sprite) VALUES (%d, %d, %d)"
-	QUERY_UPDATE_TILELAYER string = "UPDATE tile_layer SET sprite='%d' WHERE idtile_layer='%d'"
-	QUERY_DELETE_TILELAYER string = "DELETE FROM tile_layer WHERE idtile_layer='%d'"
+	QUERY_INSERT_TILELAYER string = "INSERT INTO tile_layer (idtile, layer, sprite) VALUES (%d, %d, %d);\n"
+	QUERY_UPDATE_TILELAYER string = "UPDATE tile_layer SET sprite='%d' WHERE idtile_layer='%d';\n"
+	QUERY_DELETE_TILELAYER string = "DELETE FROM tile_layer WHERE idtile_layer='%d';\n"
 	
 	QUERY_INSERT_MAP string = "INSERT INTO map (name) VALUES ('%s')"
 	QUERY_DELETE_MAP string = "DELETE map, tile, tile_layer FROM map " +  
@@ -67,8 +69,8 @@ const (
 										"iv_defence, iv_defence_spec, iv_speed, gender, held_item " + 
 										"FROM npc_pokemon WHERE idnpc=%d"
 	QUERY_DELETE_NPC_POKEMON string = "DELETE FROM npc_pokemon WHERE idnpc_pokemon = %d"
-	QUERY_INSERT_NPC_POKEMON string = "";
-	QUERY_UPDATE_NPC_POKEMON string = "";
+	QUERY_INSERT_NPC_POKEMON string = ""
+	QUERY_UPDATE_NPC_POKEMON string = ""
 )
 
 const (

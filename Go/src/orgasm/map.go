@@ -1,7 +1,8 @@
 package main
 
 import (
-	 "fmt"
+	"math"
+	"fmt"
 	puh "puhelper"
 	pos "putools/pos"
 )
@@ -148,8 +149,9 @@ func (m *Map) LoadTiles() (succeed bool) {
 		
 		if found == false {
 			tile = NewTile(position)
-			tile.IsNew = false
 			tile.DbId = int64(puh.DBGetInt64(row[8]))
+			tile.IsNew = false
+			g_newTileId = int64(math.Max(float64(g_newTileId), float64(tile.DbId))) + 1
 			tile.Blocking = blocking
 
 			// Get location

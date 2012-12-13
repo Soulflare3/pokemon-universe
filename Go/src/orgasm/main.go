@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	IS_DEBUG = true
+	IS_DEBUG = false
 )
 
 var (
@@ -22,6 +22,7 @@ var (
 	g_dblock sync.Mutex
 	g_server *Server
 	g_config *conf.ConfigFile
+	g_newTileId int64
 	version string
 )
 
@@ -62,9 +63,9 @@ func initDatabase() bool {
 }
 
 func main() {
-	fmt.Println("***************************************")
-	fmt.Println("** Pokemon Universe - Mapserver v0.5 **")
-	fmt.Println("***************************************")
+	fmt.Println("*******************************************")
+	fmt.Println("** Pokemon Universe - Mapserver v0.5.r1  **")
+	fmt.Println("*******************************************")
 	
 	// Flags
 	configFile := flag.String("config", "server.conf", "Name of the config file to load")

@@ -7,7 +7,6 @@ import (
 	"io"
 	"net"
 	"strings"
-	"container/list"
 	
 	puh "puhelper"
 	pul "pulogic"
@@ -177,95 +176,6 @@ func (c *Client) RequestMapPiece(_packet *Packet) {
 	}
 }
 
-//Receive Tiles
-func (c *Client) ReceiveChange(_packet *Packet) {
-	numTiles := int(_packet.ReadUint16())
-	if numTiles <= 0 { // Zero tile selected bug
-		return
-	}
-	
-	updatedTiles := list.New()
-	
-	for i := 0; i < numTiles; i++ {
-		x := int(_packet.ReadInt16())
-		y := int(_packet.ReadInt16())
-		z := int(_packet.ReadUint16())
-		blocking := int(_packet.ReadUint16())
-		numLayers := int(_packet.ReadUint16())
-		
-		// Check if tile already exists
-		tile, exists := g_map.GetTileFromCoordinates(x, y, z)
-		
-		if IS_DEBUG {
-			fmt.Printf("Tile Exists - %v - Layers: %d\n", exists, numLayers) 
-		}			
-		
-		if numLayers > 0 {
-			if !exists { // Tile does not exists, create it		
-				if IS_DEBUG {
-					fmt.Printf("New Tile - X: %d - Y: %d - Z: %d - blocking: %d\n", x, y, z, blocking) 
-				}
-				
-				tile = NewTileExt(x, y, z)
-			} else if IS_DEBUG {
-				fmt.Printf("Update Tile - X: %d - Y: %d - Z: %d - blocking: %d - DbId: %d\n", x, y, z, blocking, tile.DbId) 
-			}
-			
-			// Set/update blocking
-			tile.SetBlocking(blocking)
-			
-			// Save tile to database before inserting tilelayers
-			tile.Save()
-			
-			for j := 0; j < numLayers; j++ {
-				layerId := int(_packet.ReadUint16())
-				sprite := int(_packet.ReadUint16())
-			
-				tileLayer := tile.GetLayer(layerId)
-				if tileLayer == nil {
-					if IS_DEBUG {
-						fmt.Printf("Add Layer - Layer: %d\n", layerId) 
-					}
-					
-					// Add new tile layer
-					tileLayer = tile.AddLayer(layerId, sprite)
-				} else {
-					if (sprite == 0) {				
-						if IS_DEBUG {
-							fmt.Printf("Delete Layer - DbId: %d\n", tileLayer.DbId) 
-						}
-						
-						// Remove layer, this will also remove the layer from database
-						tile.RemoveLayer(tileLayer)						
-					} else {
-						if IS_DEBUG {
-							fmt.Printf("Update Layer - DbId: %d\n", tileLayer.DbId) 
-						}						
-						
-						// Update tile layer with new sprite id
-						tileLayer.SetSpriteId(sprite)
-					}
-				}
-				//Save the tile layer
-				tileLayer.Save()
-			}
-		} else {
-			if exists {
-				if IS_DEBUG {
-					fmt.Printf("Delete Tile - Tile Id: %d\n", tile.DbId) 
-				}	
-				
-				// Remove tile from database
-				tile.Delete()
-			}
-		}
-		
-		updatedTiles.PushBack(tile)
-	}
-	
-	g_server.SendTileUpdateToClients(updatedTiles, c.id)
-}
-
 func (c *Client) ReceiveAddMap(_packet *Packet) {
 	mapName := _packet.ReadString()
 	if len(mapName) > 0 {	
@@ -417,6 +327,7 @@ func (c *Client) SendLogin(_status int) {
 }
 
 func (c *Client) SendArea(_x, _y, _z, _w, _h int) {
+
 	packet := NewPacketExt(0x01)
 	packet.AddUint16(0)
 	packet.AddUint16(uint16(_z))

@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net"
 	"os"
 	"container/list"
+	
+	puh "puhelper"
 )
 
 type Server struct {
@@ -48,6 +51,10 @@ func (s *Server) RunServer() {
 
 func (s *Server) HandleTileChange() {
 	for {
+		var query bytes.Buffer
+		
+		//query.WriteString("DECLARE @TileID INT;\n")
+		
 		packet := <-s.tileChangeChan
 		if packet == nil {
 			break
@@ -89,7 +96,8 @@ func (s *Server) HandleTileChange() {
 				tile.SetBlocking(blocking)
 				
 				// Save tile to database
-				tile.Save()
+				buffer := tile.Save()
+				query.Write(buffer.Bytes())
 
 				for j := 0; j < numLayers; j++ {
 					layerId := int(packet.ReadUint16())
@@ -102,7 +110,8 @@ func (s *Server) HandleTileChange() {
 						tileLayer = tile.AddLayer(layerId, sprite)
 						
 						//Save the tile layer
-						tileLayer.Save()
+						buffer := tileLayer.Save()
+						query.Write(buffer.Bytes())
 						
 						if IS_DEBUG {
 							fmt.Printf("Add Layer - Tile Id: %d - Layer: %d - DbId: %d\n", tile.DbId, layerId, tileLayer.DbId)
@@ -125,7 +134,8 @@ func (s *Server) HandleTileChange() {
 						}
 						
 						//Save the tile layer
-						tileLayer.Save()
+						buffer := tileLayer.Save()
+						query.Write(buffer.Bytes())
 					}
 				}
 			} else {
@@ -135,33 +145,37 @@ func (s *Server) HandleTileChange() {
 					}
 
 					// Remove tile from database
-					tile.Delete()
+					
+					buffer := tile.Delete()
+					query.Write(buffer.Bytes())
+					g_map.RemoveTile(tile)
 				}
 			}
 
 			updatedTiles.PushBack(tile)
 		}
-
+		
+		//Update database
+		if err := puh.DBQuery(query.String()); err != nil {
+			fmt.Printf("[ERROR] Save failed - error: %s\n", err) 
+		}
+		
+		//Send the updated tiles to all clients
 		s.SendTileUpdateToClients(updatedTiles, 0)
 	}
 }
 
 func (s *Server) SendTileUpdateToClients(_tiles *list.List, _sender int) {
-	for e := _tiles.Front(); e != nil; e = e.Next() {
-		tile := e.Value.(*Tile)
-		
+//	for e := _tiles.Front(); e != nil; e = e.Next() {
+//		tile := e.Value.(*Tile)
+
 		// Send to connected clients, except sender
 //		for id, client := range(s.clients) {
 //			if id != _sender {
 //				// Send to client
 //			}
 //		}
-		
-		// If tile is set to remove, do it now
-		if tile.IsRemoved {
-			g_map.RemoveTile(tile)
-		}
-	}
+//	}
 }
 
 func (s *Server) SendMapListUpdateToClients() {

@@ -1,9 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	pos "putools/pos"
-	puh "puhelper"
 )
 
 type LayerMap map[int]*TileLayer
@@ -15,8 +15,8 @@ type Tile struct {
 
 	Layers    	LayerMap
 	Event    	ITileEvent
-	
-	IsNew		bool
+
+	IsNew 	bool
 	IsModified	bool
 	IsRemoved	bool
 }
@@ -27,9 +27,9 @@ func NewTile(_pos pos.Position) *Tile {
 	t.Blocking = TILEBLOCK_WALK
 	t.Layers = make(LayerMap)
 	// t.Location = nil
-	
+	t.DbId = g_newTileId
+	g_newTileId++
 	t.IsNew = true;
-
 	return t
 }
 
@@ -92,7 +92,7 @@ func (t *Tile) RemoveLayer(_layer *TileLayer) {
 }
 
 // Save tile (including children) to database
-func (t *Tile) Save() bool {
+func (t *Tile) Save() (bytes.Buffer) {
 	var eventDbId int64 = 1
 
 	// Check if tile has an event 
@@ -102,45 +102,23 @@ func (t *Tile) Save() bool {
 		eventDbId = t.Event.GetDbId()
 	}
 	
-	var query string
+	var buffer bytes.Buffer
 	if t.IsNew {
-		query = fmt.Sprintf(QUERY_INSERT_TILE, t.Position.X, t.Position.Y, t.Position.Z, t.Blocking, eventDbId)
+		buffer.WriteString(fmt.Sprintf(QUERY_INSERT_TILE, t.DbId, t.Position.X, t.Position.Y, t.Position.Z, t.Blocking, eventDbId))
 	} else if t.IsModified { // Tile is probably changed, update it in the database
-		query = fmt.Sprintf(QUERY_UPDATE_TILE, t.Blocking, eventDbId, t.DbId)
+		buffer.WriteString(fmt.Sprintf(QUERY_UPDATE_TILE, t.Blocking, eventDbId, t.DbId))
 	}
 	
-	if len(query) > 0 {
-		if err := puh.DBQuery(query); err != nil {
-			fmt.Printf("[ERROR] Save failed - error: %s\n", err) 
-			return false
-		}
-		
-		if t.IsNew {
-			t.DbId = int64(puh.DBGetLastInsertId())
-			if IS_DEBUG {
-				fmt.Printf("Added New tile to DB - DbId: %d\n", t.DbId) 
-			}
-		}
-	}
-	
-	t.IsNew = false
-	t.IsModified = false
+	t.IsModified = false;
 	
 	// Add tile to map
 	g_map.AddTile(t)
 	
-	// Save all layers (if needed)
-	for _, tl := range t.Layers {
-		if !tl.Save() {
-			return false
-		}
-	}
-	
-	return true
+	return buffer
 }
 
 // Remove tile (including children) from database
-func (t *Tile) Delete() bool {
+func (t *Tile) Delete() (bytes.Buffer) {
 	// Delete all layers
 	for _, tl := range t.Layers {
 		tl.Delete()
@@ -150,13 +128,10 @@ func (t *Tile) Delete() bool {
 	if t.Event != nil {
 		t.Event.Delete()
 	}
-	
-	query := fmt.Sprintf(QUERY_DELETE_TILE, t.DbId)
-	if err := puh.DBQuery(query); err != nil {
-		return false
-	}
+	var buffer bytes.Buffer	
+	buffer.WriteString(fmt.Sprintf(QUERY_DELETE_TILE, t.DbId))
 				
 	t.IsRemoved = true
 	
-	return true
+	return buffer
 }
