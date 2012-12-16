@@ -27,8 +27,6 @@ func NewTile(_pos pos.Position) *Tile {
 	t.Blocking = TILEBLOCK_WALK
 	t.Layers = make(LayerMap)
 	// t.Location = nil
-	t.DbId = g_newTileId
-	g_newTileId++
 	t.IsNew = true;
 	return t
 }

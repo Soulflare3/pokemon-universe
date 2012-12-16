@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"container/list"
+	"sync"
 	
 	puh "puhelper"
 )
@@ -14,6 +15,7 @@ type Server struct {
 	port int
 	clients map[int]*Client
 	tileChangeChan chan *Packet
+	tileLock sync.Mutex
 }
 
 func NewServer(_port int) *Server {
@@ -51,11 +53,13 @@ func (s *Server) RunServer() {
 
 func (s *Server) HandleTileChange() {
 	for {
+		s.tileLock.Lock()
 		var query bytes.Buffer
 		
 		//query.WriteString("DECLARE @TileID INT;\n")
 		
 		packet := <-s.tileChangeChan
+		
 		if packet == nil {
 			break
 		}
@@ -88,6 +92,9 @@ func (s *Server) HandleTileChange() {
 					}
 
 					tile = NewTileExt(x, y, z)
+					tile.DbId = g_newTileId
+					fmt.Printf("Current TileID: %d\n", g_newTileId)
+					g_newTileId++
 				} else if IS_DEBUG {
 					fmt.Printf("Update Tile - X: %d - Y: %d - Z: %d - DbId: %d\n", x, y, z, tile.DbId)
 				}
@@ -162,6 +169,7 @@ func (s *Server) HandleTileChange() {
 		
 		//Send the updated tiles to all clients
 		s.SendTileUpdateToClients(updatedTiles, 0)
+		s.tileLock.Unlock()
 	}
 }
 
