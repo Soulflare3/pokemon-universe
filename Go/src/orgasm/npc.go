@@ -1,10 +1,13 @@
 package main
 
-import (
+import (	
 	"fmt"
-	puh "puhelper"
-	pos "putools/pos"
-	pul "pulogic"
+	
+	pos "nonamelib/pos"
+	"nonamelib/log"
+	
+	"pulogic"
+	"pulogic/models"
 )
 
 type Npc struct {
@@ -35,36 +38,30 @@ func (m *Npc) LoadPokemon() (bool, string) {
 		return true, ""
 	}
 	
-	query := fmt.Sprintf(QUERY_SELECT_NPC_POKEMON, m.DbId)
-	result, err := puh.DBQuerySelect(query)
+	var entities []models.NpcPokemon
+	err := g_orm.Where(fmt.Sprintf("%v = '%d'", models.NpcPokemon_Idnpc, m.DbId)).FindAll(&entities)
 	if err != nil {
-		fmt.Printf(err.Error())
+		log.Error("Npc", "LoadPokemon", "Failed to load pokemon from database. %v", err.Error())
 		return false, err.Error()
 	}
 	
-	defer puh.DBFree()
-	for {
-		row := result.FetchRow()
-		if row == nil {
-			break
-		}
-		
+	for _, entity := range(entities) {
 		pokemon := NewNpcPokemon()
 		pokemon.IsNew = false
-		pokemon.DbId = puh.DBGetInt64(row[0])
-		pokemon.pokId = puh.DBGetInt(row[1])
-		pokemon.Hp = puh.DBGetInt(row[2])
-		pokemon.Att = puh.DBGetInt(row[3])		
-		pokemon.Att_spec = puh.DBGetInt(row[4])
-		pokemon.Def = puh.DBGetInt(row[5])
-		pokemon.Def_spec = puh.DBGetInt(row[6])
-		pokemon.Speed = puh.DBGetInt(row[7])
-		pokemon.Gender = puh.DBGetInt(row[8])
-		pokemon.Held_item = puh.DBGetInt(row[9])
+		pokemon.DbId = int64(entity.IdnpcPokemon)
+		pokemon.pokId = entity.Idpokemon
+		pokemon.Hp = entity.IvHp
+		pokemon.Att = entity.IvAttack
+		pokemon.Att_spec = entity.IvAttackSpec
+		pokemon.Def = entity.IvDefence
+		pokemon.Def_spec = entity.IvDefenceSpec
+		pokemon.Speed = entity.IvSpeed
+		pokemon.Gender = entity.Gender
+		pokemon.Held_item = entity.HeldItem
 		pokemon.Name = "Pokemon Name"
-		
+
 		m.Pokemons[pokemon.DbId] = pokemon
-	}	
+	}
 	
 	return true, ""
 }
@@ -101,52 +98,58 @@ func (m *Npc) DeletePokemon(_pokemon *NpcPokemon) bool {
 	return false
 }
 
-func (m *Npc) SetOutfitPart(_part pul.OutfitPart, _key int) {
+func (m *Npc) SetOutfitPart(_part pulogic.OutfitPart, _key int) {
 	m.Outfit.data[_part] = _key
 	m.IsModified = true
 }
 
-func (m *Npc) GetOutfitPart(_part pul.OutfitPart) int {
+func (m *Npc) GetOutfitPart(_part pulogic.OutfitPart) int {
 	return m.Outfit.data[_part]
 }
 
 func (m *Npc) Save() bool {
-	if m.IsNew {
-		query := fmt.Sprintf(QUERY_INSERT_NPC, m.Name)
-		if puh.DBQuery(query) == nil {
-			m.DbId = int64(puh.DBGetLastInsertId())
-		} else {
-			return false
+	// NPC
+	npcEntity := models.Npc{ Idnpc: int(m.DbId),
+							 Name: m.Name,
+					  		 Position: m.Position.Hash() }
+	if err := g_orm.Save(&npcEntity); err == nil {
+		if m.IsNew {
+			m.DbId = int64(npcEntity.Idnpc)
 		}
-		
-		outfitQuery := fmt.Sprintf(QUERY_INSERT_NPC_OUTFIT, m.DbId, m.GetOutfitPart(pul.OUTFIT_HEAD), m.GetOutfitPart(pul.OUTFIT_NEK), m.GetOutfitPart(pul.OUTFIT_UPPER), m.GetOutfitPart(pul.OUTFIT_LOWER), m.GetOutfitPart(pul.OUTFIT_FEET))
-		if puh.DBQuery(outfitQuery) != nil {
-			return false
-		}
-		
-		eventQuery := fmt.Sprintf(QUERY_INSERT_NPC_EVENT, m.DbId)
-		if puh.DBQuery(eventQuery) != nil {
-			return false
-		}
-	} else if m.IsModified {
-		query := fmt.Sprintf(QUERY_UPDATE_NPC, m.Name, m.Position.Hash(), m.DbId)
-		if puh.DBQuery(query) != nil {
-			return false
-		}
-		
-		outfitQuery := fmt.Sprintf(QUERY_UPDATE_NPC_OUTFIT, m.GetOutfitPart(pul.OUTFIT_HEAD), m.GetOutfitPart(pul.OUTFIT_NEK), m.GetOutfitPart(pul.OUTFIT_UPPER), m.GetOutfitPart(pul.OUTFIT_LOWER), m.GetOutfitPart(pul.OUTFIT_FEET), m.DbId)
-		if puh.DBQuery(outfitQuery) != nil {
-			return false
-		}
-		
-		eventQuery := fmt.Sprintf(QUERY_UPDATE_NPC_EVENT, m.Events, m.EventInitId, m.DbId)
-		if puh.DBQuery(eventQuery) != nil {
+	} else {
+		return false
+	}
+	
+	// OUTFIT
+	outfitEntity := models.NpcOutfit { Idnpc: int(m.DbId),
+									   Head: m.GetOutfitPart(pulogic.OUTFIT_HEAD),
+									   Nek: m.GetOutfitPart(pulogic.OUTFIT_NEK),
+									   Upper: m.GetOutfitPart(pulogic.OUTFIT_UPPER),
+									   Lower: m.GetOutfitPart(pulogic.OUTFIT_LOWER),
+									   Feet: m.GetOutfitPart(pulogic.OUTFIT_FEET) }
+	if err := g_orm.Save(&outfitEntity); err != nil {
+		return false
+	}
+	
+	// EVENTS
+	if len(m.Events) > 0 {
+		eventEntity := models.NpcEvents { Idnpc: int(m.DbId),
+										  Event: m.Events,
+										  Initid: m.EventInitId }
+		if err := g_orm.Save(&eventEntity); err != nil {
 			return false
 		}
 	}
 	
-	for _, pokemon := range(m.Pokemons) {
-		pokemon.Save()
+	// POKEMON
+	if len(m.Pokemons) > 0 {
+		for index, pokemon := range(m.Pokemons) {
+			pokemon.Save()
+			
+			if pokemon.IsRemoved {
+				delete(m.Pokemons, index) 
+			}
+		}
 	}
 	
 	m.IsNew = false
@@ -156,28 +159,9 @@ func (m *Npc) Save() bool {
 }
 
 func (m *Npc) Delete() bool {
-	// Delete outfit
-	outfitQuery := fmt.Sprintf(QUERY_DELETE_NPC_OUTFIT, m.DbId)
-	if puh.DBQuery(outfitQuery) != nil {
-		return false
-	}
-	
-	// Delete pokemon
-	for _, pokemon := range(m.Pokemons) {
-		if !pokemon.Delete() {
-			return false
-		}
-	}
-	
-	// Delete events
-	eventQuery := fmt.Sprintf(QUERY_DELETE_NPC_EVENT, m.DbId)
-	if puh.DBQuery(eventQuery) != nil {
-		return false
-	}
-	
-	// Delete NPC
-	npcQuery := fmt.Sprintf(QUERY_DELETE_NPC, m.DbId)
-	if puh.DBQuery(npcQuery) != nil {
+	entity := models.Npc { Idnpc: int(m.DbId) }
+	if _, err := g_orm.Delete(&entity); err != nil {
+		log.Error("Npc", "Delete", err.Error())
 		return false
 	}
 	

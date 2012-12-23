@@ -1,14 +1,17 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
-	"sync"
 	"flag"
+	"os" 
 	
-	"gomysql"
-	"goconf"
-	puh "puhelper"
-	"putools/log"
+	"github.com/astaxie/beedb"
+	_ "github.com/ziutek/mymysql/godrv"
+	
+	"nonamelib/config"
+	"nonamelib/log"
+	
 	"pulogic/pokemon"
 )
 
@@ -19,15 +22,15 @@ const (
 var (
 	g_map *Map = NewMap()
 	g_npc *NpcList = NewNpcList()
-	g_dblock sync.Mutex
+	g_orm beedb.Model
 	g_server *Server
-	g_config *conf.ConfigFile
+	g_config *config.ConfigFile
 	g_newTileId int64
 	version string
 )
 
 func initConfig(configFile *string) bool {
-	c, err := conf.ReadConfigFile("data/" + *configFile)
+	c, err := config.ReadConfigFile("data/" + *configFile)
 	if err != nil {
 		fmt.Printf("Could not load config file: %v\n\r", err)
 		return false
@@ -38,28 +41,50 @@ func initConfig(configFile *string) bool {
 	return true
 }
 
-func initDatabase() bool {
-	// Fetch database info from conf file
-	SQLHost, _ := g_config.GetString("database", "host")
-	SQLUser, _ := g_config.GetString("database", "user")
-	SQLPass, _ := g_config.GetString("database", "pass")
-	SQLDB, _ := g_config.GetString("database", "db")
-
-	// Connect to database
+func initLogger() {
+	var flags int
 	var err error
-	puh.DBCon, err = mysql.DialTCP(SQLHost, SQLUser, SQLPass, SQLDB)
-	if err != nil {
-		logger.Printf("[Error] Could not connect to database: %v\n\r", err)
-		return false
-	} else {
-		logger.Println("Connected to SQL server:")
-		logger.Printf(" - Host: %s\n", SQLHost)
-		logger.Printf(" - Database: %s\n", SQLDB)
+
+	toConsole, err := g_config.GetBool("log", "console")
+	if err != nil || toConsole {
+		flags = log.L_CONSOLE
+	}
+	toFile, err := g_config.GetBool("log", "file")
+	if err != nil || toFile {
+		flags = flags | log.L_FILE
+	}
+	showDebug, err := g_config.GetBool("log", "debug")
+	if err != nil || showDebug {
+		flags = flags | log.F_DEBUG
 	}
 
-	puh.DBCon.Reconnect = true
+	logFile, err := g_config.GetString("log", "filename")
+	if err != nil || len(logFile) <= 0 {
+		logFile = "log.txt"
+	}
+	logFile = "logs/" + logFile
+	os.MkdirAll("logs", os.ModePerm)
 
-	return true
+	log.LogFilename = logFile
+	log.Flags = flags
+}
+
+func initDatabase() bool {
+	// Fetch database info from conf file
+	username, _ := g_config.GetString("database", "user")
+	password, _ := g_config.GetString("database", "pass")
+	scheme, _ := g_config.GetString("database", "db")
+
+	// Connect
+	db, err := sql.Open("mymysql", fmt.Sprintf("%v/%v/%v", scheme, username, password))
+	if err != nil {
+		log.Error("main", "setupDatabase", "Error when opening sql connection: %v", err.Error())
+	} else {
+		g_orm = beedb.New(db)
+		beedb.OnDebug, _ = g_config.GetBool("database", "debug_mode")
+	}
+
+	return (err == nil)
 }
 
 func main() {
@@ -78,6 +103,8 @@ func main() {
 		return
 	}
 	fmt.Printf("[Succeeded]\n")
+	
+	initLogger()
 
 	// Connect to database 
 	fmt.Printf("Connecting to database...")
@@ -88,6 +115,7 @@ func main() {
 	fmt.Printf("[Succeeded]\n")
 	
 	fmt.Printf("Loading all Pokemon data...")
+	pokemon.G_orm = &g_orm
 	pokemonManager := pokemon.GetInstance()
 	if !pokemonManager.Load() {
 		return

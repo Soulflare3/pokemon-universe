@@ -17,8 +17,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package netmsg
 
 import (
-	pnet "network"
-	pos "putools/pos"
+	pnet "nonamelib/network"
+	pos "nonamelib/pos"
 	pul "pulogic"
 )
 
@@ -46,9 +46,19 @@ func (m *WalkMessage) GetHeader() uint8 {
 }
 
 // ReadPacket reads all data from a packet and puts it in the object
-func (m *WalkMessage) ReadPacket(_packet pnet.IPacket) error {
-	m.Direction = int(_packet.ReadUint16())
-	if _packet.ReadUint16() == 1 {
+func (m *WalkMessage) ReadPacket(_packet pnet.IPacket) (err error) {
+	direction, err := _packet.ReadUint16()
+	if err != nil {
+		return
+	}
+	m.Direction = int(direction)
+	
+	sendMap, err := _packet.ReadUint16()
+	if err != nil {
+		return err
+	}
+	
+	if sendMap == 1 {
 		m.SendMap = true
 	}
 	

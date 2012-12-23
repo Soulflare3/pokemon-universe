@@ -16,6 +16,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package pokemon
 
+import "pulogic/models"
+
 const (
 	POKESTAT_HP		int = iota
 	POKESTAT_ATTACK
@@ -35,4 +37,13 @@ type PokemonStat struct {
 
 func NewPokemonStat() *PokemonStat {
 	return &PokemonStat{}
+}
+
+func NewPokemonStatFromEntity(_entity models.PokemonStats) *PokemonStat {
+	stat := NewPokemonStat()
+	stat.BaseStat = _entity.BaseStat
+	stat.Effort = _entity.Effort
+	stat.StatType = _entity.StatId
+	
+	return stat
 }

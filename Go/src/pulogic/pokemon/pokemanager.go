@@ -18,9 +18,12 @@ package pokemon
 
 import (
 	"strings"
+	"fmt" 
 	
-	puh "puhelper"
-	log "putools/log"
+	"github.com/astaxie/beedb"
+	
+	"nonamelib/log"
+	"pulogic/models"
 )
 
 type PokemonList 			map[int]*Pokemon
@@ -43,8 +46,13 @@ type PokemonManager struct {
 }
 
 var manager *PokemonManager
+var G_orm *beedb.Model
 
 func NewPokemonManager() *PokemonManager {
+	if G_orm == nil {
+		panic("G_orm NOT DEFINED!")
+	}
+	
 	if manager == nil {
 		manager =  &PokemonManager { pokemon: make(PokemonList),
 									pokemonSpecies: make(PokemonSpeciesList),
@@ -119,6 +127,7 @@ func (m *PokemonManager) Load() bool {
 		return false
 	}
 	
+	// Load ability messages
 	if !m.loadAbilityMessages() {
 		return false
 	}
@@ -127,67 +136,33 @@ func (m *PokemonManager) Load() bool {
 }
 
 func (m *PokemonManager) loadMoves() bool {
-	var query string = "SELECT id, identifier, type_id, power, accuracy, priority, target_id, damage_class_id," +
-		" effect_id, effect_chance, contest_type_id, contest_effect_id, super_contest_effect_id, pp, flavor_text" +
-		" FROM moves" +
-		" LEFT JOIN move_flavor_text ON id_move = id"
-	result, err := puh.DBQuerySelect(query)
+	var moves []models.MovesJoinMoveFlavorText
+	err := G_orm.SetTable("moves").Join("LEFT", "move_flavor_text", fmt.Sprintf("%v = %v", models.MoveFlavorText_IdMove, models.Moves_Id)).FindAll(&moves)
 	if err != nil {
+		log.Error("PokeManager", "loadMoves", "Failed to load moves. Error: %v", err.Error())
 		return false
 	}
 	
-	defer puh.DBFree()
-	log.Println(" - Processing moves")
-	for {
-		row := result.FetchRow()
-		if row == nil {
-			break
-		}
-		
-		move := NewMove()
-		move.MoveId = int(row[0].(int64))
-		move.Identifier = puh.DBGetString(row[1])
-		move.TypeId = puh.DBGetInt(row[2])
-		move.Power = puh.DBGetInt(row[3])
-		move.Accuracy = puh.DBGetInt(row[4])
-		move.Priority = puh.DBGetInt(row[5])
-		move.TargetId = puh.DBGetInt(row[6])
-		move.DamageClassId = puh.DBGetInt(row[7])
-		move.EffectId = puh.DBGetInt(row[8])
-		move.EffectChance = puh.DBGetInt(row[9])
-		move.ContestType = puh.DBGetInt(row[10])
-		move.ContestEffect = puh.DBGetInt(row[11])
-		move.SuperContestEffect = puh.DBGetInt(row[12])
-		move.PP = puh.DBGetInt(row[13])
-		move.FlavorText = puh.DBGetString(row[14])
-		
-		// Add to map
-		m.moves[move.MoveId] = move
+	log.Println(" - Processing Moves")
+	for _, row := range(moves) {
+		move := NewMoveFromEntity(row)	
+		m.moves[move.MoveId] = move 
 	}
 	
 	return true
 }
 
 func (m *PokemonManager) loadAbilities() bool {
-	var query string = "SELECT id, identifier FROM abilities"
-	result, err := puh.DBQuerySelect(query)
+	var abilities []models.Abilities
+	err := G_orm.FindAll(&abilities)
 	if err != nil {
+		log.Error("PokeManager", "loadAbilities", "Failed to load abilities. Error: %v", err.Error())
 		return false
 	}
 	
-	defer puh.DBFree()
-	log.Println(" - Processing abilities")
-	for {
-		row := result.FetchRow()
-		if row == nil {
-			break
-		}
-		
-		ability := NewAbility()
-		ability.AbilityId = puh.DBGetInt(row[0])
-		ability.Identifier = puh.DBGetString(row[1])
-		
-		// Add to map
+	log.Println(" - Processing Abilities")
+	for _, row := range(abilities) {
+		ability := NewAbilityFromEntity(row)
 		m.abilities[ability.AbilityId] = ability
 	}
 	
@@ -195,63 +170,16 @@ func (m *PokemonManager) loadAbilities() bool {
 }
 
 func (m *PokemonManager) loadPokemonSpecies() bool {
-	// Select all pokemon including their evolution parameters
-	var query string = "SELECT `ps`.id, `ps`.identifier, `ps`.evolves_from_species_id, `ps`.color_id, `ps`.shape_id, `ps`.habitat_id, `ps`.gender_rate," +
-		" `ps`.capture_rate, `ps`.base_happiness, `ps`.is_baby, `ps`.hatch_counter, `ps`.has_gender_differences, `ps`.growth_rate_id, `ps`.forms_switchable," +
-		" `pe`.evolved_species_id, `pe`.evolution_trigger_id, `pe`.trigger_item_id, `pe`.minimum_level, `pe`.gender, `pe`.location_id, `pe`.held_item_id, `pe`.time_of_day," + 
-		" `pe`.known_move_id, `pe`.minimum_happiness, `pe`.minimum_beauty, `pe`.relative_physical_stats, `pe`.party_species_id, `pe`.trade_species_id" +
-		" FROM pokemon_species AS `ps` LEFT JOIN pokemon_evolution AS `pe`" +
-		" ON `pe`.evolved_species_id = (SELECT `ps2`.id FROM pokemon_species AS `ps2`" +
-											" WHERE `ps2`.evolves_from_species_id = `ps`.id LIMIT 1)"
-	result, err := puh.DBQuerySelect(query)
+	var pokes []models.PokemonSpeciesJoinPokemonEvolution
+	err := G_orm.SetTable("pokemon_species").Join("LEFT", "pokemon_evolution", "pokemon_evolution.evolved_species_id = (SELECT `ps2`.id FROM pokemon_species AS `ps2` WHERE `ps2`.evolves_from_species_id = pokemon_species.id LIMIT 1)").FindAll(&pokes)
 	if err != nil {
+		log.Error("PokeManager", "loadPokemonSpecies", "Failed to load pokemon species. Error: %v", err.Error())
 		return false
 	}
 	
-	defer puh.DBFree()
-	log.Println(" - Processing pokemon species")
-	for {
-		row := result.FetchRow()
-		if row == nil {
-			break
-		}
-		
-		// Create EvolutionChain object
-		evoChain := NewEvolutionChain()
-		evoChain.EvolvedSpeciesId = puh.DBGetInt(row[14])
-		evoChain.EvolutionTriggerId = puh.DBGetInt(row[15])
-		evoChain.TriggerItemId = puh.DBGetInt(row[16]) // TODO: Change this to the actual Item objet
-		evoChain.MinimumLevel = puh.DBGetInt(row[17])
-		evoChain.Gender = puh.DBGetString(row[18])
-		evoChain.LocationId = puh.DBGetInt(row[19])
-		evoChain.HeldItemId = puh.DBGetInt(row[20])
-		evoChain.TimeOfDay = puh.DBGetString(row[21])
-		evoChain.KnownMoveId = puh.DBGetInt(row[22]) // TODO: Change to move object
-		evoChain.MinimumHappiness = puh.DBGetInt(row[23])
-		evoChain.MinimumBeauty = puh.DBGetInt(row[24])
-		evoChain.RelativePhysicalStats = puh.DBGetInt(row[25])
-		evoChain.PartySpeciesId = puh.DBGetInt(row[26])
-		evoChain.TradeSpeciesId = puh.DBGetInt(row[27])
-		
-		// Creat PokemonSpecies object
-		pokemon := NewPokemonSpecies()
-		pokemon.SpeciesId = puh.DBGetInt(row[0])
-		pokemon.Identifier = puh.DBGetString(row[1])
-		pokemon.EvolvesFromSpeciesId = puh.DBGetInt(row[2])
-		pokemon.EvolutionChain = evoChain
-		pokemon.ColorId = puh.DBGetInt(row[3])
-		pokemon.ShapeId = puh.DBGetInt(row[4])
-		pokemon.HabitatId = puh.DBGetInt(row[5])
-		pokemon.GenderRate = puh.DBGetInt(row[6])
-		pokemon.CaptureRate = puh.DBGetInt(row[7])
-		pokemon.BaseHappiness = puh.DBGetInt(row[8])
-		pokemon.IsBaby = puh.DBGetInt(row[9])
-		pokemon.HatchCounter = puh.DBGetInt(row[10])
-		pokemon.HasGenderDifferences = puh.DBGetInt(row[11])
-		pokemon.GrowthRateId = puh.DBGetInt(row[12])
-		pokemon.FormsSwitchable = puh.DBGetInt(row[12])
-		
-		// Add to map
+	log.Println(" - Processing Pokemon Species")
+	for _, row := range(pokes) {
+		pokemon := NewPokemonSpecesFromEntity(row)
 		m.pokemonSpecies[pokemon.SpeciesId] = pokemon
 	}
 	
@@ -259,28 +187,16 @@ func (m *PokemonManager) loadPokemonSpecies() bool {
 }
 
 func (m *PokemonManager) loadPokemon() bool {
-	var query string = "SELECT `id`, `species_id`, `height`, `weight`, `base_experience`, `order`, `is_default` FROM pokemon"
-	result, err := puh.DBQuerySelect(query)
+	var pokes []models.Pokemon
+	err := G_orm.FindAll(&pokes)
 	if err != nil {
+		log.Error("PokeManager", "loadPokemon", "Failed to load pokemon. Error: %v", err.Error())
 		return false
 	}
-	
-	defer puh.DBFree()
-	log.Println(" - Processing pokemon")
-	for {
-		row := result.FetchRow()
-		if row == nil {
-			break
-		}
-		
-		pokemon := NewPokemon()
-		pokemon.PokemonId = puh.DBGetInt(row[0])
-		pokemon.Species = m.GetPokemonSpecies(puh.DBGetInt(row[1]))
-		pokemon.Height = puh.DBGetInt(row[2])
-		pokemon.Weight = puh.DBGetInt(row[3])
-		pokemon.BaseExperience = puh.DBGetInt(row[4])
-		pokemon.Order = puh.DBGetInt(row[5])
-		pokemon.IsDefault = puh.DBGetInt(row[6])
+
+	log.Println(" - Processing Pokemon")
+	for _, row := range(pokes) {
+		pokemon := NewPokemonFromEntity(row)
 				
 		// Add to map
 		m.pokemon[pokemon.PokemonId] = pokemon
@@ -290,61 +206,45 @@ func (m *PokemonManager) loadPokemon() bool {
 }
 
 func (m *PokemonManager) loadMoveMessages() bool {
-	var query string = "SELECT `move_effect_id`, `message` FROM move_messages"
-	result, err := puh.DBQuerySelect(query)
+	var move_messages []models.MoveMessages
+	err := G_orm.FindAll(&move_messages)
 	if err != nil {
+		log.Error("PokeManager", "loadMoveMessages", "Failed to load move messages. Error: %v", err.Error())
 		return false
 	}
 	
 	log.Println(" - Processing Move Messages")
-	defer puh.DBFree()
-	for {
-		row := result.FetchRow()
-		if row == nil {
-			break
-		}
-		
-		effect_id := puh.DBGetInt(row[0])
-		message := puh.DBGetString(row[1])
-		
-		messages := strings.Split(message, "|")
+	for _, row := range(move_messages) {
+		messages := strings.Split(row.Message, "|")
 		messageMap := make(map[int]string)
 		for index, msg := range(messages) {
 			messageMap[index] = msg
 		}
 		
-		m.moveMessages[effect_id] = messageMap
-	}
+		m.moveMessages[row.MoveEffectId] = messageMap
+	}	
 	
 	return true
 }
 
 func (m *PokemonManager) loadAbilityMessages() bool {
-	var query string = "SELECT `ability_id`, `message` FROM ability_messages"
-	result, err := puh.DBQuerySelect(query)
+	var ability_messages []models.AbilityMessages
+	err := G_orm.FindAll(&ability_messages)
 	if err != nil {
+		log.Error("PokeManager", "loadAbilityMessages", "Failed to load ability messages. Error: %v", err.Error())
 		return false
 	}
 	
 	log.Println(" - Processing Ability Messages")
-	defer puh.DBFree()
-	for {
-		row := result.FetchRow()
-		if row == nil {
-			break
-		}
-		
-		ability_id := puh.DBGetInt(row[0])
-		message := puh.DBGetString(row[1])
-		
-		messages := strings.Split(message, "|")
+	for _, row := range(ability_messages) {
+		messages := strings.Split(row.Message, "|")
 		messageMap := make(map[int]string)
 		for index, msg := range(messages) {
 			messageMap[index] = msg
 		}
 		
-		m.moveMessages[ability_id] = messageMap
-	}
+		m.abilityMessages[row.AbilityId] = messageMap
+	}	
 	
 	return true
 }

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
-	puh "puhelper"
+	"nonamelib/log" 
+	
+	"pulogic/models"
 )
 
 type NpcPokemon struct {
@@ -29,26 +30,34 @@ func NewNpcPokemon() *NpcPokemon {
 }
 
 func (p *NpcPokemon) Save() bool {
-	if p.IsNew {
-		/*query := fmt.Sprintf(QUERY_INSERT_NPC_POKEMON, p.Name)
-		if puh.DBQuery(query) == nil {
-			m.DbId = int64(puh.DBGetLastInsertId())
-		} else {
-			return false
-		}*/
-	} else if p.IsModified {
-		/*query := fmt.Sprintf(QUERY_UPDATE_NPC_POKEMON, p.Name)
-		if puh.DBQuery(query) != nil {
-			return false
-		}*/
+	entity := models.NpcPokemon { IdnpcPokemon: int(p.DbId),
+								  Idpokemon: p.pokId,
+								  Idnpc: int(p.NpcId),
+								  IvHp: p.Hp,
+								  IvAttack: p.Att,
+								  IvAttackSpec: p.Att_spec,
+								  IvDefence: p.Def,
+								  IvDefenceSpec: p.Def_spec,
+								  IvSpeed: p.Speed,
+								  Gender: p.Gender,
+								  HeldItem: p.Held_item }
+	
+	if err := g_orm.Save(&entity); err == nil {
+		if p.IsNew {
+			p.DbId = int64(entity.IdnpcPokemon)
+		}
 	}
+	
+	p.IsNew = false
+	p.IsModified = false
 	
 	return true
 }
 
 func (p *NpcPokemon) Delete() bool {
-	query := fmt.Sprintf(QUERY_DELETE_NPC_POKEMON, p.DbId)
-	if puh.DBQuery(query) != nil {
+	entity := models.NpcPokemon { IdnpcPokemon: int(p.DbId) }
+	if _, err := g_orm.Delete(&entity); err != nil {
+		log.Error("NpcPokemon", "Delete", "Failed to remove pokemon: %v", err.Error())
 		return false
 	}
 	

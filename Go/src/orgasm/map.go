@@ -1,10 +1,14 @@
 package main
 
 import (
-	"math"
-	"fmt"
-	puh "puhelper"
-	pos "putools/pos"
+	"sync" 
+	"runtime" 
+	"time"
+	
+	pos "nonamelib/pos"
+	"nonamelib/log"
+	
+	"pulogic/models" 
 )
 
 type Map struct {
@@ -12,12 +16,37 @@ type Map struct {
 	mapNames map[int]string
 	
 	updateChannel chan *Packet
+	
+	numOfProcessRoutines int
+	processChan chan TileRow
+	processExitChan chan bool
+	tileMutex	sync.Mutex
+}
+
+type TileRow struct {
+	IdtileEvent int
+	X           int
+	Y           int
+	Z           int
+	Layer       int
+	Movement    int
+	Sprite      int
+	Idlocation  int
+	Param1      string
+	Param2      string
+	Param3      string
+	Param4      string
+	Param5      string
+	Eventtype   int
 }
 
 func NewMap() *Map {
 	return &Map{ tileMap: make(map[int]map[int64]*Tile), 
 				 mapNames: make(map[int]string),
-				 updateChannel: make(chan *Packet) }
+				 updateChannel: make(chan *Packet),
+				 numOfProcessRoutines: runtime.NumCPU(),
+				 processChan: make(chan TileRow),
+				 processExitChan: make(chan bool) }
 }
 
 func (m *Map) GetNumTiles() int {
@@ -87,99 +116,123 @@ func (m *Map) GetTile(_hash int64) (*Tile, bool) {
 	return tile, found
 }
 
-func (m *Map) LoadMapList() (succeed bool, error string) {
-	var query string = "SELECT idmap, name FROM map ORDER BY name"
+// Gets a tile from the list. If the tile doesnt exists it will be created
+// Returns the tile pointer and a boolean, true if the tile is new
+// NOTE: Should only be used when loading the map, because of locking
+func (m *Map) getOrAddTile(_x, _y, _z int) (*Tile, bool) {
+	m.tileMutex.Lock()
+	defer m.tileMutex.Unlock()
+	
+	position := pos.NewPositionFrom(_x, _y, _z)
+	tile, ok := m.GetTileFromPosition(position)
+	
+	if !ok {
+		tile = NewTile(position)
+		m.AddTile(tile)
 		
-	result, err := puh.DBQuerySelect(query)
-	if err != nil {
+		return tile, true
+	} 
+	
+	return nil, false
+}
+
+// Waits for all spawned process routines to finish
+// This can take a while if there are alot of tiles
+func (m *Map) waitForLoadComplete() {
+	count := 0
+	for {
+		select {
+			case <-m.processExitChan:
+				count++
+				if count == m.numOfProcessRoutines {
+					return
+				}
+		}
+	}
+}
+
+func (m *Map) LoadMapList() (bool, string) {
+	var maps []models.Map
+	if err := g_orm.FindAll(&maps); err != nil {
 		return false, err.Error()
 	}
-	
-	defer puh.DBFree()
-	for {
-		row := result.FetchRow()
-		if row == nil {
-			break
-		}
-		
-		idmap := puh.DBGetInt(row[0])
-		name := puh.DBGetString(row[1])
-		
-		m.AddMap(idmap, name)
+
+	for _, mapEntity := range maps {
+		m.AddMap(mapEntity.Idmap, mapEntity.Name)
 	}
-	
+
 	return true, ""
 }
 
-func (m *Map) LoadTiles() (succeed bool) {
-
-	result, err := puh.DBQuerySelect(QUERY_LOAD_TILES)
+func (m *Map) LoadTiles() bool {
+	start := time.Now().UnixNano()
+	var allTiles []TileRow
+	
+	err := g_orm.SetTable("tile").Join("INNER", "tile_layer", "tile_layer.idtile = tile.idtile").Join(" LEFT", "tile_events", "tile_events.idtile_events = tile.idtile_event").FindAll(&allTiles)
 	if err != nil {
-		fmt.Printf("[ERROR] %s\n", err.Error())
+		log.Error("map", "loadTiles", "Error while loading tiles: %v", err.Error())
 		return false
 	}
 	
-	count := 0
+	log.Info("Map", "loadTiles", "%d tiles fetched in %dms", len(allTiles), (time.Now().UnixNano()-start)/1e6)
 	
-	defer puh.DBFree()
-	for {
-		row := result.FetchRow()
-		if row == nil {
-			break
-		}
+	if len(allTiles) > 0 {
+		log.Verbose("Map", "loadTiles", "Processing tiles with %d goroutines", m.numOfProcessRoutines)
 		
-		count++
-		fmt.Printf("\rRetrieving tiles... %d", count)
-
-		x := puh.DBGetInt(row[0])
-		y := puh.DBGetInt(row[1])
-		z := puh.DBGetInt(row[2])
-		position := pos.NewPositionFrom(x, y, z)
-		layer := puh.DBGetInt(row[7])
-		sprite := puh.DBGetInt(row[6])
-		blocking := puh.DBGetInt(row[4])
-		// row `idtile_event` may be null sometimes.
-		var te_id = 0
-		if row[5] != nil {
-			te_id = puh.DBGetInt(row[5])
+		// Start process goroutine
+		for i := 1; i <= m.numOfProcessRoutines; i++ {
+			go m.processTiles()
 		}
-		// idlocation := DBGetInt(row[3])
 
-		tile, found := m.GetTileFromPosition(position)
-		
-		if found == false {
-			tile = NewTile(position)
-			tile.DbId = int64(puh.DBGetInt64(row[8]))
-			tile.IsNew = false
-			g_newTileId = int64(math.Max(float64(g_newTileId), float64(tile.DbId))) + 1
-			tile.Blocking = blocking
-
-			// Get location
-			// location, found := g_game.Locations.GetLocation(idlocation)
-			// if found {
-			//	tile.Location = location
-			// }
-
-			//TODO tile events
-			// Event
-			if te_id > 0 {
-				//Do some tile event stuff, like teleports
-			}
-			
-			m.AddTile(tile)
+		// Send rows to channel
+		for _, row := range(allTiles) {			
+			m.processChan <- row
 		}
-		tileLayer := tile.AddLayer(layer, sprite)
-		tileLayer.DbId = puh.DBGetInt64(row[9])
-		tileLayer.IsNew = false
 
+		// Close channel so the process goroutine(s) will shutdown
+		close(m.processChan)
 	}
-	
-	fmt.Printf("\rRetrieving tiles... Done")
 	return true
 }
 
-func (m *Map) ProcessMapChanges() {
+func (m *Map) processTiles() {
 	for {
+		row, ok := <-m.processChan
+		if !ok {
+			break
+		}
+		
+		// Get or create tile
+		tile, isNew := m.getOrAddTile(row.X, row.Y, row.Z)
+		
+		// If the tile is new set extra data
+		if isNew {
+			// Set blocking
+			tile.Blocking = row.Movement
+			
+			// Link location to tile
+//			if location, found := g_locations.Get(row.Idlocation); found {
+//				tile.Location = location
+//			}
 	
+			// Check if we have a tile event id. If so, do something with it
+//			if row.IdtileEvent > 0 {
+//				if row.Eventtype == pulogic.EVENTTYPE_TELEPORT {
+//					destination_x, _ := strconv.Atoi(row.Param1)
+//					destination_y, _ := strconv.Atoi(row.Param2)
+//					destination_z, _ := strconv.Atoi(row.Param3)
+//					
+//					destination := pos.NewPositionFrom(destination_x, destination_y, destination_z)
+//					teleport := NewTeleport(destination)
+//	
+//					tile.AddEvent(teleport)
+//				}
+//			}
+		}
+	
+		// Add layer to tile
+		tile.AddLayer(row.Layer, row.Sprite)
 	}
+	
+	m.processExitChan <- true
 }

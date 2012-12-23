@@ -16,14 +16,27 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package pokemon
 
+import "pulogic/models"
+
 type PokemonForm struct {
 	Id				int
 	Identifier		string
-	IsDefault		int
-	IsBattleOnly	int
-	Order			int
+	IsDefault		bool
+	IsBattleOnly	bool
+	//Order			int
 }
 
 func NewPokemonForm() *PokemonForm {
 	return &PokemonForm{}
 }
+
+func NewPokemonFormFromEntity(_entity models.PokemonForms) *PokemonForm {
+	form := NewPokemonForm()
+	form.Id = _entity.Id
+	form.Identifier = _entity.FormIdentifier
+	form.IsBattleOnly = _entity.IsBattleOnly
+	form.IsDefault = _entity.IsDefault
+	//form.Order = _entity.Order
+	
+	return form
+} 

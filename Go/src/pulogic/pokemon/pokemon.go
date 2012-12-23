@@ -20,7 +20,9 @@ import (
 	"fmt"
 	"container/list"
 	
-	puh "puhelper"
+	"nonamelib/log"
+	
+	"pulogic/models"
 )
 
 type Pokemon struct {
@@ -29,8 +31,8 @@ type Pokemon struct {
 	Height					int
 	Weight					int
 	BaseExperience			int
-	Order					int
-	IsDefault				int
+	//Order					int
+	IsDefault				bool
 	
 	Stats					PokemonStatArray // Size = 6
 	
@@ -46,7 +48,6 @@ func NewPokemon() *Pokemon {
 					 Moves: make(PokemonMoveList),
 					 Types: make(PokemonTypeArray, 2),
 					 Forms: new(list.List) }
-	// pokemon.Forms.Init()
 	
 	pokemon.Types[0] = 0
 	pokemon.Types[1] = 0
@@ -54,24 +55,29 @@ func NewPokemon() *Pokemon {
 	return &pokemon
 }
 
+func NewPokemonFromEntity(_entity models.Pokemon) *Pokemon {
+	pokemon := NewPokemon()
+	pokemon.PokemonId = _entity.Id
+	pokemon.Species = manager.GetPokemonSpecies(_entity.SpeciesId)
+	pokemon.Height = _entity.Height
+	pokemon.Weight = _entity.Weight
+	pokemon.BaseExperience = _entity.BaseExperience
+	//pokemon.Order = _entity.Order
+	pokemon.IsDefault = _entity.IsDefault
+	
+	return pokemon
+}
+
 func (p *Pokemon) loadStats() bool {
-	var query string = "SELECT stat_id, base_stat, effort FROM pokemon_stats WHERE pokemon_id='%d'"
-	result, err := puh.DBQuerySelect(fmt.Sprintf(query, p.PokemonId))
+	var base_stats []models.PokemonStats
+	err := G_orm.Where(fmt.Sprintf("%v = %d", models.PokemonStats_PokemonId, p.PokemonId)).FindAll(&base_stats)
 	if err != nil {
+		log.Error("Pokemon", "loadStats", "Failed to load stats. Error: %v", err.Error())
 		return false
 	}
-	
-	defer puh.DBFree()
-	for {
-		row := result.FetchRow()
-		if row == nil {
-			break
-		}
-		
-		stat := NewPokemonStat()
-		stat.StatType = puh.DBGetInt(row[0])
-		stat.BaseStat = puh.DBGetInt(row[1])
-		stat.Effort = puh.DBGetInt(row[2])
+
+	for _, row := range(base_stats) {
+		stat := NewPokemonStatFromEntity(row)
 		p.Stats[stat.StatType-1] = stat
 	}
 	
@@ -79,27 +85,18 @@ func (p *Pokemon) loadStats() bool {
 }
 
 func (p *Pokemon) loadAbilities() bool {
-	var query string = "SELECT ability_id, is_dream, slot FROM pokemon_abilities WHERE pokemon_id='%d'"
-	result, err := puh.DBQuerySelect(fmt.Sprintf(query, p.PokemonId))
+	var abilities []models.PokemonAbilities
+	err := G_orm.Where(fmt.Sprintf("%v = %d", models.PokemonAbilities_PokemonId, p.PokemonId)).FindAll(&abilities)
 	if err != nil {
+		log.Error("Pokemon", "loadAbilities", "Failed to load stats. Error: %v", err.Error())
 		return false
 	}
-	
-	defer puh.DBFree()
-	for {
-		row := result.FetchRow()
-		if row == nil {
-			break
-		}
-		
-		ability := NewPokemonAbility()
-		id := puh.DBGetInt(row[0])
-		ability.Ability = GetInstance().GetAbilityById(id)
-		ability.IsDream = puh.DBGetInt(row[1])
-		ability.Slot = puh.DBGetInt(row[2])
 
+	for _, row := range(abilities) {
+		ability := NewPokemonAbilityFromEntity(row)
+		
 		if ability.Ability != nil {
-			p.Abilities[id] = ability
+			p.Abilities[ability.Ability.AbilityId] = ability
 		}
 	}		
 	
@@ -107,26 +104,15 @@ func (p *Pokemon) loadAbilities() bool {
 }
 
 func (p *Pokemon) loadForms() bool {
-	var query string = "SELECT `id`, `form_identifier`, `is_default`, `is_battle_only`, `order` FROM pokemon_forms WHERE pokemon_id='%d'"
-	result, err := puh.DBQuerySelect(fmt.Sprintf(query, p.PokemonId))
+	var forms []models.PokemonForms
+	err := G_orm.Where(fmt.Sprintf("%v = %d", models.PokemonForms_PokemonId, p.PokemonId)).FindAll(&forms)
 	if err != nil {
+		log.Error("Pokemon", "loadForms", "Failed to load forms. Error: %v", err.Error())
 		return false
 	}
-	
-	defer puh.DBFree()
-	for {
-		row := result.FetchRow()
-		if row == nil {
-			break
-		}
-		
-		form := NewPokemonForm()
-		form.Id = puh.DBGetInt(row[0])
-		form.Identifier = puh.DBGetString(row[1])
-		form.IsDefault = puh.DBGetInt(row[2])
-		form.IsBattleOnly = puh.DBGetInt(row[3])
-		form.Order = puh.DBGetInt(row[4])
-		
+
+	for _, row := range(forms) {
+		form := NewPokemonFormFromEntity(row)		
 		p.Forms.PushBack(form)
 	}
 	
@@ -134,31 +120,18 @@ func (p *Pokemon) loadForms() bool {
 }
 
 func (p *Pokemon) loadMoves() bool {
-	var query string = "SELECT `version_group_id`, `move_id`, `pokemon_move_method_id`, `level`, `order` FROM pokemon_moves" + 
-						" WHERE pokemon_id='%d' AND version_group_id=11"
-	result, err := puh.DBQuerySelect(fmt.Sprintf(query, p.PokemonId))
+	var moves []models.PokemonMoves
+	err := G_orm.Where(fmt.Sprintf("%v = %d AND version_group_id=11", models.PokemonMoves_PokemonId, p.PokemonId)).FindAll(&moves)
 	if err != nil {
+		log.Error("Pokemon", "loadMoves", "Failed to load pokemon moves. Error: %v", err.Error())
 		return false
 	}
-	
-	defer puh.DBFree()
-	for {
-		row := result.FetchRow()
-		if row == nil {
-			break
-		}
-		
-		pmove := NewPokemonMove()
-		pmove.Pokemon = p
-		pmove.VersionGroup = puh.DBGetInt(row[0])
-		moveId := puh.DBGetInt(row[1])
-		pmove.Move = GetInstance().GetMoveById(moveId)
-		pmove.PokemonMoveMethod = puh.DBGetInt(row[2])
-		pmove.Level = puh.DBGetInt(row[3])
-		pmove.Order = puh.DBGetInt(row[4])
+
+	for _, row := range(moves) {
+		pmove := NewPokemonMoveFromEntity(p, row)
 		
 		if pmove.Move != nil {
-			p.Moves[moveId] = pmove
+			p.Moves[pmove.Move.MoveId] = pmove
 		}
 	}
 	
@@ -166,21 +139,16 @@ func (p *Pokemon) loadMoves() bool {
 }
 
 func (p *Pokemon) loadTypes() bool {
-	var query string = "SELECT type_id, slot FROM pokemon_types WHERE pokemon_id='%d' ORDER BY slot"
-	result, err := puh.DBQuerySelect(fmt.Sprintf(query, p.PokemonId))
+	var types []models.PokemonTypes
+	err := G_orm.Where(fmt.Sprintf("%v = %d", models.PokemonTypes_PokemonId, p.PokemonId)).OrderBy(models.PokemonTypes_Slot).FindAll(&types)
 	if err != nil {
+		log.Error("Pokemon", "loadTypes", "Failed to load pokemon types. Error: %v", err.Error())
 		return false
 	}
 	
-	defer puh.DBFree()
-	for {
-		row := result.FetchRow()
-		if row == nil {
-			break
-		}
-		
-		slot := puh.DBGetInt(row[1])
-		p.Types[slot - 1] = puh.DBGetInt(row[0])
+	for _, row := range(types) {		
+		slot := row.Slot
+		p.Types[slot - 1] = row.TypeId
 	}
 	
 	return true

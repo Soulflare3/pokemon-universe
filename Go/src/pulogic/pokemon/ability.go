@@ -16,6 +16,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package pokemon
 
+import "pulogic/models"
+
 type Ability struct {
 	AbilityId		int
 	Identifier		string
@@ -23,4 +25,12 @@ type Ability struct {
 
 func NewAbility() *Ability {
 	return &Ability{}
+}
+
+func NewAbilityFromEntity(_entity models.Abilities) *Ability {
+	ability := NewAbility()
+	ability.AbilityId = _entity.Id
+	ability.Identifier = _entity.Identifier
+	
+	return ability
 }

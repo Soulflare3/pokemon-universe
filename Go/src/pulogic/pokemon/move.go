@@ -16,6 +16,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package pokemon
 
+import "pulogic/models"
+
 type Move struct {
 	MoveId				int
 	Identifier			string
@@ -36,4 +38,26 @@ type Move struct {
 
 func NewMove() *Move {
 	return &Move{}
+}
+
+func NewMoveFromEntity(_entity models.MovesJoinMoveFlavorText) *Move {
+	move := NewMove()
+	
+	move.MoveId = _entity.Id
+	move.Identifier = _entity.Identifier
+	move.TypeId = _entity.TypeId
+	move.Power = _entity.Power
+	move.PP = _entity.Pp
+	move.Accuracy = _entity.Accuracy
+	move.Priority = _entity.Priority
+	move.TargetId = _entity.TargetId
+	move.DamageClassId = _entity.DamageClassId
+	move.EffectId = _entity.EffectId
+	move.EffectChance = _entity.EffectChance
+	move.ContestType = _entity.ContestTypeId
+	move.ContestEffect = _entity.ContestEffectId
+	move.SuperContestEffect = _entity.SuperContestEffectId
+	move.FlavorText = _entity.FlavorText
+	
+	return move
 }

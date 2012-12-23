@@ -42,7 +42,7 @@ type Tile struct {
 	Location 	*Location
 
 	Layers    	pul.LayerMap
-	Creatures 	pul.CreatureList // List of creatures who are active on this tile
+	Creatures 	pul.CreatureMap // List of creatures who are active on this tile
 	Events    	*list.List
 }
 
@@ -51,7 +51,7 @@ func NewTile(_pos pos.Position) *Tile {
 	t := &Tile{Position: _pos}
 	t.Blocking = TILEBLOCK_WALK
 	t.Layers = make(pul.LayerMap)
-	t.Creatures = make(pul.CreatureList)
+	t.Creatures = make(pul.CreatureMap)
 	t.Location = nil
 	t.Events = list.New()
 
@@ -96,7 +96,7 @@ func (t *Tile) GetBlocking() int {
 	return t.Blocking
 }
 
-func (t *Tile) GetCreatures() pul.CreatureList {
+func (t *Tile) GetCreatures() pul.CreatureMap {
 	return t.Creatures
 }
 

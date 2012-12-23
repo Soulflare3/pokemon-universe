@@ -17,9 +17,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package netmsg
 
 import (
-	pnet "network"
+	pnet "nonamelib/network"
 	pkmn "pulogic/pokemon"
-	puh "puhelper"
 )
 
 type SendPokemonData struct {
@@ -49,7 +48,7 @@ func (m *SendPokemonData) WritePacket() pnet.IPacket {
 			packet.AddString(pokemon.GetNickname()) // Name/Nickname
 			packet.AddUint16(uint16(pokemonLevel)) // Level
 			packet.AddUint32(uint32(pokemon.Experience)) // Current EXP 
-			packet.AddUint32(uint32(puh.ExperienceForLevel(pokemonLevel + 1))) // Exp for next level
+			packet.AddUint32(uint32(pkmn.ExperienceForLevel(pokemonLevel + 1))) // Exp for next level
 			
 			hpTotal := pokemon.GetTotalHp()
 			hpLeft := hpTotal - pokemon.DamagedHp
@@ -81,7 +80,7 @@ func (m *SendPokemonData) WritePacket() pnet.IPacket {
 					packet.AddString(pokemonMove.Move.Identifier)
 					packet.AddString(pokemonMove.Move.FlavorText)
 					
-					moveTypeStr := puh.GetTypeValueById(pokemonMove.Move.TypeId)
+					moveTypeStr := pkmn.GetTypeValueById(pokemonMove.Move.TypeId)
 					packet.AddString(moveTypeStr)
 					
 					packet.AddUint8(uint8(pokemonMove.CurrentPP))

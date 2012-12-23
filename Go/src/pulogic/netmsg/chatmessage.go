@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package netmsg
 
 import (
-	pnet "network"
+	pnet "nonamelib/network"
 	pul "pulogic"
 )
 
@@ -47,11 +47,25 @@ func (m *ChatMessage) GetHeader() uint8 {
 	return pnet.HEADER_CHAT
 }
 
-func (m *ChatMessage) ReadPacket(_packet pnet.IPacket) error {
-	m.SpeakType = int(_packet.ReadUint8())
-	m.ChannelId = int(_packet.ReadUint16())
-	m.Receiver = _packet.ReadString()
-	m.Text = _packet.ReadString()
+func (m *ChatMessage) ReadPacket(_packet pnet.IPacket) (err error) {
+	speaktype, err := _packet.ReadUint8()
+	if err != nil {
+		return
+	}
+	m.SpeakType = int(speaktype)
+	
+	channelId, err := _packet.ReadUint16()
+	if err != nil {
+		return
+	}
+	m.ChannelId = int(channelId)
+	
+	if m.Receiver, err = _packet.ReadString(); err != nil {
+		return
+	}
+	if m.Text, err = _packet.ReadString(); err != nil {
+		return
+	}
 	
 	return nil
 }

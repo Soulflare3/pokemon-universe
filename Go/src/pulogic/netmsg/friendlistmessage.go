@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package netmsg
 
 import (
-	pnet "network"
+	pnet "nonamelib/network"
 )
 
 type FriendListMessage struct {

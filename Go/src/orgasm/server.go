@@ -2,13 +2,17 @@ package main
 
 import (
 	"bytes"
+	"database/sql"
 	"fmt"
 	"net"
 	"os"
 	"container/list"
 	"sync"
 	
-	puh "puhelper"
+	"github.com/astaxie/beedb"
+	_ "github.com/ziutek/mymysql/godrv"
+	
+	"nonamelib/log"
 )
 
 type Server struct {
@@ -52,12 +56,23 @@ func (s *Server) RunServer() {
 }
 
 func (s *Server) HandleTileChange() {
-	for {
-		s.tileLock.Lock()
-		var query bytes.Buffer
-		
-		//query.WriteString("DECLARE @TileID INT;\n")
-		
+	// Fetch database info from conf file
+	username, _ := g_config.GetString("database", "user")
+	password, _ := g_config.GetString("database", "pass")
+	scheme, _ := g_config.GetString("database", "db")
+
+	var tileOrm beedb.Model
+	
+	// Connect
+	db, err := sql.Open("mymysql", fmt.Sprintf("%v/%v/%v", scheme, username, password))
+	if err != nil {
+		log.Error("main", "setupDatabase", "Error when opening sql connection: %v", err.Error())
+		return
+	} else {
+		tileOrm = beedb.New(db)
+	}
+
+	for {		
 		packet := <-s.tileChangeChan
 		
 		if packet == nil {
@@ -69,6 +84,10 @@ func (s *Server) HandleTileChange() {
 			return
 		}
 
+		s.tileLock.Lock()
+		defer s.tileLock.Unlock()
+		var query bytes.Buffer
+		
 		updatedTiles := list.New()
 
 		for i := 0; i < numTiles; i++ {
@@ -152,7 +171,6 @@ func (s *Server) HandleTileChange() {
 					}
 
 					// Remove tile from database
-					
 					buffer := tile.Delete()
 					query.Write(buffer.Bytes())
 					g_map.RemoveTile(tile)
@@ -162,14 +180,11 @@ func (s *Server) HandleTileChange() {
 			updatedTiles.PushBack(tile)
 		}
 		
-		//Update database
-		if err := puh.DBQuery(query.String()); err != nil {
-			fmt.Printf("[ERROR] Save failed - error: %s\n", err) 
-		}
+		// Execute
+		tileOrm.Exec(query.String())
 		
 		//Send the updated tiles to all clients
 		s.SendTileUpdateToClients(updatedTiles, 0)
-		s.tileLock.Unlock()
 	}
 }
 

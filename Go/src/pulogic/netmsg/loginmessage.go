@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package netmsg
 
 import (
-	pnet "network"
+	pnet "nonamelib/network"
 )
 
 const (
@@ -50,9 +50,18 @@ func (m *LoginMessage) GetHeader() uint8 {
 
 // ReadPacket reads all data from a packet and puts it in the object
 func (m *LoginMessage) ReadPacket(_packet pnet.IPacket) error {
-	m.Username = _packet.ReadString()
-	m.Password = _packet.ReadString()
-	m.ClientVersion = int(_packet.ReadUint16())
+	var err error
+	if m.Username, err = _packet.ReadString(); err != nil {
+		return err
+	}
+	if m.Password, err = _packet.ReadString(); err != nil {
+		return err
+	}
+	clientVersion, err := _packet.ReadUint16()
+	if err != nil {
+		return err
+	}
+	m.ClientVersion = int(clientVersion)
 	
 	return nil
 }

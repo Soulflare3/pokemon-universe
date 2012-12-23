@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	pos "putools/pos"
+	pos "nonamelib/pos"
 )
 
 type LayerMap map[int]*TileLayer

@@ -20,7 +20,7 @@ import (
 	"fmt"
 	
 	puh "puhelper"
-	log "putools/log"
+	log "nonamelib/log"
 )
 
 type PlayerPokemonList map[int]*PlayerPokemon
@@ -30,25 +30,29 @@ type PlayerPokemon struct {
 	PlayerId	int
 	Base		*Pokemon
 	Nickname	string
-	IsBound		int // Can (not) trade if 1
-	Experience	float64
+	IsBound		bool // Can (not) trade if 1
+	Experience	int64
 	Stats		[]int
 	Happiness	int
 	Gender		int
 	Ability		*Ability
 	Moves		[]*PlayerPokemonMove
-	IsShiny		int
-	InParty		int
+	IsShiny		bool
+	InParty		bool
 	Slot		int
 	Nature		int
 	DamagedHp	int
+	
+	IsDeleted	bool
+	IsModified	bool
 }
 
 func NewPlayerPokemon(_playerId int) *PlayerPokemon {
 	return &PlayerPokemon{ Stats: make([]int, 6),
 							Moves: make([]*PlayerPokemonMove, 4),
 							Nature: 0,
-							PlayerId: _playerId }
+							PlayerId: _playerId,
+							IsDeleted: false }
 }
 
 func (p *PlayerPokemon) LoadMoves() {
@@ -98,11 +102,11 @@ func (p *PlayerPokemon) GetNickname() string {
 }
 
 func (p *PlayerPokemon) GetLevel() int {
-	return puh.CalculateLevelFromExperience(p.Experience)
+	return CalculateLevelFromExperience(p.Experience)
 }
 
 func (p *PlayerPokemon) GetTotalHp() int {
-	return puh.HpForLevel(p.Base.Stats[POKESTAT_HP].BaseStat, p.Stats[POKESTAT_HP], p.GetLevel())
+	return HpForLevel(p.Base.Stats[POKESTAT_HP].BaseStat, p.Stats[POKESTAT_HP], p.GetLevel())
 }
 
 func (p *PlayerPokemon) IsFainted() bool {

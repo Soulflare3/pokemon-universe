@@ -41,7 +41,7 @@ const (
 type Game struct {
 	State         		GameState
 	
-	Creatures     		pul.CreatureList
+	Creatures     		pul.CreatureMap
 	Players       		PlayerList
 	PlayersDiscon		PlayerList
 
@@ -168,7 +168,6 @@ func (g *Game) OnPlayerLoseConnection(_player *Player) {
 
 func (g *Game) AddCreature(_creature pul.ICreature) {
 	// TODO: Maybe only take the creatues from the area the new creature is in. This saves some extra iterating
-	// TODO 2: Upgrade this to parallel stuff
 	
 	g.mutexCreatureList.Lock()
 	defer g.mutexCreatureList.Unlock()
@@ -437,8 +436,6 @@ func (g *Game) playerWhisper(_player *Player, _text string) bool {
 			tmpPlayer := creature.(*Player)
 			if position.IsInRange3p(tmpPlayer.GetPosition(), pos.NewPositionFrom(1, 1, 0)) {
 				tmpPlayer.sendCreatureSay(_player, pnet.SPEAK_WHISPER, _text)
-			} else {
-				tmpPlayer.sendCreatureSay(_player, pnet.SPEAK_WHISPER, "pspsps")
 			}
 		}
 	}

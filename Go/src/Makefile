@@ -1,29 +1,29 @@
 DIRS=\
-	goconf\
 	gomysql\
 	net/websocket\
-	network\
 	npclib\
 	puhelper\
 	pulogic\
 	pulogic/pokemon\
 	pulogic/netmsg\
-	putools/math\
-	putools/pos\
-	putools/log\
-	puserver/pubattle\
+	puserver/pubattle
+	
+BUILD_DIRS=\
 	puserver\
+	orgasm
 	
 install: 
 	go install $(DIRS)
 	cp puserver/puserver.exe ../bin/puserver.exe
 	
 build: 
-	go build $(DIRS)
+	go build $(BUILD_DIRS)
 	cp puserver/puserver.exe ../bin/puserver.exe
+	cp orgasm/orgasm.exe ../bin/orgasm.exe
 
 clean:
 	go clean $(DIRS)
+	go clean $(BUILD_DIRS)
 	
 echo-dirs:
 	@echo $(DIRS)

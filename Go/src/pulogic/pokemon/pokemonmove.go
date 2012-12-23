@@ -16,6 +16,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package pokemon
 
+import "pulogic/models"
+
 const (
 	MOVEMETHOD_LEVELUP		int = 1
 	MOVEMETHOD_EGG				= 2
@@ -31,9 +33,21 @@ type PokemonMove struct {
 	Move				*Move
 	PokemonMoveMethod	int
 	Level				int
-	Order				int
+	//Order				int
 }
 
 func NewPokemonMove() *PokemonMove {
 	return &PokemonMove{}
+}
+
+func NewPokemonMoveFromEntity(_p *Pokemon, _entity models.PokemonMoves) *PokemonMove {
+	move := NewPokemonMove()
+	move.Level = _entity.Level
+	move.Move = manager.GetMoveById(_entity.MoveId)
+	//move.Order = _entity.Order
+	move.PokemonMoveMethod = _entity.PokemonMoveMethodId
+	move.VersionGroup = _entity.VersionGroupId
+	move.Pokemon = _p
+	
+	return move
 }

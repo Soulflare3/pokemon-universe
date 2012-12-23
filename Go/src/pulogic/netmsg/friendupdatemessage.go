@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package netmsg
 
 import (
-	pnet "network"
+	pnet "nonamelib/network"
 )
 
 type FriendUpdateMessage struct {
@@ -51,9 +51,15 @@ func (m *FriendUpdateMessage) GetHeader() uint8 {
 	return pnet.HEADER_FRIENDUPDATE
 }
 
-func (m *FriendUpdateMessage) ReadPacket(_packet pnet.IPacket) error {
-	m.Name = _packet.ReadString()
-	m.Removed = int(_packet.ReadUint8())
+func (m *FriendUpdateMessage) ReadPacket(_packet pnet.IPacket) (err error) {
+	if m.Name, err = _packet.ReadString(); err != nil {
+		return
+	}
+	removed, errRem := _packet.ReadUint8()
+	if errRem != nil {
+		return errRem
+	}
+	m.Removed = int(removed)
 	
 	return nil
 }

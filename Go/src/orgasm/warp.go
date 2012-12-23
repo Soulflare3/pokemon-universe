@@ -18,8 +18,9 @@ package main
 
 import (
 	"fmt"
-	pos "putools/pos"
-	puh "puhelper"
+	"nonamelib/log"
+	pos "nonamelib/pos"
+	"pulogic/models"
 )
 
 type Warp struct {
@@ -73,21 +74,35 @@ func (e *Warp) UpdateFromPacket(_packet *Packet) {
 }
 
 func (e *Warp) Save() bool {
-	var query string
-	if e.IsNew { // Update
-		query = fmt.Sprintf(QUERY_INSERT_EVENT, e.GetEventType(), e.destination.X, e.destination.Y, e.destination.Z, "", "", "", "", "")
-	} else if e.IsModified { // Insert
-		query = fmt.Sprintf(QUERY_UPDATE_EVENT, e.GetEventType(), e.destination.X, e.destination.Y, e.destination.Z, "", "", "", "", "", e.dbid)
+//	var query string
+//	if e.IsNew { // Update
+//		query = fmt.Sprintf(QUERY_INSERT_EVENT, e.GetEventType(), e.destination.X, e.destination.Y, e.destination.Z, "", "", "", "", "")
+//	} else if e.IsModified { // Insert
+//		query = fmt.Sprintf(QUERY_UPDATE_EVENT, e.GetEventType(), e.destination.X, e.destination.Y, e.destination.Z, "", "", "", "", "", e.dbid)
+//	}
+//	
+//	if len(query) > 0 {
+//		if err := puh.DBQuery(query); err != nil {
+//			return false
+//		}
+//		
+//		if e.IsNew {
+//			e.dbid = int64(puh.DBGetLastInsertId())
+//		}		
+//	}
+
+	entity := models.TileEvents { IdtileEvents: int(e.dbid),
+								  Eventtype: e.GetEventType(),
+								  Param1: fmt.Sprintf("%d", e.destination.X),
+								  Param2: fmt.Sprintf("%d", e.destination.Y),
+								  Param3: fmt.Sprintf("%d", e.destination.Z) }
+	if err := g_orm.Save(&entity); err != nil {
+		log.Error("Warp", "Save", "Error saving: %s", err.Error())
+		return false
 	}
 	
-	if len(query) > 0 {
-		if err := puh.DBQuery(query); err != nil {
-			return false
-		}
-		
-		if e.IsNew {
-			e.dbid = int64(puh.DBGetLastInsertId())
-		}		
+	if e.IsNew {
+		e.dbid = int64(entity.IdtileEvents)
 	}
 	
 	e.IsNew = false
@@ -97,8 +112,14 @@ func (e *Warp) Save() bool {
 }
 
 func (e *Warp) Delete() bool {
-	query := fmt.Sprintf(QUERY_DELETE_EVENT, e.dbid)
-	if err := puh.DBQuery(query); err != nil {
+//	query := fmt.Sprintf(QUERY_DELETE_EVENT, e.dbid)
+//	if err := puh.DBQuery(query); err != nil {
+//		return false
+//	}
+
+	entity := models.TileEvents { IdtileEvents: int(e.dbid) }
+	if _, err := g_orm.Delete(&entity); err != nil {
+		log.Error("Warp", "Save", "Error deleting: %s", err.Error())
 		return false
 	}
 	

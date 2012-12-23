@@ -18,7 +18,7 @@ package puhelper
 
 import (
 	"gomysql"
-	"putools/log"
+	"nonamelib/log"
 )
 
 var (
@@ -31,14 +31,14 @@ func DBQuerySelect(_query string) (result *mysql.Result, err error) {
 	
 	err = DBCon.Query(_query)
 	if err != nil {
-		logger.Println("[ERROR] SQL error while executing query:")
-		logger.Printf("%s\n", _query)
-		logger.Printf("Error: %s\n", err.Error()) 
+		log.Println("[ERROR] SQL error while executing query:")
+		log.Printf("%s\n", _query)
+		log.Printf("Error: %s\n", err.Error()) 
 		result = nil
 	} else {
 		result, err = DBCon.UseResult()
 		if err != nil {
-			logger.Println("[ERROR] SQL error while fetching result for query:\n\r%s\n\rError: %s", _query, err.Error())
+			log.Println("[ERROR] SQL error while fetching result for query:\n\r%s\n\rError: %s", _query, err.Error())
 			result = nil
 		}
 	}
@@ -57,9 +57,9 @@ func DBQuery(_query string) (err error) {
 	defer DBUnlock()
 	
 	if err = DBCon.Query(_query); err != nil {
-		logger.Println("[ERROR] SQL error while executing query:")
-		logger.Printf("%s\n", _query)
-		logger.Printf("Error: %s\n", err.Error()) 
+		log.Println("[ERROR] SQL error while executing query:")
+		log.Printf("%s\n", _query)
+		log.Printf("Error: %s\n", err.Error()) 
 	}
 	
 	return
@@ -67,9 +67,9 @@ func DBQuery(_query string) (err error) {
 
 func DBQueryNoLock(_query string) (err error) {
 	if err = DBCon.Query(_query); err != nil {
-		logger.Println("[ERROR] SQL error while executing query:")
-		logger.Printf("%s\n", _query)
-		logger.Printf("Error: %s\n", err.Error()) 
+		log.Println("[ERROR] SQL error while executing query:")
+		log.Printf("%s\n", _query)
+		log.Printf("Error: %s\n", err.Error()) 
 	}
 	
 	return
@@ -90,18 +90,18 @@ func DBUnlock() {
 
 func DBStartTransaction() {
 	DBLock()
-	if err := DBCon.Start(); err != nil {
-		DBUnlock()
+	if err := DBCon.Start(); err != nil {	
+		log.Println("[ERROR] SQL error while starting a new transaction.")
+		log.Printf("Error: %s\n", err.Error())
 		
-		logger.Println("[ERROR] SQL error while starting a new transaction.")
-		logger.Printf("Error: %s\n", err.Error()) 
+		DBUnlock() 
 	}
 }
 
 func DBCommit() {
 	if err := DBCon.Commit(); err != nil {
-		logger.Println("[ERROR] SQL error while committing transaction.")
-		logger.Printf("Error: %s\n", err.Error()) 
+		log.Println("[ERROR] SQL error while committing transaction.")
+		log.Printf("Error: %s\n", err.Error()) 
 		
 		DBRollback()
 	} else {
@@ -111,8 +111,8 @@ func DBCommit() {
 
 func DBRollback() {
 	if err := DBCon.Rollback(); err != nil {
-		logger.Println("[ERROR] SQL error while rolling transaction back")
-		logger.Printf("Error: %s\n", err.Error())
+		log.Println("[ERROR] SQL error while rolling transaction back")
+		log.Printf("Error: %s\n", err.Error())
 	}
 	
 	DBUnlock()

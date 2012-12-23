@@ -21,9 +21,9 @@ type NpcScriptInterface interface {
 	SetQuestProgress(cid uint64, questId int, progress int)
 	
 	// Items
-	AddItem(cid uint64, itemId int64, amount int) bool
-	CheckItem(cid uint64, itemId int64, amount int) bool
-	RemoveItem(cid uint64, itemId int64, amount int) bool
+	AddItem(cid uint64, itemId int, amount int) bool
+	CheckItem(cid uint64, itemId int, amount int) bool
+	RemoveItem(cid uint64, itemId int, amount int) bool
 	
 	// Golds
 	AddMoney(cid uint64, amount int)

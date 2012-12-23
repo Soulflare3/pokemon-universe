@@ -57,7 +57,7 @@ type Creature struct {
 
 	Outfit
 
-	VisibleCreatures pul.CreatureList
+	VisibleCreatures pul.CreatureMap
 	ConditionList	*list.List
 }
 
@@ -142,7 +142,7 @@ func (c *Creature) KnowsVisibleCreature(_creature pul.ICreature) (found bool) {
 	return
 }
 
-func (c *Creature) GetVisibleCreatures() pul.CreatureList {
+func (c *Creature) GetVisibleCreatures() pul.CreatureMap {
 	return c.VisibleCreatures
 }
 

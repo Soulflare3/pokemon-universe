@@ -20,7 +20,7 @@ import (
 	"strings"
 	"strconv"
 	
-	pnet "network"
+	pnet "nonamelib/network"
 )
 
 type DialogMessage struct {
@@ -61,7 +61,11 @@ func (m *DialogMessage) SetNpcId(_npcId uint64) {
 }
 
 func (m *DialogMessage) ReadPacket(_packet pnet.IPacket) error {
-	m.AnswerId = int(_packet.ReadUint32())
+	answer, err := _packet.ReadUint32()
+	if err != nil {
+		return err
+	}
+	m.AnswerId = int(answer)
 	
 	return nil
 }

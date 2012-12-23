@@ -17,8 +17,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package netmsg
 
 import (
-	pnet "network"
-	pos "putools/pos"
+	pnet "nonamelib/network"
+	pos "nonamelib/pos"
 )
 
 type PlayerWarpMessage struct {

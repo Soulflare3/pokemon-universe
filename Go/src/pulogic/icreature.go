@@ -18,12 +18,12 @@ package pulogic
 
 import (
 	"pulogic/pokemon"
-	pnet "network"
-	pos "putools/pos"
+	pnet "nonamelib/network"
+	pos "nonamelib/pos"
 )
 
-// CreatureList is map which holds a list of ICreature interfaces
-type CreatureList map[uint64]ICreature
+// CreatureMap is map which holds a list of ICreature interfaces
+type CreatureMap map[uint64]ICreature
 
 // Main interface for all creature objects in the game
 type ICreature interface {
@@ -58,7 +58,7 @@ type ICreature interface {
 	AddVisibleCreature(_creature ICreature)
 	RemoveVisibleCreature(_creature ICreature)
 	KnowsVisibleCreature(_creature ICreature) bool
-	GetVisibleCreatures() CreatureList
+	GetVisibleCreatures() CreatureMap
 }
 
 type IBattleCreature interface {

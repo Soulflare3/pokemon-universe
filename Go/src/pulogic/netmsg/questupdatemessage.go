@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*
 package netmsg
 
 import (
-	pnet "network"
+	pnet "nonamelib/network"
 )
 
 type QuestUpdateMessage struct {
@@ -44,9 +44,14 @@ func (m *QuestUpdateMessage) GetHeader() uint8 {
 	return pnet.HEADER_QUESTUPDATE
 }
 
-func (m *QuestUpdateMessage) ReadPacket(_packet pnet.IPacket) error {
-	m.Id = int64(_packet.ReadUint64())
-	m.Removed = (_packet.ReadUint8() == 1)
+func (m *QuestUpdateMessage) ReadPacket(_packet pnet.IPacket) (err error) {
+	if m.Id, err = _packet.ReadInt64(); err != nil {
+		return err
+	}
+	
+	if m.Removed, err = _packet.ReadBool(); err != nil {
+		return err
+	}
 	
 	return nil
 }

@@ -18,11 +18,12 @@ package pulogic
 
 import (
 	list "container/list"
-	pos "putools/pos"
+	pos "nonamelib/pos"
 )
 
+type TileBlocking	int
 const (
-	TILEBLOCK_BLOCK       int = 1
+	TILEBLOCK_BLOCK       TileBlocking = 1
 	TILEBLOCK_WALK            = 2
 	TILEBLOCK_SURF            = 3
 	TILEBLOCK_TOP             = 4
@@ -35,21 +36,47 @@ const (
 	TILEBLOCK_TOPLEFT         = 11
 )
 
+const (
+	EVENTTYPE_TELEPORT	int = 1
+)
+
 type TilesMap map[int64]ITile
 type LayerMap map[int]*TileLayer
 
 type ITile interface {
 	GetPosition()	pos.Position
-	GetBlocking() 	int
-	GetCreatures() 	CreatureList
+	GetBlocking() 	TileBlocking
+	GetCreatures() 	CreatureMap
 	GetLayers()		LayerMap
 	GetEvents() 	*list.List
 	GetLocation()	ILocation
-	AddCreature(_creature ICreature, _checkEvents bool) (ret int)
-	RemoveCreature(_creature ICreature, _checkEvents bool) (ret int)
+	AddCreature(_creature ICreature, _checkEvents bool) (ret ReturnValue)
+	RemoveCreature(_creature ICreature, _checkEvents bool) (ret ReturnValue)
 }
 
 type TileLayer struct {
 	Layer    int
 	SpriteID int
+}
+
+type ITileEvent interface {
+	OnCreatureEnter(_creature ICreature, _prevRet ReturnValue) ReturnValue
+	OnCreatureLeave(_creature ICreature, _prevRet ReturnValue) ReturnValue
+}
+
+func GetTileBlockingFromInt(_value int) (ret TileBlocking) {
+	switch _value {
+		case 1: ret = TILEBLOCK_BLOCK
+		case 2:	ret = TILEBLOCK_WALK
+		case 3:	ret = TILEBLOCK_SURF
+		case 4:	ret = TILEBLOCK_TOP
+		case 5:	ret = TILEBLOCK_BOTTOM
+		case 6:	ret = TILEBLOCK_RIGHT
+		case 7:	ret = TILEBLOCK_LEFT
+		case 8:	ret = TILEBLOCK_TOPRIGHT
+		case 9:	ret = TILEBLOCK_BOTTOMRIGHT
+		case 10: ret = TILEBLOCK_BOTTOMLEFT
+		case 11: ret = TILEBLOCK_TOPLEFT
+	}
+	return
 }

@@ -1,10 +1,11 @@
 package main
 
 import (
-	"fmt"
-	puh "puhelper"
-	pos "putools/pos"
+	"github.com/astaxie/beedb"
+	
+	pos "nonamelib/pos"
 	pul "pulogic"
+	"pulogic/models"
 )
 
 
@@ -16,36 +17,30 @@ func NewNpcList() *NpcList{
 	return &NpcList { Npcs: make(map[int64]*Npc) }
 }
 
-func (m *NpcList) LoadNpcList() (succeed bool, error string) {
-	result, err := puh.DBQuerySelect(QUERY_SELECT_NPCS)
+func (m *NpcList) LoadNpcList() (bool, string) {
+	var entities []models.NpcJoinOutfitJoinEvent
+	err := g_orm.SetTable("npc").Join("INNER", "npc_outfit", "npc_outfit.Idnpc = npc.Idnpc").Join(" INNER", "npc_events", "npc_events.Idnpc = npc.Idnpc").FindAll(&entities)
 	if err != nil {
-		fmt.Printf(err.Error())
 		return false, err.Error()
 	}
 	
-	defer puh.DBFree()
-	for {
-		row := result.FetchRow()
-		if row == nil {
-			break
-		}
-		
+	for _, entity := range(entities) {
 		// Create new NPC object with data from database
 		npc := NewNpc()
 		npc.IsNew = false
-		npc.DbId = puh.DBGetInt64(row[0])
-		npc.Name = puh.DBGetString(row[1])
+		npc.DbId = int64(entity.Idnpc)
+		npc.Name = entity.Name
 		
-		npc.SetOutfitPart(pul.OUTFIT_HEAD, puh.DBGetInt(row[2]))
-		npc.SetOutfitPart(pul.OUTFIT_NEK, puh.DBGetInt(row[3]))
-		npc.SetOutfitPart(pul.OUTFIT_UPPER, puh.DBGetInt(row[4]))
-		npc.SetOutfitPart(pul.OUTFIT_LOWER, puh.DBGetInt(row[5]))
-		npc.SetOutfitPart(pul.OUTFIT_FEET, puh.DBGetInt(row[6]))
+		npc.SetOutfitPart(pul.OUTFIT_HEAD, entity.Head)
+		npc.SetOutfitPart(pul.OUTFIT_NEK, entity.Nek)
+		npc.SetOutfitPart(pul.OUTFIT_UPPER, entity.Upper)
+		npc.SetOutfitPart(pul.OUTFIT_LOWER, entity.Lower)
+		npc.SetOutfitPart(pul.OUTFIT_FEET, entity.Feet)
 		
-		positionHash := puh.DBGetInt64(row[7])
+		positionHash := entity.Position
 		npc.Position = pos.NewPositionFromHash(positionHash)
-		npc.Events = puh.DBGetStringFromArray(row[8])
-		npc.EventInitId = puh.DBGetInt(row[9])
+		npc.Events = entity.Event
+		npc.EventInitId = entity.Initid
 		
 		// Load NPC pokemon
 		npc.LoadPokemon()
@@ -54,7 +49,7 @@ func (m *NpcList) LoadNpcList() (succeed bool, error string) {
 		m.Npcs[npc.DbId] = npc
 	}
 	
-	return true, ""
+	return true,  ""
 }
 
 func (m *NpcList) GetNpcById(_npcId int64) (*Npc, bool) {

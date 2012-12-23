@@ -16,12 +16,23 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package pokemon
 
+import "pulogic/models" 
+
 type PokemonAbility struct {
 	Ability			*Ability
-	IsDream			int
+	IsDream			bool
 	Slot			int
 }
 
 func NewPokemonAbility() *PokemonAbility {
 	return &PokemonAbility{}
+}
+
+func NewPokemonAbilityFromEntity(_entity models.PokemonAbilities) *PokemonAbility {
+	ability := NewPokemonAbility()
+	ability.IsDream = _entity.IsDream
+	ability.Slot = _entity.Slot
+	ability.Ability = manager.GetAbilityById(_entity.AbilityId)
+	
+	return ability
 }
