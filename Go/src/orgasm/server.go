@@ -2,17 +2,18 @@ package main
 
 import (
 	"bytes"
-	"database/sql"
+//	"database/sql"
 	"fmt"
 	"net"
 	"os"
 	"container/list"
 	"sync"
 	
-	"github.com/astaxie/beedb"
-	_ "github.com/ziutek/mymysql/godrv"
+//	"github.com/astaxie/beedb"
+	"github.com/ziutek/mymysql/mysql"
+	_ "github.com/ziutek/mymysql/native"
 	
-	"nonamelib/log"
+//	"nonamelib/log"
 )
 
 type Server struct {
@@ -61,15 +62,21 @@ func (s *Server) HandleTileChange() {
 	password, _ := g_config.GetString("database", "pass")
 	scheme, _ := g_config.GetString("database", "db")
 
-	var tileOrm beedb.Model
-	
-	// Connect
-	db, err := sql.Open("mymysql", fmt.Sprintf("%v/%v/%v", scheme, username, password))
+//	var tileOrm beedb.Model
+//	
+//	// Connect
+//	db, err := sql.Open("mymysql", fmt.Sprintf("%v/%v/%v", scheme, username, password))
+//	if err != nil {
+//		log.Error("main", "setupDatabase", "Error when opening sql connection: %v", err.Error())
+//		return
+//	} else {
+//		tileOrm = beedb.New(db)
+//	}
+
+	db := mysql.New("tcp", "", "127.0.0.1:3306", username, password, scheme)
+	err := db.Connect()
 	if err != nil {
-		log.Error("main", "setupDatabase", "Error when opening sql connection: %v", err.Error())
-		return
-	} else {
-		tileOrm = beedb.New(db)
+		panic(err)
 	}
 
 	for {		
@@ -87,6 +94,7 @@ func (s *Server) HandleTileChange() {
 		s.tileLock.Lock()
 		defer s.tileLock.Unlock()
 		var query bytes.Buffer
+		query.WriteString("SET foreign_key_checks = 0;\n")
 		
 		updatedTiles := list.New()
 
@@ -180,18 +188,28 @@ func (s *Server) HandleTileChange() {
 			updatedTiles.PushBack(tile)
 		}
 		
+		query.WriteString("SET foreign_key_checks = 1;")
 		// Execute
 		if IS_DEBUG {
 			fmt.Println(query.String())
 		}
-		_, err := tileOrm.Exec(query.String())
+		//_, err := tileOrm.Exec(query.String())
+		res, err := db.Start(query.String())
 		if err != nil {
 			fmt.Println(err.Error())
+		} else {
+			for ; res != nil; res, _ = res.NextResult() {
+				fmt.Println("Getting result..")
+			}
 		}
 		
+		fmt.Println("Done... Waiting for next.")
+		
 		//Send the updated tiles to all clients
-		s.SendTileUpdateToClients(updatedTiles, 0)
+		//s.SendTileUpdateToClients(updatedTiles, 0)
 	}
+	
+	fmt.Println("Out of process loop")
 }
 
 func (s *Server) SendTileUpdateToClients(_tiles *list.List, _sender int) {
