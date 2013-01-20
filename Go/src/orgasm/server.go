@@ -92,7 +92,8 @@ func (s *Server) HandleTileChange() {
 		}
 
 		s.tileLock.Lock()
-		defer s.tileLock.Unlock()
+		//defer s.tileLock.Unlock()
+
 		var query bytes.Buffer
 		query.WriteString("SET foreign_key_checks = 0;\n")
 		
@@ -204,6 +205,8 @@ func (s *Server) HandleTileChange() {
 		}
 		
 		fmt.Println("Done... Waiting for next.")
+		
+		s.tileLock.Unlock()
 		
 		//Send the updated tiles to all clients
 		//s.SendTileUpdateToClients(updatedTiles, 0)
