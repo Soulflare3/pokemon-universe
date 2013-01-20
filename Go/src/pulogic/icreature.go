@@ -44,6 +44,9 @@ type ICreature interface {
 
 	GetMovementSpeed() int
 	GetTimeSinceLastMove() int
+	
+	Turn(_direction int)
+	Moved(_from ITile, _to ITile, _teleport bool)
 
 	// Methods for all moving creatures
 	OnThink(_interval int)
@@ -52,11 +55,13 @@ type ICreature interface {
 	OnCreatureAppear(_creature ICreature, _isLogin bool)
 	OnCreatureDisappear(_creature ICreature, _isLogout bool)
 	
+	OnCreatureSay(_creature ICreature, _type int, _text string, _channelId int)
+	
 	OnTickCondition(_type int, _interval int, _remove bool)
 
 	// Methods for all creatures who need to see other creatures	
-	AddVisibleCreature(_creature ICreature)
-	RemoveVisibleCreature(_creature ICreature)
+	AddVisibleCreature(_creature ICreature) bool
+	RemoveVisibleCreature(_creature ICreature) bool
 	KnowsVisibleCreature(_creature ICreature) bool
 	GetVisibleCreatures() CreatureMap
 }

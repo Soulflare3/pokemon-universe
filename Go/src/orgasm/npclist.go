@@ -1,8 +1,6 @@
 package main
 
-import (
-	"github.com/astaxie/beedb"
-	
+import (	
 	pos "nonamelib/pos"
 	pul "pulogic"
 	"pulogic/models"

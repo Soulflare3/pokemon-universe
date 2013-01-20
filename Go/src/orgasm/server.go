@@ -181,7 +181,13 @@ func (s *Server) HandleTileChange() {
 		}
 		
 		// Execute
-		tileOrm.Exec(query.String())
+		if IS_DEBUG {
+			fmt.Println(query.String())
+		}
+		_, err := tileOrm.Exec(query.String())
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 		
 		//Send the updated tiles to all clients
 		s.SendTileUpdateToClients(updatedTiles, 0)

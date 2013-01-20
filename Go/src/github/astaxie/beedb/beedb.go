@@ -148,7 +148,10 @@ func (orm *Model) Find(output interface{}) error {
 	for key, _ := range results {
 		keys = append(keys, key)
 	}
-	orm.ColumnStr = strings.Join(keys, ", ")
+	
+	if orm.ColumnStr == "" {
+		orm.ColumnStr = strings.Join(keys, ", ")
+	}
 	orm.Limit(1)
 	resultsSlice, err := orm.FindMap()
 	if err != nil {

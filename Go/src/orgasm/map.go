@@ -3,7 +3,7 @@ package main
 import (
 	"sync" 
 	"runtime" 
-	"time"
+	"time" 
 	
 	pos "nonamelib/pos"
 	"nonamelib/log"
@@ -38,6 +38,10 @@ type TileRow struct {
 	Param4      string
 	Param5      string
 	Eventtype   int
+}
+
+type MaxTileId struct {
+	Tileid	int64
 }
 
 func NewMap() *Map {
@@ -191,6 +195,15 @@ func (m *Map) LoadTiles() bool {
 
 		// Close channel so the process goroutine(s) will shutdown
 		close(m.processChan)
+		
+		var maxTileIdResult MaxTileId 
+		maxErr := g_orm.SetTable("tile").Select("MAX(idtile) `tileid`").Find(&maxTileIdResult)
+		if maxErr != nil {
+			log.Error("Map", "loadTiles", "Error getting last tile id: %v", maxErr.Error())
+		} else {
+			log.Verbose("Map", "loadTiles", "Last tile id: %d", maxTileIdResult.Tileid)
+			g_newTileId = (maxTileIdResult.Tileid + 1)
+		}
 	}
 	return true
 }

@@ -10,6 +10,8 @@ import (
 	
 	puh "puhelper"
 	pul "pulogic"
+	
+	"pulogic/models"
 )
 
 var AutoClientId int = 0
@@ -138,20 +140,14 @@ func (c *Client) ReceiveLogin(_packet *Packet) {
 }
 
 func (c *Client) checkAccount(_username string, _password string) bool {
-	var query string = fmt.Sprintf(QUERY_SELECT_ACCOUNT, _username)
-	result, err := puh.DBQuerySelect(query);
+	var accountModel models.MapchangeAccount
+	err := g_orm.Where(fmt.Sprintf("%v = '%v'", models.MapchangeAccount_Username, _username)).Find(&accountModel)
 	if err != nil {
+		fmt.Println(err.Error())
 		return false
 	}
 	
-	defer puh.DBFree()
-
-	row := result.FetchMap()
-	if row != nil {
-		hashedpass := row["password"].(string)
-		return c.passwordTest(_password, hashedpass)
-	}
-	return false
+	return c.passwordTest(_password, accountModel.Password)
 }
 
 func (c *Client) passwordTest(_plain string, _hash string) bool {
