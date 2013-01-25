@@ -197,7 +197,7 @@ func (m *Map) LoadTiles() bool {
 		close(m.processChan)
 		
 		var maxTileIdResult MaxTileId 
-		maxErr := g_orm.SetTable("tile").Select("idtile").Limit(0,1).OrderBy("idtile DESC").Find(&maxTileIdResult)
+		maxErr := g_orm.SetTable("tile").Select("idtile").OrderBy("`tile`.`idtile` DESC").Limit(0,0).Find(&maxTileIdResult)
 		if maxErr != nil {
 			log.Error("Map", "loadTiles", "Error getting last tile id: %v", maxErr.Error())
 		} else {
