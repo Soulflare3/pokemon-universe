@@ -41,7 +41,7 @@ type TileRow struct {
 }
 
 type MaxTileId struct {
-	Tileid	int64
+	Idtile	int64
 }
 
 func NewMap() *Map {
@@ -197,12 +197,12 @@ func (m *Map) LoadTiles() bool {
 		close(m.processChan)
 		
 		var maxTileIdResult MaxTileId 
-		maxErr := g_orm.SetTable("tile").Select("MAX(idtile) `tileid`").Find(&maxTileIdResult)
+		maxErr := g_orm.SetTable("tile").Select("idtile").Limit(0,1).OrderBy("idtile DESC").Find(&maxTileIdResult)
 		if maxErr != nil {
 			log.Error("Map", "loadTiles", "Error getting last tile id: %v", maxErr.Error())
 		} else {
-			log.Verbose("Map", "loadTiles", "Last tile id: %d", maxTileIdResult.Tileid)
-			g_newTileId = (maxTileIdResult.Tileid + 1)
+			log.Verbose("Map", "loadTiles", "Last tile id: %d", maxTileIdResult.Idtile)
+			g_newTileId = (maxTileIdResult.Idtile + 1)
 		}
 	}
 	return true
