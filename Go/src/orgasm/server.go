@@ -94,7 +94,7 @@ func (s *Server) HandleTileChange() {
 		//Generate all tiles to update / insert for database
 		updatedTiles := s.CreateUpdatedTilesList(packet);
 		
-		packetRead := time.Now.UnixNano()
+		packetRead := time.Now().UnixNano()
 		
 		//Prepare batch
 		var query bytes.Buffer
@@ -148,7 +148,7 @@ func (s *Server) HandleTileChange() {
         
         packetReadTotal := float64((packetRead - start)) * 0.000001
         createQuery := float64((startQuery - packetRead)) * 0.000001
-        totalQuery := float64((startQuery - start)) * 0.000001
+        totalQuery := float64((end - startQuery)) * 0.000001
 		
 		log.Verbose("Server", "HandleTileChange", "Done adding tiles, waiting for next. Packet: %dms | Query: %dms (%dms) | Tiles: %d", int64(packetReadTotal), int64(createQuery), int64(totalQuery), updatedTiles.Len())
 		
