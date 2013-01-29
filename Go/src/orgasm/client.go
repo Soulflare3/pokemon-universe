@@ -220,7 +220,7 @@ func (c *Client) ReceiveTileEventUpdate(_packet *Packet) {
 			
 			if newEvent != nil {
 				tile.AddEvent(newEvent)
-				tile.Save()
+				//TODO Update the tile
 			}
 		}
 	}

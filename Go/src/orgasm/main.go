@@ -26,6 +26,7 @@ var (
 	g_server *Server
 	g_config *config.ConfigFile
 	g_newTileId int64
+	g_newTileLayerId int64
 	version string
 )
 

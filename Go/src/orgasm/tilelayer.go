@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	puh "puhelper"
 )
@@ -22,20 +21,6 @@ func NewTileLayer(_layer, _spriteId int, _tileId int64) *TileLayer {
 	tl.IsNew = true
 	
 	return tl
-}
-
-func (tl *TileLayer) Save() (bytes.Buffer) {
-	var buffer bytes.Buffer
-	if tl.IsNew {
-		buffer.WriteString(fmt.Sprintf(QUERY_INSERT_TILELAYER, tl.TileId, tl.Layer, tl.SpriteId))
-	} else if tl.IsModified {
-		buffer.WriteString(fmt.Sprintf(QUERY_UPDATE_TILELAYER, tl.SpriteId, tl.DbId))
-	}
-	
-	tl.IsNew = false
-	tl.IsModified = false
-	
-	return buffer
 }
 
 func (tl *TileLayer) Delete() bool {

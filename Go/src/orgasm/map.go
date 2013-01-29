@@ -4,7 +4,7 @@ import (
 	"sync" 
 	"runtime" 
 	"time" 
-	
+		
 	pos "nonamelib/pos"
 	"nonamelib/log"
 	
@@ -24,6 +24,7 @@ type Map struct {
 }
 
 type TileRow struct {
+	Idtile_layer	int64
 	Idtile		int64
 	IdtileEvent int
 	X           int
@@ -130,7 +131,6 @@ func (m *Map) getOrAddTile(_x, _y, _z int) (*Tile) {
 	if !ok {
 		tile = NewTile(position)
 		m.AddTile(tile)
-		
 	} 
 	
 	return tile
@@ -190,9 +190,17 @@ func (m *Map) LoadTiles() bool {
 			if (key == 0) {
 				g_newTileId = (row.Idtile + 1)	
 				log.Verbose("Map", "loadTiles", "Determined next tile ID: %d", g_newTileId)	
-			}	
+			}
+			
+			//Determine the biggest tilelayer
+			if row.Idtile_layer >= g_newTileLayerId {
+				g_newTileLayerId = row.Idtile_layer + 1;
+			}
+			
 			m.processChan <- row
 		}
+		
+		g_newTileLayerId++;
 
 		// Close channel so the process goroutine(s) will shutdown
 		close(m.processChan)
