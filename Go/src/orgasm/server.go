@@ -95,17 +95,18 @@ func (s *Server) HandleTileChange() {
 		updatedTiles := s.CreateUpdatedTilesList(packet);
 		
 		packetRead := time.Now().UnixNano()
+		packetReadTotal := float64((packetRead - start)) * 0.000001
 		
 		//Prepare batch
 		var query bytes.Buffer
-		query.WriteString("SET foreign_key_checks = 0;")
+		query.WriteString("START TRANSACTION;")
 		
 		for e := updatedTiles.Front(); e != nil; e = e.Next() {
 			tile := e.Value.(*Tile)
 			
 			if(tile.IsNew) {
 				//create insert batch for all new tiles
-	        	query.WriteString(fmt.Sprintf(QUERY_INSERT_TILE, tile.DbId, tile.Position.X, tile.Position.Y, tile.Position.Z, tile.Blocking, 0))	        	
+	        	query.WriteString(fmt.Sprintf(QUERY_INSERT_TILE, tile.DbId, tile.Position.X, tile.Position.Y, tile.Position.Z, tile.Blocking, "NULL"))	        	
         		tile.IsNew = false
         	} else {
         		//create update batch for all o tiles
@@ -123,9 +124,10 @@ func (s *Server) HandleTileChange() {
     	}
 		
 		//Finish batch
-		query.WriteString("SET foreign_key_checks = 1;")
+		query.WriteString("COMMIT;")
 		
 		startQuery := time.Now().UnixNano()
+		createQueryTotal := float64((startQuery - packetRead)) * 0.000001
 		
 		// Execute
         res, err := db.Start(query.String())
@@ -145,12 +147,10 @@ func (s *Server) HandleTileChange() {
         }
         
         end := time.Now().UnixNano()
-        
-        packetReadTotal := float64((packetRead - start)) * 0.000001
-        createQuery := float64((startQuery - packetRead)) * 0.000001
-        totalQuery := float64((end - startQuery)) * 0.000001
+        execQueryTotal := float64((end - startQuery)) * 0.000001
 		
-		log.Verbose("Server", "HandleTileChange", "Done adding tiles, waiting for next. Packet: %dms | Query: %dms (%dms) | Tiles: %d", int64(packetReadTotal), int64(createQuery), int64(totalQuery), updatedTiles.Len())
+		log.Verbose("Server", "HandleTileChange", "Done adding tiles, waiting for next.")
+		log.Verbose("Server", "HandleTileChange", "Packet: %dms | Query: %dms (Exec: %dms) | Tiles: %d", int64(packetReadTotal), int64(createQueryTotal), int64(execQueryTotal), updatedTiles.Len()) 
 		
 		s.tileLock.Unlock()
 	}
