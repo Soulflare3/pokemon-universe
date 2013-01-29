@@ -103,15 +103,15 @@ func (t *Tile) Save() (bytes.Buffer) {
 	var buffer bytes.Buffer
 	if t.IsNew {
 		buffer.WriteString(fmt.Sprintf(QUERY_INSERT_TILE, t.DbId, t.Position.X, t.Position.Y, t.Position.Z, t.Blocking, eventDbId))
+		// Add tile to map
+		g_map.AddTile(t)
 	} else if t.IsModified { // Tile is probably changed, update it in the database
 		buffer.WriteString(fmt.Sprintf(QUERY_UPDATE_TILE, t.Blocking, eventDbId, t.DbId))
 	}
 	
-	t.IsModified = false;
-	
-	// Add tile to map
-	g_map.AddTile(t)
-	
+	t.IsModified = false
+	t.IsNew = false
+
 	return buffer
 }
 

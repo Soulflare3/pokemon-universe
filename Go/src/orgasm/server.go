@@ -123,8 +123,10 @@ func (s *Server) HandleTileChange() {
 					tile.DbId = g_newTileId
 					fmt.Printf("Current TileID: %d\n", g_newTileId)
 					g_newTileId++
-				} else if IS_DEBUG {
-					fmt.Printf("Update Tile - X: %d - Y: %d - Z: %d - DbId: %d\n", x, y, z, tile.DbId)
+				} else {
+					if IS_DEBUG {
+						fmt.Printf("Update Tile - X: %d - Y: %d - Z: %d - DbId: %d\n", x, y, z, tile.DbId)
+					}
 				}
 
 				// Set/update blocking

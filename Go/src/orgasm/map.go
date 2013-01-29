@@ -24,6 +24,7 @@ type Map struct {
 }
 
 type TileRow struct {
+	Idtile		int64
 	IdtileEvent int
 	X           int
 	Y           int
@@ -38,10 +39,6 @@ type TileRow struct {
 	Param4      string
 	Param5      string
 	Eventtype   int
-}
-
-type MaxTileId struct {
-	Idtile	int64
 }
 
 func NewMap() *Map {
@@ -123,7 +120,7 @@ func (m *Map) GetTile(_hash int64) (*Tile, bool) {
 // Gets a tile from the list. If the tile doesnt exists it will be created
 // Returns the tile pointer and a boolean, true if the tile is new
 // NOTE: Should only be used when loading the map, because of locking
-func (m *Map) getOrAddTile(_x, _y, _z int) (*Tile, bool) {
+func (m *Map) getOrAddTile(_x, _y, _z int) (*Tile) {
 	m.tileMutex.Lock()
 	defer m.tileMutex.Unlock()
 	
@@ -134,10 +131,9 @@ func (m *Map) getOrAddTile(_x, _y, _z int) (*Tile, bool) {
 		tile = NewTile(position)
 		m.AddTile(tile)
 		
-		return tile, true
 	} 
 	
-	return nil, false
+	return tile
 }
 
 // Waits for all spawned process routines to finish
@@ -172,7 +168,7 @@ func (m *Map) LoadTiles() bool {
 	start := time.Now().UnixNano()
 	var allTiles []TileRow
 	
-	err := g_orm.SetTable("tile").Join("INNER", "tile_layer", "tile_layer.idtile = tile.idtile").Join(" LEFT", "tile_events", "tile_events.idtile_events = tile.idtile_event").FindAll(&allTiles)
+	err := g_orm.SetTable("tile").Join("INNER", "tile_layer", "tile_layer.tileid = tile.idtile").Join(" LEFT", "tile_events", "tile_events.idtile_events = tile.idtile_event").OrderBy("tile.idtile DESC").FindAll(&allTiles)
 	if err != nil {
 		log.Error("map", "loadTiles", "Error while loading tiles: %v", err.Error())
 		return false
@@ -189,21 +185,17 @@ func (m *Map) LoadTiles() bool {
 		}
 
 		// Send rows to channel
-		for _, row := range(allTiles) {			
+		for key, row := range(allTiles) {
+			//First tile has highest ID
+			if (key == 0) {
+				g_newTileId = (row.Idtile + 1)	
+				log.Verbose("Map", "loadTiles", "Determined next tile ID: %d", g_newTileId)	
+			}	
 			m.processChan <- row
 		}
 
 		// Close channel so the process goroutine(s) will shutdown
 		close(m.processChan)
-		
-		var maxTileIdResult MaxTileId 
-		maxErr := g_orm.SetTable("tile").Select("idtile").OrderBy("`tile`.`idtile` DESC").Limit(0,0).Find(&maxTileIdResult)
-		if maxErr != nil {
-			log.Error("Map", "loadTiles", "Error getting last tile id: %v", maxErr.Error())
-		} else {
-			log.Verbose("Map", "loadTiles", "Last tile id: %d", maxTileIdResult.Idtile)
-			g_newTileId = (maxTileIdResult.Idtile + 1)
-		}
 	}
 	return true
 }
@@ -216,10 +208,13 @@ func (m *Map) processTiles() {
 		}
 		
 		// Get or create tile
-		tile, isNew := m.getOrAddTile(row.X, row.Y, row.Z)
+		tile := m.getOrAddTile(row.X, row.Y, row.Z)
 		
 		// If the tile is new set extra data
-		if isNew {
+		if tile.IsNew {
+			//Set tile db id
+			tile.DbId = row.Idtile
+		
 			// Set blocking
 			tile.Blocking = row.Movement
 			
@@ -241,6 +236,7 @@ func (m *Map) processTiles() {
 //					tile.AddEvent(teleport)
 //				}
 //			}
+			tile.IsNew = false
 		}
 	
 		// Add layer to tile

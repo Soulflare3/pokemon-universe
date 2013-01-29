@@ -32,7 +32,8 @@ func (tl *TileLayer) Save() (bytes.Buffer) {
 		buffer.WriteString(fmt.Sprintf(QUERY_UPDATE_TILELAYER, tl.SpriteId, tl.DbId))
 	}
 	
-	tl.IsModified = false;
+	tl.IsNew = false
+	tl.IsModified = false
 	
 	return buffer
 }
