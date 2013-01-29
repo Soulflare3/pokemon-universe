@@ -143,7 +143,7 @@ func (m *PokemonManager) loadMoves() bool {
 		return false
 	}
 	
-	log.Println(" - Processing Moves")
+	log.Verbose("PokeManager", "loadMoves", "Processing moves")
 	for _, row := range(moves) {
 		move := NewMoveFromEntity(row)	
 		m.moves[move.MoveId] = move 
@@ -160,7 +160,7 @@ func (m *PokemonManager) loadAbilities() bool {
 		return false
 	}
 	
-	log.Println(" - Processing Abilities")
+	log.Verbose("PokeManager", "loadAbilities", "Processing abiliites")
 	for _, row := range(abilities) {
 		ability := NewAbilityFromEntity(row)
 		m.abilities[ability.AbilityId] = ability
@@ -177,7 +177,7 @@ func (m *PokemonManager) loadPokemonSpecies() bool {
 		return false
 	}
 	
-	log.Println(" - Processing Pokemon Species")
+	log.Verbose("PokeManager", "loadPokemonSpecies", "Processing pokemon species")
 	for _, row := range(pokes) {
 		pokemon := NewPokemonSpecesFromEntity(row)
 		m.pokemonSpecies[pokemon.SpeciesId] = pokemon
@@ -194,7 +194,7 @@ func (m *PokemonManager) loadPokemon() bool {
 		return false
 	}
 
-	log.Println(" - Processing Pokemon")
+	log.Verbose("PokeManager", "loadPokemon", "Processing pokemon")
 	for _, row := range(pokes) {
 		pokemon := NewPokemonFromEntity(row)
 				
@@ -213,7 +213,7 @@ func (m *PokemonManager) loadMoveMessages() bool {
 		return false
 	}
 	
-	log.Println(" - Processing Move Messages")
+	log.Verbose("PokeManager", "loadMoveMessages", "Processing move messages")
 	for _, row := range(move_messages) {
 		messages := strings.Split(row.Message, "|")
 		messageMap := make(map[int]string)
@@ -235,7 +235,7 @@ func (m *PokemonManager) loadAbilityMessages() bool {
 		return false
 	}
 	
-	log.Println(" - Processing Ability Messages")
+	log.Verbose("PokeManager", "loadAbilityMessagess", "Processing ability messages")
 	for _, row := range(ability_messages) {
 		messages := strings.Split(row.Message, "|")
 		messageMap := make(map[int]string)
@@ -271,7 +271,8 @@ func (m *PokemonManager) GetPokemonName(_speciesId, _formId int) string {
 func (m *PokemonManager) GetPokemonTypes(_pokemonId, _formId int) PokemonTypeArray {
 	pokemon := m.GetPokemon(_pokemonId)
 	if pokemon == nil {
-		log.Printf("PokemonManager::GetPokemonTypes - Could not find pokemon with id: %d\n\r", _pokemonId)
+		log.Error("PokemonManager", "GetPokemonTypes", "Could not find pokemon with id: %d", _pokemonId)
+		return nil
 	}
 	return pokemon.Types
 }
@@ -294,7 +295,8 @@ func (m *PokemonManager) GetMoveById(_moveId int) *Move {
 	move, found := m.moves[_moveId]
 	
 	if !found {
-		log.Printf("Could not find move with id: %d\n", _moveId)
+		log.Error("PokeManager", "GetMoveById", "Could not find move with id: %d", _moveId)
+		return nil
 	}
 	
 	return move

@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	IS_DEBUG = true
+	IS_DEBUG = false
 )
 
 var (

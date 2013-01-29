@@ -2,14 +2,13 @@ package main
 
 import (
 	"bytes"
-//	"database/sql"
 	"fmt"
 	"net"
 	"os"
 	"container/list"
 	"sync"
+	"time"
 	
-//	"github.com/astaxie/beedb"
 	"github.com/ziutek/mymysql/mysql"
     _ "github.com/ziutek/mymysql/native"
 	
@@ -89,6 +88,8 @@ func (s *Server) HandleTileChange() {
 		}
 		
 		s.tileLock.Lock()
+		
+		start := time.Now().UnixNano()
 
 		//Generate all tiles to update / insert for database
 		updatedTiles := s.CreateUpdatedTilesList(packet);
@@ -96,7 +97,6 @@ func (s *Server) HandleTileChange() {
 		//Prepare batch
 		var query bytes.Buffer
 		query.WriteString("SET foreign_key_checks = 0;")
-		
 		
 		for e := updatedTiles.Front(); e != nil; e = e.Next() {
 			tile := e.Value.(*Tile)
@@ -123,25 +123,30 @@ func (s *Server) HandleTileChange() {
 		//Finish batch
 		query.WriteString("SET foreign_key_checks = 1;")
 		
+		startQuery := time.Now().UnixNano()
+		
 		// Execute
         res, err := db.Start(query.String())
         if err != nil {
             fmt.Println(err.Error())
         } else if res != nil {
-                for ; res != nil; {
-                        fmt.Println("Getting result..")
-                        res2, err2 := res.NextResult()
-                        if err2 != nil {
-                                fmt.Printf("Error getting result: %s\n", err2.Error())
-                        } else if res2 == nil {
-                                break
-                        }
-                       
-                        res = res2
+			for ; res != nil; {
+                res2, err2 := res.NextResult()
+                if err2 != nil {
+                	fmt.Printf("Error getting result: %s\n", err2.Error())
+				} else if res2 == nil {
+                	break
                 }
+                       
+            	res = res2
+			}
         }
+        
+        end := time.Now().UnixNano()
+        total := float64((end - start)) * 0.000001
+        totalQuery := float64((startQuery - start)) * 0.000001
 		
-		log.Verbose("Server", "HandleTileChange", "Done adding tiles, waiting for next.")
+		log.Verbose("Server", "HandleTileChange", "Done adding tiles, waiting for next. Total: %dms | Query: %dms | Tiles: %d", int64(total), int64(totalQuery), updatedTiles.Len())
 		
 		s.tileLock.Unlock()
 	}
@@ -168,7 +173,9 @@ func (s *Server) CreateUpdatedTilesList(_packet *Packet) *list.List {
 		tile := g_map.getOrAddTile(x, y, z)
 		
 		if(tile.IsNew) {
-			log.Verbose("Server", "CreateUpdatedTilesList", "Adding new tile with id %d", g_newTileId)
+			if IS_DEBUG {
+				log.Verbose("Server", "CreateUpdatedTilesList", "Adding new tile with id %d", g_newTileId)
+			}
 			tile.DbId = g_newTileId
 			g_newTileId++
 		}

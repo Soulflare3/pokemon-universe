@@ -14,6 +14,6 @@ type PlayerQuests struct {
 	Idplayer       int
 	Idquest        int
 	Status         int
-	Created        int
-	Finished       int
+	Created        int64
+	Finished       int64
 }

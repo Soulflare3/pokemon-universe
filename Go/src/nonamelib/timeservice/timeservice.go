@@ -48,13 +48,13 @@ func (t *TimeService) Start() {
 		t.isRunning = true
 		
 		t.run()
-		log.Info("TimeService", "INFO", "TimeService started")
+		log.Info("TimeService", "Start", "TimeService started")
 	}
 }
 
 func (t *TimeService) Stop() {
 	if t.isRunning {	
-		log.Verbose("TimeService", "Stop", "Stopping TimeService")
+		log.Info("TimeService", "Stop", "Stopping TimeService")
 		t.isRunning = false
 	}
 }
@@ -171,7 +171,7 @@ func (t *TimeService) calculateTimeFromSystem() {
 	}
 	t.Minutes = currentMinute * 2
 	
-	log.Verbose("TimeService", "INFO", "Current time is %v @ %d:%d", Days[t.Day], t.Hour, t.Minutes)
+	log.Info("TimeService", "INFO", "Current time is %v @ %d:%d", Days[t.Day], t.Hour, t.Minutes)
 }
 
 func (t *TimeService) run() {
