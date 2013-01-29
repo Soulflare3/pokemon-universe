@@ -94,6 +94,8 @@ func (s *Server) HandleTileChange() {
 		//Generate all tiles to update / insert for database
 		updatedTiles := s.CreateUpdatedTilesList(packet);
 		
+		packetRead := time.Now.UnixNano()
+		
 		//Prepare batch
 		var query bytes.Buffer
 		query.WriteString("SET foreign_key_checks = 0;")
@@ -143,10 +145,12 @@ func (s *Server) HandleTileChange() {
         }
         
         end := time.Now().UnixNano()
-        total := float64((end - start)) * 0.000001
+        
+        packetReadTotal := float64((packetRead - start)) * 0.000001
+        createQuery := float64((startQuery - packetRead)) * 0.000001
         totalQuery := float64((startQuery - start)) * 0.000001
 		
-		log.Verbose("Server", "HandleTileChange", "Done adding tiles, waiting for next. Total: %dms | Query: %dms | Tiles: %d", int64(total), int64(totalQuery), updatedTiles.Len())
+		log.Verbose("Server", "HandleTileChange", "Done adding tiles, waiting for next. Packet: %dms | Query: %dms (%dms) | Tiles: %d", int64(packetReadTotal), int64(createQuery), int64(totalQuery), updatedTiles.Len())
 		
 		s.tileLock.Unlock()
 	}
