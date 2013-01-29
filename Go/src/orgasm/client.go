@@ -8,10 +8,10 @@ import (
 	"net"
 	"strings"
 	
-	puh "puhelper"
 	pul "pulogic"
 	
 	"pulogic/models"
+	"nonamelib/log"
 )
 
 var AutoClientId int = 0
@@ -175,28 +175,30 @@ func (c *Client) RequestMapPiece(_packet *Packet) {
 func (c *Client) ReceiveAddMap(_packet *Packet) {
 	mapName := _packet.ReadString()
 	if len(mapName) > 0 {	
-		query := fmt.Sprintf(QUERY_INSERT_MAP, mapName)
-		if puh.DBQuery(query) == nil {
-			mapId := int(puh.DBGetLastInsertId())
-			g_map.AddMap(mapId, mapName)
-			
-			g_server.SendMapListUpdateToClients()
+		mapEntity := models.Map{}
+		mapEntity.Name = mapName
+		err := g_orm.Save(&mapEntity)
+		if err != nil {
+			log.Error("Client", "ReceiveAddMap", "Error adding map: %v", err.Error())
+			return
 		}
+		g_map.AddMap(mapEntity.Idmap, mapName)	
+		g_server.SendMapListUpdateToClients()
 	}
 }
 
 func (c *Client) ReceiveRemoveMap(_packet *Packet) {
 	mapId := int(_packet.ReadUint16())
 	
-	// Check if map id exists
-	if _, ok := g_map.GetMap(mapId); ok {	
-		query := fmt.Sprintf(QUERY_DELETE_MAP, mapId)
-		
-		if puh.DBQuery(query) == nil{
-			g_map.DeleteMap(mapId)
-			g_server.SendMapListUpdateToClients()
-		}
+	mapEntity := models.Map{}
+	mapEntity.Idmap = mapId
+	_, err := g_orm.Delete(&mapEntity)
+	if err != nil {
+		log.Error("Client", "ReceiveRemoveMap", "Error removing map: %v", err.Error())
+		return
 	}
+	g_map.DeleteMap(mapId)
+	g_server.SendMapListUpdateToClients()
 }
 
 func (c *Client) ReceiveTileEventUpdate(_packet *Packet) {
