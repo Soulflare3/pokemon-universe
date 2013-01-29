@@ -24,7 +24,6 @@ type Map struct {
 }
 
 type TileRow struct {
-	Idtile_layer	int64
 	Idtile		int64
 	IdtileEvent int
 	X           int
@@ -192,15 +191,8 @@ func (m *Map) LoadTiles() bool {
 				log.Verbose("Map", "loadTiles", "Determined next tile ID: %d", g_newTileId)	
 			}
 			
-			//Determine the biggest tilelayer
-			if row.Idtile_layer >= g_newTileLayerId {
-				g_newTileLayerId = row.Idtile_layer + 1;
-			}
-			
 			m.processChan <- row
 		}
-		
-		g_newTileLayerId++;
 
 		// Close channel so the process goroutine(s) will shutdown
 		close(m.processChan)

@@ -68,6 +68,18 @@ func (s *Server) HandleTileChange() {
 		panic(err)
 	}
 	
+	rows, _, err := db.Query("SELECT MAX(idtile_layer) AS max_id FROM tile_layer LIMIT 50")
+    if err != nil {
+        panic(err)
+    }
+    
+    for _, row := range rows {
+        // You can get converted value
+        g_newTileLayerId = row.Int64(0) + 1      // Zero value
+    }
+
+	log.Verbose("Server", "HandleTileChange", "Determined next tilelayer ID: %d", g_newTileLayerId)
+	
 	for {		
 		packet := <-s.tileChangeChan
 		
@@ -112,13 +124,21 @@ func (s *Server) HandleTileChange() {
 		query.WriteString("SET foreign_key_checks = 1;")
 		
 		// Execute
-		res, err := db.Start(query.String())
+        res, err := db.Start(query.String())
         if err != nil {
             fmt.Println(err.Error())
-        } else {
-        	for ; res != nil; res, _ = res.NextResult() {
-        		fmt.Println("Getting result..")
-        	}
+        } else if res != nil {
+                for ; res != nil; {
+                        fmt.Println("Getting result..")
+                        res2, err2 := res.NextResult()
+                        if err2 != nil {
+                                fmt.Printf("Error getting result: %s\n", err2.Error())
+                        } else if res2 == nil {
+                                break
+                        }
+                       
+                        res = res2
+                }
         }
 		
 		log.Verbose("Server", "HandleTileChange", "Done adding tiles, waiting for next.")

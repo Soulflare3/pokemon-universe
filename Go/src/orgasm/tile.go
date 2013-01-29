@@ -42,6 +42,8 @@ func (t *Tile) AddLayer(_layer int, _sprite int) (layer *TileLayer) {
 	layer = t.GetLayer(_layer)
 	if layer == nil {
 		layer = NewTileLayer(_layer, _sprite, t.DbId)
+		layer.DbId = g_newTileLayerId
+		g_newTileLayerId++
 		t.Layers[_layer] = layer
 	} else {
 		t.Layers[_layer].SetSpriteId(_sprite)
