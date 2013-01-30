@@ -1,7 +1,7 @@
 package models
 
 const (
-	TileLayer_IdtileLayer string = "tile_layer.idtile_layer"
+	TileLayer_IdtileLayer string = "tile_layer.idtilelayer"
 	TileLayer_Idtile      string = "tile_layer.idtile"
 	TileLayer_Sprite      string = "tile_layer.sprite"
 	TileLayer_Layer       string = "tile_layer.layer"
