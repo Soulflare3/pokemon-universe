@@ -21,7 +21,7 @@ const (
 	
 	//TODO The idlocation and the idtielis a constant 1 yet
 	QUERY_INSERT_TILE string = "INSERT INTO tile (idtile, x, y, z, movement, idlocation, idtile_event) VALUES (%d, %d, %d, %d, %d, 1, %s);\n"
-	QUERY_UPDATE_TILE string = "UPDATE tile SET movement='%d', idtile_event='%d' WHERE idtile='%d';\n"
+	QUERY_UPDATE_TILE string = "UPDATE tile SET movement='%d', idtile_event=%s WHERE idtile='%d';\n"
 	QUERY_DELETE_TILE string = "DELETE FROM tile WHERE idtile='%d';\n"
 	QUERY_LOAD_TILES string = 	"SELECT t.`x`, t.`y`, t.`z`, t.`idlocation`, t.`movement`, t.`idtile_event`," +
 								" tl.`sprite`, tl.`layer`," +
@@ -37,7 +37,7 @@ const (
 									"param1='%s', param1='%s', param1='%s' WHERE idtile_event=%d"							
 	QUERY_DELETE_EVENT string = "DELETE FROM tile_events WHERE idtile_event = %d"
 
-	QUERY_INSERT_TILELAYER string = "INSERT INTO tile_layer (tileid, layer, sprite) VALUES (%d, %d, %d);\n"
+	QUERY_INSERT_TILELAYER string = "INSERT INTO tile_layer (idtile_layer, tileid, layer, sprite) VALUES (%d, %d, %d, %d);\n"
 	QUERY_UPDATE_TILELAYER string = "UPDATE tile_layer SET sprite='%d' WHERE idtile_layer='%d';\n"
 	QUERY_DELETE_TILELAYER string = "DELETE FROM tile_layer WHERE idtile_layer='%d';\n"
 	

@@ -38,12 +38,11 @@ func NewTileExt(_x int, _y int, _z int) *Tile {
 
 // AddLayer adds a new TileLayer to the tile. 
 // If the layer already exists it will return that one otherwise it'll make a new one
-func (t *Tile) AddLayer(_layer int, _sprite int) (layer *TileLayer) {
+func (t *Tile) AddLayer(_layer int, _sprite int, _dbId int64) (layer *TileLayer) {
 	layer = t.GetLayer(_layer)
 	if layer == nil {
 		layer = NewTileLayer(_layer, _sprite, t.DbId)
-		layer.DbId = g_newTileLayerId
-		g_newTileLayerId++
+		layer.DbId = _dbId
 		t.Layers[_layer] = layer
 	} else {
 		t.Layers[_layer].SetSpriteId(_sprite)

@@ -24,6 +24,7 @@ type Map struct {
 }
 
 type TileRow struct {
+	Idtile_layer int64
 	Idtile		int64
 	IdtileEvent int
 	X           int
@@ -167,6 +168,9 @@ func (m *Map) LoadTiles() bool {
 	start := time.Now().UnixNano()
 	var allTiles []TileRow
 	
+	//Init the tile id to 1
+	g_newTileId = 1
+	
 	err := g_orm.SetTable("tile").Join("INNER", "tile_layer", "tile_layer.tileid = tile.idtile").Join(" LEFT", "tile_events", "tile_events.idtile_events = tile.idtile_event").OrderBy("tile.idtile DESC").FindAll(&allTiles)
 	if err != nil {
 		log.Error("map", "loadTiles", "Error while loading tiles: %v", err.Error())
@@ -240,7 +244,7 @@ func (m *Map) processTiles() {
 		}
 	
 		// Add layer to tile
-		tile.AddLayer(row.Layer, row.Sprite)
+		tile.AddLayer(row.Layer, row.Sprite, row.Idtile_layer)
 	}
 	
 	m.processExitChan <- true

@@ -110,12 +110,12 @@ func (s *Server) HandleTileChange() {
         		tile.IsNew = false
         	} else {
         		//create update batch for all o tiles
-        		query.WriteString(fmt.Sprintf(QUERY_UPDATE_TILE, tile.Blocking, 0, tile.DbId))
+        		query.WriteString(fmt.Sprintf(QUERY_UPDATE_TILE, tile.Blocking, "NULL", tile.DbId))
         	}
         	
         	for _, tileLayer := range tile.Layers {
         		if(tileLayer.IsNew) {
-        			query.WriteString(fmt.Sprintf(QUERY_INSERT_TILELAYER, tileLayer.TileId, tileLayer.Layer, tileLayer.SpriteId))
+        			query.WriteString(fmt.Sprintf(QUERY_INSERT_TILELAYER, tileLayer.DbId, tileLayer.TileId, tileLayer.Layer, tileLayer.SpriteId))
         			tileLayer.IsNew = false
         		} else {
         			query.WriteString(fmt.Sprintf(QUERY_UPDATE_TILELAYER, tileLayer.SpriteId, tileLayer.DbId))
@@ -197,7 +197,8 @@ func (s *Server) CreateUpdatedTilesList(_packet *Packet) *list.List {
 				if tileLayer == nil {
 				
 					// Add and save new tile layer
-					tileLayer = tile.AddLayer(layerId, sprite)
+					tileLayer = tile.AddLayer(layerId, sprite, g_newTileLayerId)
+					g_newTileLayerId++
 					
 					if IS_DEBUG {
 						fmt.Printf("Add Layer - Tile Id: %d - Layer: %d - DbId: %d\n", tile.DbId, layerId, tileLayer.DbId)
