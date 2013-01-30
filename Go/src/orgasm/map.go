@@ -24,7 +24,7 @@ type Map struct {
 }
 
 type TileRow struct {
-	Idtilelayer int64
+	IdtileLayer int64
 	Idtile		int64
 	IdtileEvent int
 	X           int
@@ -245,9 +245,9 @@ func (m *Map) processTiles() {
 	
 		// Add layer to tile
 		if IS_DEBUG {
-			log.Info("Map", "processTiles", "Current layer, sprite, idtilelayer: %d, %d, %d", row.Layer, row.Sprite, row.Idtilelayer)
+			log.Info("Map", "processTiles", "Current layer, sprite, idtilelayer: %d, %d, %d", row.Layer, row.Sprite, row.IdtileLayer)
 		}
-		tile.AddLayer(row.Layer, row.Sprite, row.Idtilelayer, false)
+		tile.AddLayer(row.Layer, row.Sprite, row.IdtileLayer, false)
 	}
 	
 	m.processExitChan <- true

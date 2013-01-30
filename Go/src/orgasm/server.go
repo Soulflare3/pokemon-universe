@@ -67,7 +67,7 @@ func (s *Server) HandleTileChange() {
 		panic(err)
 	}
 	
-	rows, _, err := db.Query("SELECT MAX(idtilelayer) AS max_id FROM tile_layer LIMIT 50")
+	rows, _, err := db.Query("SELECT MAX(idtile_layer) AS max_id FROM tile_layer LIMIT 50")
     if err != nil {
         panic(err)
     }

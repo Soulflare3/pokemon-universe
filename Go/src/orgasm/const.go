@@ -25,7 +25,7 @@ const (
 	QUERY_DELETE_TILE string = "DELETE FROM tile WHERE idtile='%d';\n"
 	QUERY_LOAD_TILES string = 	"SELECT t.`x`, t.`y`, t.`z`, t.`idlocation`, t.`movement`, t.`idtile_event`," +
 								" tl.`sprite`, tl.`layer`," +
-								" t.`idtile`, tl.`idtilelayer`" +
+								" t.`idtile`, tl.`idtile_layer`" +
 								" FROM tile `t`" +
 								" INNER JOIN tile_layer `tl` ON t.`idtile` = tl.`idtile`" 
 								
@@ -37,9 +37,9 @@ const (
 									"param1='%s', param1='%s', param1='%s' WHERE idtile_event=%d"							
 	QUERY_DELETE_EVENT string = "DELETE FROM tile_events WHERE idtile_event = %d"
 
-	QUERY_INSERT_TILELAYER string = "INSERT INTO tile_layer (idtilelayer, tileid, layer, sprite) VALUES (%d, %d, %d, %d);\n"
-	QUERY_UPDATE_TILELAYER string = "UPDATE tile_layer SET sprite='%d' WHERE idtilelayer='%d';\n"
-	QUERY_DELETE_TILELAYER string = "DELETE FROM tile_layer WHERE idtilelayer='%d';\n"
+	QUERY_INSERT_TILELAYER string = "INSERT INTO tile_layer (idtile_layer, tileid, layer, sprite) VALUES (%d, %d, %d, %d);\n"
+	QUERY_UPDATE_TILELAYER string = "UPDATE tile_layer SET sprite='%d' WHERE idtile_layer='%d';\n"
+	QUERY_DELETE_TILELAYER string = "DELETE FROM tile_layer WHERE idtile_layer='%d';\n"
 	
 	QUERY_INSERT_MAP string = "INSERT INTO map (name) VALUES ('%s')"
 	QUERY_DELETE_MAP string = "DELETE map, tile, tile_layer FROM map " +  
