@@ -67,7 +67,7 @@ func (s *Server) HandleTileChange() {
 		panic(err)
 	}
 	
-	rows, _, err := db.Query("SELECT MAX(idtile_layer) AS max_id FROM tile_layer LIMIT 50")
+	rows, _, err := db.Query("SELECT MAX(idtilelayer) AS max_id FROM tile_layer LIMIT 50")
     if err != nil {
         panic(err)
     }
@@ -197,13 +197,15 @@ func (s *Server) CreateUpdatedTilesList(_packet *Packet) *list.List {
 				if tileLayer == nil {
 				
 					// Add and save new tile layer
-					tileLayer = tile.AddLayer(layerId, sprite, g_newTileLayerId)
+					tileLayer = tile.AddLayer(layerId, sprite, g_newTileLayerId, true)
 					g_newTileLayerId++
 					
 					if IS_DEBUG {
 						fmt.Printf("Add Layer - Tile Id: %d - Layer: %d - DbId: %d\n", tile.DbId, layerId, tileLayer.DbId)
 					}
 				} else {
+					tileLayer.IsNew = false
+					
 					if sprite == 0 {
 						if IS_DEBUG {
 							fmt.Printf("Delete Layer - Tile Id: %d - DbId: %d\n", tile.DbId, tileLayer.DbId)
