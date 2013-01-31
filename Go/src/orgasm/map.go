@@ -74,11 +74,16 @@ func (m *Map) GetMap(_id int) (string, bool) {
 }
 
 func (m *Map) DeleteMap(_id int) {
-	// Remove all tiles
-	delete(m.tileMap, _id)
-	
-	// Remove map name
-	delete(m.mapNames, _id)
+	mapEntity := models.Map { Idmap: _id }	
+	if _, err := g_orm.Delete(&mapEntity); err != nil {
+		log.Error("Map", "DeleteMap", "Failed to remove map. Id: %d, Error: %s", _id, err.Error()) 
+	} else {
+		// Remove all tiles
+		delete(m.tileMap, _id)
+		
+		// Remove map name
+		delete(m.mapNames, _id)
+	}
 }
 
 func (m *Map) AddTile(_tile *Tile) {
