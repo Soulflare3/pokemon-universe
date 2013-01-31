@@ -8,6 +8,6 @@ const (
 
 type Pokecenter struct {
 	Idpokecenter int `PK`
-	Position     int
+	Position     int64
 	Description  string
 }

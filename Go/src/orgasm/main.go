@@ -16,12 +16,13 @@ import (
 )
 
 const (
-	IS_DEBUG = true
+	IS_DEBUG = false
 )
 
 var (
 	g_map *Map = NewMap()
 	g_npc *NpcList = NewNpcList()
+	g_locations *LocationsList = NewLocationsList()
 	g_orm beedb.Model
 	g_server *Server
 	g_config *config.ConfigFile
@@ -141,6 +142,12 @@ func main() {
 //	fmt.Printf("Retrieving NPC Pokemon...")
 //	g_npc.LoadNpcPokemon()
 //	fmt.Printf("[Succeeded] (%d Pokemons loaded)\n", g_npc.GetNumPokemons())
+	
+	fmt.Printf("Retrieving Locations...")
+	if !g_locations.LoadLocations(){
+		return
+	}
+	fmt.Printf("[Succeeded] (Loaded %d pokecenters, %d music and %d locations)\n", g_locations.GetNumPokecenters(), g_locations.GetNumMusic(), g_locations.GetNumLocations())
 	
 	fmt.Println("Initialisation completed!\n")
 	

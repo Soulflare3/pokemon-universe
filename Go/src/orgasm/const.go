@@ -14,6 +14,23 @@ const (
 	HEADER_DELETE_NPC			= 0x0A
 	HEADER_GET_NPC_DATA			= 0x0B
 	HEADER_GET_NPC_EVENTS		= 0x0C
+	HEADER_SET_MUSIC			= 0x0D
+	HEADER_SET_POKECENTER		= 0x0E
+	HEADER_SET_LOCATION			= 0x0F
+)
+
+const (
+	HEADER_SEND_LOGIN			= 0x00
+	HEADER_SEND_TILE_AREA		= 0x01
+	HEADER_SEND_MAP_LIST		= 0x03
+	HEADER_SEND_NPC_LIST		= 0x04
+	HEADER_SEND_NPC				= 0x05
+	HEADER_SEND_DELETE_NPC		= 0x06
+	HEADER_SEND_NPC_POKEMON		= 0x07
+	HEADER_SEND_NPC_PANELS		= 0x08
+	HEADER_SEND_LOCATION_LIST	= 0x09
+	HEADER_SEND_POKECENTER_LIST = 0x10
+	HEADER_SEND_MUSIC_LIST		= 0x11
 )
 
 const (
@@ -40,12 +57,6 @@ const (
 	QUERY_INSERT_TILELAYER string = "INSERT INTO tile_layer (idtile_layer, tileid, layer, sprite) VALUES (%d, %d, %d, %d);\n"
 	QUERY_UPDATE_TILELAYER string = "UPDATE tile_layer SET sprite='%d' WHERE idtile_layer='%d';\n"
 	QUERY_DELETE_TILELAYER string = "DELETE FROM tile_layer WHERE idtile_layer='%d';\n"
-	
-	QUERY_INSERT_MAP string = "INSERT INTO map (name) VALUES ('%s')"
-	QUERY_DELETE_MAP string = "DELETE map, tile, tile_layer FROM map " +  
-								"LEFT JOIN tile ON map.idmap = tile.z "+ 
-								"LEFT JOIN tile_layer ON tile.idtile = tile_layer.idtile " +
-								"WHERE map.idmap= '%d'"
 								
 	QUERY_SELECT_NPCS string = "SELECT npc.idnpc, npc.name, npc_outfit.head, npc_outfit.nek, npc_outfit.upper, npc_outfit.lower, " + 
 								 "npc_outfit.feet, npc.position, npc_events.event, npc_events.initId " + 

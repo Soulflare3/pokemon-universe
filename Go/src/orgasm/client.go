@@ -8,6 +8,7 @@ import (
 	"net"
 	"strings"
 	
+	pos "nonamelib/pos"
 	pul "pulogic"
 	
 	"pulogic/models"
@@ -109,6 +110,15 @@ func (c *Client) HandleClient() {
 		case HEADER_GET_NPC_EVENTS:
 			go c.ReceiveNpcEvents(packet)
 			
+		case HEADER_SET_MUSIC:
+			go c.ReceiveSaveMusic(packet)
+			
+		case HEADER_SET_POKECENTER:
+			go c.ReceiveSavePokecenter(packet)
+			
+		case HEADER_SET_LOCATION:
+			go c.ReceiveSaveLocation(packet)
+			
 		default:
 			fmt.Printf("Unknown header: %d\n", header)
 			
@@ -130,6 +140,12 @@ func (c *Client) ReceiveLogin(_packet *Packet) {
 			c.SendMapList()
 			fmt.Println("- Send npc list")
 			c.SendNpcList()
+			fmt.Println("- Send location list")
+			c.SendLocationList()
+			fmt.Println("- Send music list")
+			c.SendMusicList()
+			fmt.Println("- Send pokecenter list")
+			c.SendPokecenterList()
 		} else {
 			fmt.Println("- Send login false")
 			c.SendLogin(1)
@@ -311,12 +327,25 @@ func (c *Client) ReceiveNpcEvents(_packet *Packet) {
 	}
 }
 
+func (c *Client) ReceiveSaveMusic(_packet *Packet) {
+	
+}
+
+func (c *Client) ReceiveSaveLocation(_packet *Packet) {
+	
+}
+
+func (c *Client) ReceiveSavePokecenter(_packet *Packet) {
+
+}
+
+
 // //////////////////////////////////////////////
 // SEND
 // //////////////////////////////////////////////
 
 func (c *Client) SendLogin(_status int) {
-	packet := NewPacketExt(0x00)
+	packet := NewPacketExt(HEADER_SEND_LOGIN)
 	packet.AddUint16(uint16(_status))
 	if (_status == 2){
 		packet.AddString(version)
@@ -326,7 +355,7 @@ func (c *Client) SendLogin(_status int) {
 
 func (c *Client) SendArea(_x, _y, _z, _w, _h int) {
 
-	packet := NewPacketExt(0x01)
+	packet := NewPacketExt(HEADER_SEND_TILE_AREA)
 	packet.AddUint16(0)
 	packet.AddUint16(uint16(_z))
 	count := 0
@@ -381,7 +410,7 @@ func (c *Client) SendArea(_x, _y, _z, _w, _h int) {
 }
 
 func (c *Client) SendMapList() {
-	packet := NewPacketExt(0x03)
+	packet := NewPacketExt(HEADER_SEND_MAP_LIST)
 	packet.AddUint16(uint16(len(g_map.mapNames)))
 	
 	for index, value := range(g_map.mapNames) {
@@ -393,7 +422,7 @@ func (c *Client) SendMapList() {
 }
 
 func (c *Client) SendNpcList() {
-	packet := NewPacketExt(0x04)
+	packet := NewPacketExt(HEADER_SEND_NPC_LIST)
 	packet.AddUint16(uint16(len(g_npc.Npcs)))
 	
 	for _id, npc := range(g_npc.Npcs) {
@@ -413,7 +442,7 @@ func (c *Client) SendNpcList() {
 }
 
 func (c *Client) SendNpc(_npcid int64) {
-	packet := NewPacketExt(0x05)
+	packet := NewPacketExt(HEADER_SEND_NPC)
 	
 	npc, _ := g_npc.GetNpcById(_npcid)
 	packet.AddUint16(uint16(_npcid))
@@ -431,14 +460,14 @@ func (c *Client) SendNpc(_npcid int64) {
 }
 
 func (c *Client) SendDeleteNpc(_id int64) {
-	packet := NewPacketExt(0x06)
+	packet := NewPacketExt(HEADER_SEND_DELETE_NPC)
 	packet.AddUint16(uint16(_id))
 	
 	c.Send(packet)
 }
 
 func (c *Client) SendNpcPokemon(_npcid int64) {
-	packet := NewPacketExt(0x07)
+	packet := NewPacketExt(HEADER_SEND_NPC_POKEMON)
 	packet.AddUint16(uint16(_npcid))
 	
 	npc, _ := g_npc.GetNpcById(_npcid)
@@ -464,10 +493,53 @@ func (c *Client) SendNpcPokemon(_npcid int64) {
 func (c *Client) SendNpcEvents(_id int64) {
 	npc, _ := g_npc.GetNpcById(_id)
 	
-	packet := NewPacketExt(0x08)
+	packet := NewPacketExt(HEADER_SEND_NPC_PANELS)
 	packet.AddUint16(uint16(_id))
 	packet.AddString(npc.Events)
 	packet.AddUint16(uint16(npc.EventInitId))
+	
+	c.Send(packet)
+}
+
+func (c *Client) SendLocationList() {
+	packet := NewPacketExt(HEADER_SEND_LOCATION_LIST)
+	packet.AddUint16(uint16(len(g_locations.locations)))
+	
+	for index, location := range(g_locations.locations) {
+		packet.AddUint16(uint16(index))
+		packet.AddString(location.Name)
+		packet.AddUint16(uint16(location.Idpokecenter))
+		packet.AddUint16(uint16(location.Idmusic))
+	}
+	
+	c.Send(packet)
+}
+
+func (c *Client) SendPokecenterList() {
+	packet := NewPacketExt(HEADER_SEND_POKECENTER_LIST)
+	packet.AddUint16(uint16(len(g_locations.locations)))
+	
+	for index, pokecenter := range(g_locations.pokecenters) {
+		packet.AddUint16(uint16(index))
+		position := pos.NewPositionFromHash(pokecenter.Position)
+		packet.AddUint16(uint16(position.X))
+		packet.AddUint16(uint16(position.Y))
+		packet.AddUint16(uint16(position.Z))
+		packet.AddString(pokecenter.Description)
+	}
+	
+	c.Send(packet)
+}
+
+func (c *Client) SendMusicList() {
+	packet := NewPacketExt(HEADER_SEND_MUSIC_LIST)
+	packet.AddUint16(uint16(len(g_locations.musics)))
+	
+	for index, music := range(g_locations.musics) {
+		packet.AddUint16(uint16(index))
+		packet.AddString(music.Title)
+		packet.AddString(music.Filename)
+	}
 	
 	c.Send(packet)
 }
