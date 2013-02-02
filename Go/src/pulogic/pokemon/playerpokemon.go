@@ -16,11 +16,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.*/
 package pokemon
 
-import (
-	"fmt"
-	
-	puh "puhelper"
+import (	
 	log "nonamelib/log"
+	
+	"pulogic/models"
 )
 
 type PlayerPokemonList map[int]*PlayerPokemon
@@ -56,42 +55,32 @@ func NewPlayerPokemon(_playerId int) *PlayerPokemon {
 }
 
 func (p *PlayerPokemon) LoadMoves() {
-	var query string = "SELECT idplayer_pokemon_move, idmove, pp_used FROM player_pokemon_move WHERE idplayer_pokemon=%d"
-	result, err := puh.DBQuerySelect(fmt.Sprintf(query, p.IdDb))
+	pokemonEntities := []models.PlayerPokemonMove{}
+	err := G_orm.FindAll(&pokemonEntities)
 	if err != nil {
-		return
-	}
-	
-	defer puh.DBFree()	
-	var index int = 0
-	for {
-		row := result.FetchRow()
-		if row == nil {
-			break
+		log.Error("PlayerPokemon", "LoadMoves", "Error loading pokemon moves. IdplayerPokemon: %d, Error: %s", p.IdDb, err.Error())
+	} else {
+		index := 0
+		for _, entity := range(pokemonEntities) {
+			p.Moves[index] = NewPlayerPokemonMove(entity.IdplayerPokemonMove, entity.Idmove, entity.PpUsed)
+			index++
 		}
 		
-		uniqueId := puh.DBGetInt64(row[0])
-		moveId := puh.DBGetInt(row[1])
-		ppUsed := puh.DBGetInt(row[2])
-		p.Moves[index] = NewPlayerPokemonMove(uniqueId, moveId, ppUsed)
-		index++
-	}
-	
-	if index == 0 {
-		log.Printf("[WARNING] Pokemon (db id: %d) has zero moves\n", p.IdDb)
+		if index == 0 {
+			log.Warning("PlayerPokemon", "LoadMoves", "Pokemon has zero moves. IdPlayerPokemon: %d", p.IdDb)
+		}
 	}
 }
 
 func (p *PlayerPokemon) SaveMoves() {
-	
-	for i := 0; i < 4; i++ {
-		
-		if move := p.Moves[i]; move != nil {
-			
-			query := "UPDATE player_pokemon_move SET idmove=%d, pp_used=%d WHERE idplayer_pokemon_move=%d"
-			puh.DBQuery(fmt.Sprintf(query, move.Move.MoveId, move.CurrentPP, move.DbId))
-		}
-	}
+//	for i := 0; i < 4; i++ {
+//		
+//		if move := p.Moves[i]; move != nil {
+//			
+//			query := "UPDATE player_pokemon_move SET idmove=%d, pp_used=%d WHERE idplayer_pokemon_move=%d"
+//			puh.DBQuery(fmt.Sprintf(query, move.Move.MoveId, move.CurrentPP, move.DbId))
+//		}
+//	}
 }
 
 func (p *PlayerPokemon) GetNickname() string {

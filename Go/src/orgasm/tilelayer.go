@@ -1,10 +1,5 @@
 package main
 
-import (
-	"fmt"
-	puh "puhelper"
-)
-
 type TileLayer struct {
 	DbId	 int64
 	Layer    int
@@ -24,10 +19,11 @@ func NewTileLayer(_layer, _spriteId int, _tileId int64) *TileLayer {
 }
 
 func (tl *TileLayer) Delete() bool {
-	query := fmt.Sprintf(QUERY_DELETE_TILELAYER, tl.DbId)
-	if err := puh.DBQuery(query); err != nil {
-		return false
-	}
+	tl.IsRemoved = true
+//	query := fmt.Sprintf(QUERY_DELETE_TILELAYER, tl.DbId)
+//	if err := puh.DBQuery(query); err != nil {
+//		return false
+//	}
 	
 	return true
 }

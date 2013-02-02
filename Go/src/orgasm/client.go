@@ -191,8 +191,8 @@ func (c *Client) RequestMapPiece(_packet *Packet) {
 func (c *Client) ReceiveAddMap(_packet *Packet) {
 	mapName := _packet.ReadString()
 	if len(mapName) > 0 {	
-		mapEntity := models.Map{}
-		mapEntity.Name = mapName
+		mapEntity := models.Map{ Idmap: 0, 
+								 Name: mapName }
 		err := g_orm.Save(&mapEntity)
 		if err != nil {
 			log.Error("Client", "ReceiveAddMap", "Error adding map: %v", err.Error())

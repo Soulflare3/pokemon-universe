@@ -21,11 +21,11 @@ import "fmt"
 type PlayerPokemonMove struct {
 	Move *Move
 	
-	DbId		int64
+	DbId		int
 	CurrentPP 	int
 }
 
-func NewPlayerPokemonMove(_dbid int64, _moveId int, _currentPP int) *PlayerPokemonMove {
+func NewPlayerPokemonMove(_dbid int, _moveId int, _currentPP int) *PlayerPokemonMove {
 	pMove := PlayerPokemonMove{ DbId: _dbid, CurrentPP: _currentPP }
 	pMove.Move = GetInstance().GetMoveById(_moveId)
 	

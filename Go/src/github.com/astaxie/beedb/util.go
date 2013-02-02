@@ -125,7 +125,7 @@ func scanMapIntoStruct(obj interface{}, objMap map[string][]byte) error {
 	return nil
 }
 
-func scanStructIntoMap(obj interface{}) (map[string]interface{}, error) {
+func scanStructIntoMap(obj interface{}, tableName string) (map[string]interface{}, error) {
 	dataStruct := reflect.Indirect(reflect.ValueOf(obj))
 	if dataStruct.Kind() != reflect.Struct {
 		return nil, errors.New("expected a pointer to a struct")
@@ -141,6 +141,11 @@ func scanStructIntoMap(obj interface{}) (map[string]interface{}, error) {
 
 		mapKey := snakeCasedName(fieldName)
 		value := dataStruct.FieldByName(fieldName).Interface()
+		
+		bb := reflect.ValueOf(dataStructType.Field(i).Tag)
+		if bb.String() == "PK" {
+			mapKey = tableName + "." + mapKey
+		}
 
 		mapped[mapKey] = value
 	}

@@ -28,6 +28,8 @@ type Model struct {
 	QuoteIdentifier string
 	ParamIdentifier string
 	ParamIteration  int
+	
+	primaryKeyField	string
 }
 
 /**
@@ -49,8 +51,9 @@ func (orm *Model) SetTable(tbname string) *Model {
 	return orm
 }
 
-func (orm *Model) SetPK(pk string) *Model {
-	orm.PrimaryKey = pk
+func (orm *Model) SetPK(table string, pk string) *Model {
+	orm.PrimaryKey = table + "." + pk
+	orm.primaryKeyField = pk
 	return orm
 }
 
@@ -101,7 +104,8 @@ func (orm *Model) ScanPK(output interface{}) *Model {
 		for i := 0; i < sliceElementType.NumField(); i++ {
 			bb := reflect.ValueOf(sliceElementType.Field(i).Tag)
 			if bb.String() == "PK" {
-				orm.PrimaryKey = sliceElementType.Field(i).Name
+				orm.PrimaryKey = getTableName(output) + "." + sliceElementType.Field(i).Name
+				orm.primaryKeyField = sliceElementType.Field(i).Name
 			}
 		}
 	} else {
@@ -109,7 +113,8 @@ func (orm *Model) ScanPK(output interface{}) *Model {
 		for i := 0; i < tt.NumField(); i++ {
 			bb := reflect.ValueOf(tt.Field(i).Tag)
 			if bb.String() == "PK" {
-				orm.PrimaryKey = tt.Field(i).Name
+				orm.PrimaryKey = getTableName(output) + "." + tt.Field(i).Name
+				orm.primaryKeyField = tt.Field(i).Name
 			}
 		}
 	}
@@ -141,14 +146,17 @@ func (orm *Model) Having(conditions string) *Model {
 func (orm *Model) Find(output interface{}) error {
 	orm.ScanPK(output)
 	var keys []string
-	results, _ := scanStructIntoMap(output)
 	if orm.TableName == "" {
 		orm.TableName = snakeCasedName(StructName(output))
 	}
+	results, _ := scanStructIntoMap(output, orm.TableName)
 	for key, _ := range results {
 		keys = append(keys, key)
 	}
-	orm.ColumnStr = strings.Join(keys, ", ")
+	
+	if orm.ColumnStr == "" {
+		orm.ColumnStr = strings.Join(keys, ", ")
+	}
 	orm.Limit(1)
 	resultsSlice, err := orm.FindMap()
 	if err != nil {
@@ -175,10 +183,10 @@ func (orm *Model) FindAll(rowsSlicePtr interface{}) error {
 	sliceElementType := sliceValue.Type().Elem()
 	st := reflect.New(sliceElementType)
 	var keys []string
-	results, _ := scanStructIntoMap(st.Interface())
 	if orm.TableName == "" {
 		orm.TableName = getTableName(rowsSlicePtr)
 	}
+	results, _ := scanStructIntoMap(st.Interface(), orm.TableName)
 	for key, _ := range results {
 		keys = append(keys, key)
 	}
@@ -355,16 +363,16 @@ func (orm *Model) Exec(finalQueryString string, args ...interface{}) (sql.Result
 //if the struct has PrimaryKey == 0 insert else update
 func (orm *Model) Save(output interface{}) error {
 	orm.ScanPK(output)
-	results, _ := scanStructIntoMap(output)
 	if orm.TableName == "" {
 		orm.TableName = snakeCasedName(StructName(output))
 	}
+	results, _ := scanStructIntoMap(output, orm.TableName)
 	id := results[snakeCasedName(orm.PrimaryKey)]
 	delete(results, snakeCasedName(orm.PrimaryKey))
 	if reflect.ValueOf(id).Int() == 0 {
 		structPtr := reflect.ValueOf(output)
 		structVal := structPtr.Elem()
-		structField := structVal.FieldByName(orm.PrimaryKey)
+		structField := structVal.FieldByName(orm.primaryKeyField)
 		id, err := orm.Insert(results)
 		if err != nil {
 			return err
@@ -513,10 +521,10 @@ func (orm *Model) Update(properties map[string]interface{}) (int64, error) {
 func (orm *Model) Delete(output interface{}) (int64, error) {
 	defer orm.InitModel()
 	orm.ScanPK(output)
-	results, _ := scanStructIntoMap(output)
 	if orm.TableName == "" {
 		orm.TableName = snakeCasedName(StructName(output))
 	}
+	results, _ := scanStructIntoMap(output, orm.TableName)
 	id := results[strings.ToLower(orm.PrimaryKey)]
 	condition := fmt.Sprintf("%v%v%v='%v'", orm.QuoteIdentifier, strings.ToLower(orm.PrimaryKey), orm.QuoteIdentifier, id)
 	statement := fmt.Sprintf("DELETE FROM %v%v%v WHERE %v",
@@ -552,7 +560,7 @@ func (orm *Model) DeleteAll(rowsSlicePtr interface{}) (int64, error) {
 		return 0, nil
 	}
 	for i := 0; i < val.Len(); i++ {
-		results, _ := scanStructIntoMap(val.Index(i).Interface())
+		results, _ := scanStructIntoMap(val.Index(i).Interface(), orm.TableName)
 		id := results[strings.ToLower(orm.PrimaryKey)]
 		switch id.(type) {
 		case string:
