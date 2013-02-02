@@ -98,8 +98,9 @@ func (m *Map) AddTile(_tile *Tile) {
 
 func (m *Map) RemoveTile(_tile *Tile) {
 	var index int64 = _tile.Position.Hash()
-	tiles := m.tileMap[_tile.Position.Z]
-	delete(tiles, index)
+	if tiles, ok := m.tileMap[_tile.Position.Z]; ok {
+		delete(tiles, index)
+	}
 }
 
 func (m *Map) GetTileFromCoordinates(_x, _y, _z int) (*Tile, bool) {

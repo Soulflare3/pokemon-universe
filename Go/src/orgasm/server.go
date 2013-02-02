@@ -10,7 +10,7 @@ import (
 	"time"
 	
 	"github.com/ziutek/mymysql/mysql"
-    _ "github.com/ziutek/mymysql/native"
+    _ "github.com/ziutek/mymysql/autorc"
 	
 	"nonamelib/log"
 )
@@ -108,18 +108,28 @@ func (s *Server) HandleTileChange() {
 				//create insert batch for all new tiles
 	        	query.WriteString(fmt.Sprintf(QUERY_INSERT_TILE, tile.DbId, tile.Position.X, tile.Position.Y, tile.Position.Z, tile.Blocking, "NULL"))	        	
         		tile.IsNew = false
+        	} else if tile.IsRemoved {
+        		g_map.RemoveTile(tile)
+        		
+        		// No need to delete tile layers, since that's done automatically by SQL server due to constrains 
+        		query.WriteString(fmt.Sprintf(QUERY_DELETE_TILE, tile.DbId))
         	} else {
         		//create update batch for all o tiles
         		query.WriteString(fmt.Sprintf(QUERY_UPDATE_TILE, tile.Blocking, "NULL", tile.DbId))
         	}
         	
-        	for _, tileLayer := range tile.Layers {
-        		if(tileLayer.IsNew) {
-        			query.WriteString(fmt.Sprintf(QUERY_INSERT_TILELAYER, tileLayer.DbId, tileLayer.TileId, tileLayer.Layer, tileLayer.SpriteId))
-        			tileLayer.IsNew = false
-        		} else {
-        			query.WriteString(fmt.Sprintf(QUERY_UPDATE_TILELAYER, tileLayer.SpriteId, tileLayer.DbId))
-        		}
+        	if !tile.IsRemoved {
+	        	for _, tileLayer := range tile.Layers {
+	        		if(tileLayer.IsNew) {
+	        			query.WriteString(fmt.Sprintf(QUERY_INSERT_TILELAYER, tileLayer.DbId, tileLayer.TileId, tileLayer.Layer, tileLayer.SpriteId))
+	        			tileLayer.IsNew = false
+	        		} else if tileLayer.IsRemoved {
+	        			tile.RemoveLayer(tileLayer)
+	        			query.WriteString(fmt.Sprintf(QUERY_DELETE_TILELAYER, tileLayer.DbId))
+	        		} else {
+	        			query.WriteString(fmt.Sprintf(QUERY_UPDATE_TILELAYER, tileLayer.SpriteId, tileLayer.DbId))
+	        		}
+	        	}
         	}
     	}
 		
@@ -149,7 +159,7 @@ func (s *Server) HandleTileChange() {
         end := time.Now().UnixNano()
         execQueryTotal := float64((end - startQuery)) * 0.000001
 		
-		log.Verbose("Server", "HandleTileChange", "Done adding tiles, waiting for next.")
+		//log.Verbose("Server", "HandleTileChange", "Done adding tiles, waiting for next.")
 		log.Verbose("Server", "HandleTileChange", "Packet: %dms | Query: %dms (Exec: %dms) | Tiles: %d", int64(packetReadTotal), int64(createQueryTotal), int64(execQueryTotal), updatedTiles.Len()) 
 		
 		s.tileLock.Unlock()
@@ -176,12 +186,15 @@ func (s *Server) CreateUpdatedTilesList(_packet *Packet) *list.List {
 		// Check if tile already exists
 		tile := g_map.getOrAddTile(x, y, z)
 		
-		if(tile.IsNew) {
+		if tile.IsNew {
 			if IS_DEBUG {
 				log.Verbose("Server", "CreateUpdatedTilesList", "Adding new tile with id %d", g_newTileId)
 			}
 			tile.DbId = g_newTileId
 			g_newTileId++
+		} else if tile.IsRemoved {
+			// If the tile is already marked for removal then this must be a duplicate
+			continue
 		}
 
 		if numLayers > 0 {
@@ -211,8 +224,12 @@ func (s *Server) CreateUpdatedTilesList(_packet *Packet) *list.List {
 							fmt.Printf("Delete Layer - Tile Id: %d - DbId: %d\n", tile.DbId, tileLayer.DbId)
 						}
 
-						// Remove layer, this will also remove the layer from database
-						tile.RemoveLayer(tileLayer)
+						tileLayer.IsRemoved = true
+						
+						// If this is the last layer for this tile, remove the tile
+						if len(tile.Layers) == 1 {
+							tile.IsRemoved = true
+						}
 					} else {
 						if IS_DEBUG {
 							fmt.Printf("Update Layer - Tile Id: %d - DbId: %d\n", tile.DbId, tileLayer.DbId)
@@ -228,11 +245,8 @@ func (s *Server) CreateUpdatedTilesList(_packet *Packet) *list.List {
 				if IS_DEBUG {
 					fmt.Printf("Delete Tile - Tile Id: %d\n", tile.DbId)
 				}
-				//////////////////////////////////
-				//TODO Remove tile from database//
-				//////////////////////////////////
-
-				g_map.RemoveTile(tile)
+				
+				tile.IsRemoved = true
 			}
 		}
 
